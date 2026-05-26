@@ -91,6 +91,7 @@ def create_app() -> FastAPI:
 
     app.include_router(categoria_produto_router)
     app.include_router(produto_router)
+
     @app.get("/health", tags=["Health"])
     async def health_check():
         return {"status": "UP"}
