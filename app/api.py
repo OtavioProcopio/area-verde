@@ -8,6 +8,7 @@ from sqlmodel import Session
 from adapter.controllers.categoria_produto_controller import (
     router as categoria_produto_router,
 )
+from adapter.controllers.estoque_controller import router as estoque_router
 from adapter.controllers.produto_controller import router as produto_router
 from core.domain.exceptions import ApplicationError
 from infra.config.container import Container
@@ -91,6 +92,7 @@ def create_app() -> FastAPI:
 
     app.include_router(categoria_produto_router)
     app.include_router(produto_router)
+    app.include_router(estoque_router)
 
     @app.get("/health", tags=["Health"])
     async def health_check():

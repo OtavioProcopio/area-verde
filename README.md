@@ -121,6 +121,7 @@ ci: adiciona workflow do GitHub Actions
 
 - [Documentação inicial](docs/README.md)
 - [Produtos e Categorias](docs/modules/produtos-categorias.md)
+- [Estoque](docs/modules/estoque.md)
 - [Diagrama de classes](docs/class_diagram.md)
 - [Diagrama de casos de uso](docs/use_case_diagram.md)
 - [Git Flow](docs/git-flow.md)
