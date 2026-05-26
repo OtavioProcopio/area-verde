@@ -41,12 +41,20 @@ repositório.
 - [Agentes de código](policies/agent-policy.md)
 - [Segurança e secrets](policies/security-policy.md)
 
-## Referências técnicas existentes
+## Diagramas
 
-- [Diagrama de classes](class_diagram.md)
-- [Diagrama de casos de uso](use_case_diagram.md)
-- [Workflow de desenvolvimento](development-workflow.md)
-- [CI/CD](ci-cd.md)
-- [Git Flow legado](git-flow.md)
-- [Collection Postman](area_verde_collection.json)
-- [Ambiente Postman](area_verde_dev.json)
+- [Índice de diagramas](diagrams/README.md)
+- [Diagrama de classes](diagrams/class-diagram.md)
+- [Diagrama de casos de uso](diagrams/use-case-diagram.md)
+
+## Workflows e automações
+
+- [Índice de workflows](workflows/README.md)
+- [Workflow de desenvolvimento](workflows/development-workflow.md)
+- [CI/CD](workflows/ci-cd.md)
+- [Git Flow - referência detalhada](workflows/git-flow-reference.md)
+
+## Postman
+
+- [Collection Postman](postman/area-verde-collection.json)
+- [Ambiente Postman](postman/area-verde-dev.json)
