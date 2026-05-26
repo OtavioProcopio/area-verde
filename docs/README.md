@@ -20,6 +20,7 @@ próximas implementações.
 - `development-workflow.md` - Rotina de desenvolvimento e validações locais.
 - `ci-cd.md` - Workflows de integração e entrega contínua.
 - `modules/estoque.md` - Módulo de estoque, movimentações e alertas.
+- `modules/comandas.md` - Módulo de comandas, itens e integração com estoque.
 
 ## Como usar no Postman
 
@@ -53,16 +54,21 @@ Por padrão, o ambiente aponta para `http://localhost:8001`, usado pelo comando
 - Consultar produtos com estoque baixo e negativo.
 - Consultar movimentos de estoque por produto.
 
+### Comandas
+
+- Criar, listar, buscar e cancelar comandas.
+- Adicionar, incrementar, decrementar e remover itens.
+- Recalcular total e movimentar estoque automaticamente.
+
 ## Endpoints planejados
 
 Os endpoints abaixo ainda não foram implementados nesta etapa. Eles estão
 registrados como norte inicial do MVP operacional.
 
-### Comandas
+### Pagamentos e fechamento
 
-- Criar, listar, buscar, cancelar e fechar comandas.
-- Adicionar, incrementar, decrementar e remover itens.
-- Recalcular total e movimentar estoque automaticamente.
+- Fechar comanda com forma de pagamento.
+- Marcar comanda como pendente para pagamento futuro.
 
 ### Fiado
 

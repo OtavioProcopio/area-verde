@@ -112,6 +112,73 @@ class EstoqueService:
             observacao=observacao,
         )
 
+    def baixar_por_venda(
+        self,
+        produto: Produto,
+        quantidade_baixada: Decimal,
+        referencia_id: Optional[int] = None,
+        observacao: Optional[str] = None,
+        commit: bool = False,
+    ) -> Optional[MovimentoEstoque]:
+        if quantidade_baixada <= Decimal("0"):
+            raise ApplicationError(
+                code="quantidade_invalida",
+                message="Quantidade inválida",
+                status_code=400,
+            )
+
+        if not produto.controla_estoque:
+            return None
+
+        estoque_antes = produto.quantidade_estoque
+        estoque_depois = estoque_antes - quantidade_baixada
+
+        return self._registrar_movimento(
+            produto=produto,
+            tipo=TipoMovimentoEstoque.SAIDA_VENDA,
+            origem=OrigemMovimentoEstoque.COMANDA,
+            quantidade=quantidade_baixada,
+            estoque_antes=estoque_antes,
+            estoque_depois=estoque_depois,
+            observacao=observacao,
+            referencia_id=referencia_id,
+            commit=commit,
+        )
+
+    def devolver_por_cancelamento(
+        self,
+        produto: Produto,
+        quantidade_devolvida: Decimal,
+        referencia_id: Optional[int] = None,
+        origem: OrigemMovimentoEstoque = OrigemMovimentoEstoque.COMANDA,
+        observacao: Optional[str] = None,
+        commit: bool = False,
+    ) -> Optional[MovimentoEstoque]:
+        if quantidade_devolvida <= Decimal("0"):
+            raise ApplicationError(
+                code="quantidade_invalida",
+                message="Quantidade inválida",
+                status_code=400,
+            )
+
+        if not produto.controla_estoque:
+            return None
+
+        estoque_antes = produto.quantidade_estoque
+        estoque_depois = estoque_antes + quantidade_devolvida
+
+        return self._registrar_movimento(
+            produto=produto,
+            tipo=TipoMovimentoEstoque.DEVOLUCAO_CANCELAMENTO,
+            origem=origem,
+            quantidade=quantidade_devolvida,
+            estoque_antes=estoque_antes,
+            estoque_depois=estoque_depois,
+            observacao=observacao,
+            referencia_id=referencia_id,
+            commit=commit,
+        )
+
     def _registrar_movimento(
         self,
         produto: Produto,
@@ -121,6 +188,8 @@ class EstoqueService:
         estoque_antes: Decimal,
         estoque_depois: Decimal,
         observacao: Optional[str],
+        referencia_id: Optional[int] = None,
+        commit: bool = True,
     ) -> MovimentoEstoque:
         produto_id = self._get_produto_id(produto)
         produto.quantidade_estoque = estoque_depois
@@ -133,6 +202,7 @@ class EstoqueService:
             quantidade=quantidade,
             estoque_antes=estoque_antes,
             estoque_depois=estoque_depois,
+            referencia_id=referencia_id,
             observacao=observacao,
             produto=produto,
         )
@@ -140,8 +210,9 @@ class EstoqueService:
         try:
             self.produto_repository.save(produto)
             self.movimento_repository.create(movimento)
-            self.movimento_repository.commit()
-            self.movimento_repository.refresh(movimento)
+            if commit:
+                self.movimento_repository.commit()
+                self.movimento_repository.refresh(movimento)
         except Exception:
             self.movimento_repository.rollback()
             raise
