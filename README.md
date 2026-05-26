@@ -1,136 +1,104 @@
 # Area Verde API
 
-API inicial para apoiar a operação do bar Area Verde. O projeto foi
-estruturado a partir dos diagramas em `docs/` e espelha o padrão técnico do
-repositório `shortsmaker-api`: FastAPI, Clean Architecture, SQLModel, Alembic,
-Dependency Injector, Docker e DevContainer.
+API para MVP de controle operacional de bar, com foco em produtos, estoque,
+comandas, pagamentos, fiado, caixa e relatórios.
 
-## Estrutura do Projeto
+## Estado atual
 
-O projeto segue os princípios de **Clean Architecture**:
+| Módulo | Status |
+|---|---|
+| Produtos e Categorias | Implementado |
+| Estoque | Implementado |
+| Comandas e Itens | Implementado |
+| Pagamentos e Fechamento | Pendente |
+| Fiado / Pendências | Pendente |
+| Caixa Diário | Pendente |
+| Relatórios | Pendente |
+| Configurações | Pendente |
+| Acesso / Senha | Pendente |
 
-- `app/core`: entidades de domínio, enums, interfaces e futuros casos de uso.
-- `app/adapter`: controladores HTTP, repositórios e integrações de entrada.
-- `app/infra`: configuração técnica, banco de dados, injeção de dependências e logs.
-- `docs`: documentação inicial, diagramas Mermaid e arquivos Postman.
+## Stack
 
-## Domínio Inicial
+- Python
+- FastAPI
+- SQLModel
+- Alembic
+- PostgreSQL
+- Dependency Injector
+- Docker e Docker Compose
+- DevContainer
+- Pytest
+- Black, Isort, Flake8 e Mypy
+- GitHub Actions
+- Git Flow
 
-O primeiro incremento cobre o MVP operacional do bar:
+## Como rodar localmente
 
-- produtos e categorias;
-- controle de estoque;
-- comandas e itens;
-- pagamentos e fiado;
-- caixa diário;
-- movimentos de caixa e estoque.
+Execute os comandos dentro da pasta `app/`.
 
-Os fluxos completos de venda ainda não foram implementados como endpoints. A API
-começa com o bootstrap técnico, o modelo inicial do domínio e o endpoint de
-saúde.
+```bash
+cd app
+make install
+make run
+```
 
-## Desenvolvimento
+A API local fica disponível em `http://localhost:8001`.
 
-Para iniciar o desenvolvimento, abra este projeto no **VS Code DevContainer** ou
-use o ambiente local Python.
+## Como rodar com Docker
 
-Antes de subir o Docker Compose local, crie seu arquivo de ambiente:
+Crie o arquivo de ambiente a partir do exemplo:
 
 ```bash
 cp app/.env.example app/.env
-# edite app/.env e preencha POSTGRES_PASSWORD
 ```
 
-### Comandos Úteis
-
-Execute os comandos dentro da pasta `app/`.
+Depois suba os containers:
 
 ```bash
-# instalar dependências
-make install
+cd app
+make docker-build
+make up
+```
 
-# rodar projeto localmente
-make run
+Com Docker Compose, a API fica disponível em `http://localhost:58001`.
 
-# rodar testes
-make test
+## Como rodar testes
 
-# rodar build
+```bash
+cd app
 make build
-
-# rodar lint e type check
+make test
 make lint
-
-# formatar código
-make format
 ```
 
-### Docker
-
-Execute os comandos dentro da pasta `app/`.
-
-- `make docker-build`: constrói a imagem da API.
-- `make up`: sobe API e Postgres em modo daemon.
-- `make down`: para e remove os containers.
-- `make ps`: lista os containers.
-- `make logs`: mostra logs em tempo real.
-- `make migrate`: executa as migrações dentro do container da API.
-
-Com Docker, a API fica disponível em `http://localhost:58001` e o Postgres em
-`localhost:55433`.
-
-## Fluxo de desenvolvimento
-
-Branch principal de desenvolvimento:
-
-- `develop`
-
-Branch estável:
-
-- `main`
-
-Fluxo padrão:
-
-1. Criar branch a partir de `develop`.
-2. Desenvolver a funcionalidade.
-3. Abrir Pull Request para `develop`.
-4. Aguardar CI passar.
-5. Fazer merge.
-6. Criar `release/*` quando for preparar versão.
-7. Fazer merge da release em `main`.
-8. Gerar tag de versão.
-
-Exemplo:
+Validações diretas equivalentes:
 
 ```bash
-git checkout develop
-git pull origin develop
-git checkout -b feature/comandas
-```
-
-Commits devem seguir Conventional Commits:
-
-```bash
-feat: adiciona criação de comanda
-fix: corrige cálculo do total da comanda
-docs: adiciona documentação do fluxo git
-ci: adiciona workflow do GitHub Actions
+python -m py_compile api.py
+pytest . -v -m "not integration"
+black --check .
+isort --check-only .
+flake8 --max-line-length=88 --exclude=.venv .
+mypy --ignore-missing-imports --explicit-package-bases .
 ```
 
 ## Documentação
 
-- [Documentação inicial](docs/README.md)
-- [Produtos e Categorias](docs/modules/produtos-categorias.md)
-- [Estoque](docs/modules/estoque.md)
-- [Comandas](docs/modules/comandas.md)
-- [Diagrama de classes](docs/class_diagram.md)
-- [Diagrama de casos de uso](docs/use_case_diagram.md)
-- [Git Flow](docs/git-flow.md)
-- [Workflow de desenvolvimento](docs/development-workflow.md)
-- [CI/CD](docs/ci-cd.md)
-- [Guia de contribuição](CONTRIBUTING.md)
+Veja o índice em [docs/README.md](docs/README.md).
 
-## Referência
+## Como contribuir
 
-Este projeto foi configurado tomando como espelho o repositório
-`byt3un1on/shortsmaker-api`.
+Leia [CONTRIBUTING.md](CONTRIBUTING.md) e as policies em
+[docs/policies/](docs/policies/).
+
+## Git Flow
+
+- `main`: branch estável.
+- `develop`: branch de integração.
+- `feature/*`: novas funcionalidades.
+- `bugfix/*`: correções comuns.
+- `release/*`: preparação de versão.
+- `hotfix/*`: correções urgentes em produção.
+
+Não trabalhe direto em `main` ou `develop`. Abra Pull Requests para integrar
+alterações.

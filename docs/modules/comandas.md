@@ -1,11 +1,14 @@
-# Módulo de Comandas
+# Módulo - Comandas e Itens
+
+## Status
+
+Implementado.
 
 ## Objetivo
 
-O módulo de Comandas e Itens da Comanda permite abrir atendimento por
-nome/apelido, lançar produtos, ajustar quantidades, remover itens e cancelar
-comandas. Cada alteração recalcula o total e integra automaticamente com o
-estoque quando o produto controla estoque.
+Permitir abrir comandas por nome/apelido, lançar produtos consumidos, ajustar
+quantidades, remover itens e cancelar comandas. Cada alteração recalcula o total
+e integra automaticamente com o estoque quando o produto controla estoque.
 
 Este módulo não implementa fechamento com pagamento, fiado, caixa, relatórios,
 impressão, integrações de pagamento, autenticação complexa ou frontend.
@@ -17,20 +20,65 @@ impressão, integrações de pagamento, autenticação complexa ou frontend.
 - Buscar comandas por nome, status e data.
 - Consultar detalhes de uma comanda.
 - Adicionar produto à comanda.
-- Incrementar ou diminuir quantidade de item.
+- Incrementar quantidade de item.
+- Diminuir quantidade de item.
 - Remover item da comanda.
 - Cancelar comanda aberta.
 - Recalcular total pela soma dos itens.
 - Baixar e devolver estoque automaticamente.
 - Registrar movimentos de estoque.
 
+## Entidades envolvidas
+
+- `Comanda`
+- `ItemComanda`
+- `Produto`
+- `MovimentoEstoque`
+- `StatusComanda`
+- `TipoMovimentoEstoque`
+- `OrigemMovimentoEstoque`
+
 ## Endpoints
 
-### Criar comanda
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/comandas` | Cria comanda |
+| `GET` | `/api/comandas` | Lista comandas com filtros |
+| `GET` | `/api/comandas/abertas` | Lista comandas abertas |
+| `GET` | `/api/comandas/{comanda_id}` | Consulta detalhes |
+| `POST` | `/api/comandas/{comanda_id}/itens` | Adiciona produto |
+| `PATCH` | `/api/comandas/{comanda_id}/itens/{item_id}/incrementar` | Incrementa item |
+| `PATCH` | `/api/comandas/{comanda_id}/itens/{item_id}/diminuir` | Diminui item |
+| `DELETE` | `/api/comandas/{comanda_id}/itens/{item_id}` | Remove item |
+| `PATCH` | `/api/comandas/{comanda_id}/cancelar` | Cancela comanda |
 
-`POST /api/comandas`
+## Regras de negócio
 
-Request:
+- Toda comanda inicia com status `ABERTA` e total zero.
+- Apenas comandas abertas podem receber itens, alterações ou cancelamento.
+- O total da comanda é sempre derivado da soma dos itens.
+- O cliente da API nunca envia total manualmente.
+- Item guarda snapshot de nome e preço do produto.
+- Adicionar produto já existente na comanda incrementa o item existente.
+- Produto com controle de estoque gera baixa automática.
+- Produto sem controle de estoque não gera movimento de estoque.
+- Diminuir, remover ou cancelar devolve estoque proporcional.
+- Venda pode deixar estoque negativo no MVP para não travar atendimento.
+- Comanda cancelada permanece no histórico com seus itens e movimentos.
+
+## Validações
+
+- `nomeCliente` é obrigatório, não pode ser vazio e aceita até 160 caracteres.
+- Várias comandas abertas podem ter o mesmo nome/apelido.
+- `quantidade` deve ser maior que zero.
+- Produto deve existir. Erro: `produto_nao_encontrado`.
+- Produto deve estar ativo. Erro: `produto_inativo`.
+- Comanda deve estar aberta. Erro: `comanda_nao_aberta`.
+- Item deve pertencer à comanda informada.
+
+## Exemplos de request
+
+Criar comanda:
 
 ```json
 {
@@ -39,7 +87,36 @@ Request:
 }
 ```
 
-Response:
+Adicionar item:
+
+```json
+{
+  "produtoId": 1,
+  "quantidade": 3
+}
+```
+
+Incrementar ou diminuir item:
+
+```json
+{
+  "quantidade": 1
+}
+```
+
+Se o corpo for omitido em incrementar/diminuir, a quantidade padrão é `1`.
+
+Cancelar comanda:
+
+```json
+{
+  "motivo": "Lançamento errado"
+}
+```
+
+## Exemplos de response
+
+Comanda criada:
 
 ```json
 {
@@ -55,89 +132,31 @@ Response:
 }
 ```
 
-### Listar comandas
-
-`GET /api/comandas`
-
-Filtros opcionais:
-
-- `status`: `ABERTA`, `CANCELADA`, `FECHADA` ou `PENDENTE`.
-- `nome`: busca parcial por nome/apelido.
-- `data`: data de abertura no formato `YYYY-MM-DD`.
-
-### Listar abertas
-
-`GET /api/comandas/abertas`
-
-### Consultar detalhes
-
-`GET /api/comandas/{comanda_id}`
-
-### Adicionar item
-
-`POST /api/comandas/{comanda_id}/itens`
-
-Request:
+Comanda com item:
 
 ```json
 {
-  "produtoId": 1,
-  "quantidade": 3
+  "id": 1,
+  "nomeCliente": "João",
+  "status": "ABERTA",
+  "total": 21.0,
+  "abertaEm": "2026-05-26T18:40:00",
+  "fechadaEm": null,
+  "canceladaEm": null,
+  "observacao": null,
+  "itens": [
+    {
+      "id": 10,
+      "produtoId": 1,
+      "nomeProduto": "Cerveja lata",
+      "quantidade": 3.0,
+      "precoUnitario": 7.0,
+      "quantidadeBaixadaEstoque": 3.0,
+      "totalItem": 21.0
+    }
+  ]
 }
 ```
-
-### Incrementar item
-
-`PATCH /api/comandas/{comanda_id}/itens/{item_id}/incrementar`
-
-Request opcional:
-
-```json
-{
-  "quantidade": 1
-}
-```
-
-Se o corpo for omitido, o incremento padrão é `1`.
-
-### Diminuir item
-
-`PATCH /api/comandas/{comanda_id}/itens/{item_id}/diminuir`
-
-Request opcional:
-
-```json
-{
-  "quantidade": 1
-}
-```
-
-Se a quantidade final chegar a zero, o item é removido da comanda.
-
-### Remover item
-
-`DELETE /api/comandas/{comanda_id}/itens/{item_id}`
-
-### Cancelar comanda
-
-`PATCH /api/comandas/{comanda_id}/cancelar`
-
-Request opcional:
-
-```json
-{
-  "motivo": "Lançamento errado"
-}
-```
-
-## Regras de validação
-
-- `nomeCliente` é obrigatório, não pode ser vazio e aceita até 160 caracteres.
-- Várias comandas abertas podem ter o mesmo nome/apelido.
-- `quantidade` deve ser maior que zero.
-- Produto deve existir e estar ativo para ser adicionado ou incrementado.
-- Apenas comandas com status `ABERTA` podem receber alterações ou cancelamento.
-- O total nunca é recebido do cliente; sempre é derivado da soma dos itens.
 
 ## Snapshot do produto
 
@@ -194,14 +213,22 @@ Cancelar uma comanda aberta:
 - preenche `canceladaEm`;
 - mantém a comanda, itens e movimentos para histórico.
 
-## Próximos módulos
+## Testes relacionados
 
-A ordem recomendada após este módulo é:
+- `app/comandas_test.py`
 
-1. Pagamentos e fechamento de comanda.
-2. Fiado / Pendências.
-3. Caixa Diário.
-4. Relatórios básicos.
-5. Configurações.
-6. Acesso / senha simples.
-7. Release MVP para `main`.
+## O que ainda não está incluso
+
+- Fechamento de comanda.
+- Pagamento.
+- Fiado.
+- Caixa diário.
+- Relatórios.
+- Impressão.
+- Integrações de pagamento.
+- Autenticação complexa.
+- Frontend.
+
+## Próximo passo relacionado
+
+- Pagamentos e Fechamento de Comanda.
