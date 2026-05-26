@@ -1,140 +1,66 @@
-# Módulo 3 - Estoque
+# Módulo - Estoque
+
+## Status
+
+Implementado.
 
 ## Objetivo
 
-O módulo de Estoque permite consultar a posição atual dos produtos que controlam
-estoque, identificar estoque baixo ou negativo, registrar entrada manual,
-realizar ajuste manual e rastrear o histórico de movimentações por produto.
-
-Este módulo depende do módulo de Produtos e Categorias. Ele não implementa baixa
-automática por venda, devolução por cancelamento, Comandas, Caixa, Pagamentos,
-Fiado, Relatórios, Frontend ou Deploy.
+Consultar a posição atual de estoque, registrar entradas e ajustes manuais,
+identificar estoque baixo ou negativo e manter histórico de movimentações por
+produto.
 
 ## Casos de uso atendidos
 
 - Consultar estoque atual.
-- Adicionar entrada de estoque.
-- Ajustar estoque manualmente.
-- Ver produtos com estoque baixo.
-- Consultar movimentos de estoque.
-- Visualizar alerta de estoque negativo.
+- Filtrar estoque por categoria, nome e status.
+- Listar produtos com estoque baixo.
+- Listar produtos com estoque negativo.
+- Registrar entrada manual.
+- Registrar ajuste manual.
+- Consultar histórico de movimentos por produto.
+
+## Entidades envolvidas
+
+- `Produto`
+- `CategoriaProduto`
+- `MovimentoEstoque`
+- `TipoMovimentoEstoque`
+- `OrigemMovimentoEstoque`
 
 ## Endpoints
 
-### GET /api/estoque
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/api/estoque` | Lista produtos que controlam estoque |
+| `GET` | `/api/estoque/baixo` | Lista produtos com estoque baixo |
+| `GET` | `/api/estoque/negativo` | Lista produtos com estoque negativo |
+| `GET` | `/api/estoque/produtos/{produto_id}/movimentos` | Lista movimentos do produto |
+| `POST` | `/api/estoque/produtos/{produto_id}/entrada` | Registra entrada manual |
+| `POST` | `/api/estoque/produtos/{produto_id}/ajuste` | Registra ajuste manual |
 
-Lista produtos que controlam estoque.
+## Regras de negócio
 
-Filtros opcionais:
+- Apenas produtos com `controlaEstoque=true` aparecem na consulta de estoque.
+- Entrada manual soma ao estoque atual.
+- Ajuste manual define a nova quantidade de estoque.
+- Movimento de ajuste registra a diferença entre estoque novo e anterior.
+- Estoque baixo ocorre quando `quantidadeEstoque <= estoqueMinimo`.
+- Estoque negativo ocorre quando `quantidadeEstoque < 0`.
+- Movimentos de estoque não possuem endpoint de exclusão.
 
-- `categoriaId`
-- `nome`
-- `ativo`
+## Validações
 
-Exemplo:
+- Produto deve existir. Erro: `produto_nao_encontrado`.
+- Produto inativo não recebe entrada nem ajuste. Erro: `produto_inativo`.
+- Produto sem controle de estoque não recebe entrada nem ajuste. Erro:
+  `produto_sem_controle_estoque`.
+- Entrada exige `quantidade > 0`. Erro: `quantidade_invalida`.
+- Ajuste rejeita `novoEstoque < 0`. Erro: `novo_estoque_invalido`.
 
-```http
-GET /api/estoque?categoriaId=1&nome=cerveja&ativo=true
-```
+## Exemplos de request
 
-Response:
-
-```json
-[
-  {
-    "produtoId": 1,
-    "nome": "Cerveja lata",
-    "categoria": {
-      "id": 1,
-      "nome": "Cervejas"
-    },
-    "unidadeEstoque": "UNIDADE",
-    "quantidadeEstoque": 24,
-    "estoqueMinimo": 6,
-    "estoqueBaixo": false,
-    "estoqueNegativo": false,
-    "ativo": true
-  }
-]
-```
-
-### GET /api/estoque/baixo
-
-Lista produtos ativos, com controle de estoque, cuja quantidade atual é menor ou
-igual ao estoque mínimo.
-
-```json
-[
-  {
-    "produtoId": 2,
-    "nome": "Dose de pinga",
-    "categoria": {
-      "id": 2,
-      "nome": "Doses"
-    },
-    "unidadeEstoque": "ML",
-    "quantidadeEstoque": 150,
-    "estoqueMinimo": 200,
-    "estoqueBaixo": true,
-    "estoqueNegativo": false,
-    "ativo": true
-  }
-]
-```
-
-### GET /api/estoque/negativo
-
-Lista produtos ativos, com controle de estoque, cuja quantidade atual está
-negativa.
-
-```json
-[
-  {
-    "produtoId": 3,
-    "nome": "Salgado",
-    "categoria": {
-      "id": 4,
-      "nome": "Salgados"
-    },
-    "unidadeEstoque": "UNIDADE",
-    "quantidadeEstoque": -2,
-    "estoqueMinimo": 5,
-    "estoqueBaixo": true,
-    "estoqueNegativo": true,
-    "ativo": true
-  }
-]
-```
-
-### GET /api/estoque/produtos/{produto_id}/movimentos
-
-Lista movimentos de estoque de um produto. Se o produto existir e não possuir
-movimentos, retorna lista vazia. A ordenação é decrescente por `criadoEm` e, em
-caso de empate, por `id`.
-
-```json
-[
-  {
-    "id": 1,
-    "produtoId": 1,
-    "produtoNome": "Cerveja lata",
-    "tipo": "ENTRADA",
-    "origem": "ENTRADA_MANUAL",
-    "quantidade": 24,
-    "estoqueAntes": 0,
-    "estoqueDepois": 24,
-    "observacao": "Compra inicial",
-    "criadoEm": "2026-05-26T10:30:00"
-  }
-]
-```
-
-### POST /api/estoque/produtos/{produto_id}/entrada
-
-Registra entrada manual de estoque. A entrada soma ao estoque atual e cria um
-movimento do tipo `ENTRADA` com origem `ENTRADA_MANUAL`.
-
-Request:
+Entrada:
 
 ```json
 {
@@ -143,29 +69,7 @@ Request:
 }
 ```
 
-Response:
-
-```json
-{
-  "id": 1,
-  "produtoId": 1,
-  "produtoNome": "Cerveja lata",
-  "tipo": "ENTRADA",
-  "origem": "ENTRADA_MANUAL",
-  "quantidade": 24,
-  "estoqueAntes": 10,
-  "estoqueDepois": 34,
-  "observacao": "Compra do dia",
-  "criadoEm": "2026-05-26T10:30:00"
-}
-```
-
-### POST /api/estoque/produtos/{produto_id}/ajuste
-
-Registra ajuste manual de estoque. O ajuste define a nova quantidade real; a
-quantidade do movimento é a diferença entre o novo estoque e o estoque anterior.
-
-Request:
+Ajuste:
 
 ```json
 {
@@ -174,50 +78,33 @@ Request:
 }
 ```
 
-Response:
+## Exemplos de response
 
 ```json
 {
-  "id": 2,
+  "id": 1,
   "produtoId": 1,
   "produtoNome": "Cerveja lata",
-  "tipo": "AJUSTE",
-  "origem": "AJUSTE_MANUAL",
-  "quantidade": -3,
-  "estoqueAntes": 10,
-  "estoqueDepois": 7,
-  "observacao": "Ajuste após contagem física",
+  "tipo": "ENTRADA",
+  "origem": "ENTRADA_MANUAL",
+  "quantidade": 24.0,
+  "estoqueAntes": 10.0,
+  "estoqueDepois": 34.0,
+  "observacao": "Compra do dia",
   "criadoEm": "2026-05-26T10:30:00"
 }
 ```
 
-## Regras de validação
+## Testes relacionados
 
-- O produto deve existir. Erro: `produto_nao_encontrado`.
-- Produto inativo não recebe entrada nem ajuste. Erro: `produto_inativo`.
-- Produto sem controle de estoque não recebe entrada nem ajuste. Erro:
-  `produto_sem_controle_estoque`.
-- Entrada manual exige `quantidade > 0`. Erro: `quantidade_invalida`.
-- Ajuste manual permite `novoEstoque = 0` e rejeita valor negativo. Erro:
-  `novo_estoque_invalido`.
+- `app/estoque_test.py`
 
-## Regras de estoque
+## O que ainda não está incluso
 
-- Entrada manual soma ao estoque atual.
-- Ajuste manual define o novo estoque e registra a diferença no movimento.
-- Estoque baixo ocorre quando `quantidadeEstoque <= estoqueMinimo` para produto
-  ativo e com controle de estoque.
-- Estoque negativo ocorre quando `quantidadeEstoque < 0` para produto ativo e com
-  controle de estoque.
-- Movimentos de estoque não possuem endpoint de exclusão.
-- Entrada e ajuste atualizam `Produto.quantidade_estoque` e criam
-  `MovimentoEstoque` em uma única transação.
+- Inventário completo.
+- Transferência entre depósitos.
+- Bloqueio global de venda por estoque negativo.
 
-## Histórico e evolução
+## Próximo passo relacionado
 
-O histórico é mantido na tabela `movimento_estoque` com tipo, origem,
-quantidade, estoque anterior, estoque posterior, observação e data de criação.
-
-A baixa automática por venda (`SAIDA_VENDA` e origem `COMANDA`) e a devolução por
-cancelamento (`DEVOLUCAO_CANCELAMENTO` e origem `CANCELAMENTO`) serão
-implementadas no futuro módulo de Comandas.
+- Baixa e devolução automática via Comandas e Itens.
