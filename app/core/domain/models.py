@@ -4,7 +4,7 @@ from typing import ClassVar, List, Optional
 
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import Numeric, String
+from sqlalchemy import Index, Numeric, String, text
 from sqlmodel import Field, Relationship, SQLModel
 
 from core.domain.enums import (
@@ -36,9 +36,19 @@ class ConfiguracaoSistema(SQLModel, table=True):
 
 class CategoriaProduto(SQLModel, table=True):
     __tablename__: ClassVar[str] = "categoria_produto"
+    __table_args__: ClassVar[tuple] = (
+        Index(
+            "idx_categorias_produto_nome_ativo_unique",
+            text("lower(nome)"),
+            unique=True,
+            postgresql_where=text("ativo = true"),
+            sqlite_where=text("ativo = 1"),
+        ),
+        Index("idx_categorias_produto_nome", "nome"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    nome: str = Field(sa_column=Column(String(120), nullable=False, unique=True))
+    nome: str = Field(sa_column=Column(String(120), nullable=False))
     ativo: bool = Field(default=True)
     criado_em: datetime = Field(default_factory=datetime.now)
     atualizado_em: datetime = Field(default_factory=datetime.now)
@@ -48,11 +58,14 @@ class CategoriaProduto(SQLModel, table=True):
 
 class Produto(SQLModel, table=True):
     __tablename__: ClassVar[str] = "produto"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_produtos_categoria_id", "categoria_id"),
+        Index("idx_produtos_nome", "nome"),
+        Index("idx_produtos_ativo", "ativo"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    categoria_id: Optional[int] = Field(
-        default=None, foreign_key="categoria_produto.id"
-    )
+    categoria_id: int = Field(foreign_key="categoria_produto.id")
     nome: str = Field(sa_column=Column(String(160), nullable=False))
     preco_venda: Decimal = Field(
         default=Decimal("0.00"),
