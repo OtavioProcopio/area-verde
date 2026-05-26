@@ -19,6 +19,7 @@ próximas implementações.
 - `git-flow.md` - Regras de branches, releases, hotfixes e proteção manual.
 - `development-workflow.md` - Rotina de desenvolvimento e validações locais.
 - `ci-cd.md` - Workflows de integração e entrega contínua.
+- `modules/estoque.md` - Módulo de estoque, movimentações e alertas.
 
 ## Como usar no Postman
 
@@ -37,10 +38,7 @@ Por padrão, o ambiente aponta para `http://localhost:8001`, usado pelo comando
 
 - `GET /health` - Verificação de saúde da API.
 
-## Endpoints planejados
-
-Os endpoints abaixo ainda não foram implementados nesta etapa. Eles estão
-registrados como norte inicial do MVP operacional.
+## Endpoints implementados
 
 ### Produtos
 
@@ -52,8 +50,13 @@ registrados como norte inicial do MVP operacional.
 
 - Consultar estoque atual.
 - Registrar entrada e ajuste manual.
-- Consultar produtos com estoque baixo e movimentos de estoque.
-- Alertar estoque negativo quando configurado.
+- Consultar produtos com estoque baixo e negativo.
+- Consultar movimentos de estoque por produto.
+
+## Endpoints planejados
+
+Os endpoints abaixo ainda não foram implementados nesta etapa. Eles estão
+registrados como norte inicial do MVP operacional.
 
 ### Comandas
 

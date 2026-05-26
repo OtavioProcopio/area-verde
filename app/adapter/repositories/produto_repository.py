@@ -22,6 +22,10 @@ class ProdutoRepository:
         self.session.refresh(produto)
         return produto
 
+    def save(self, produto: Produto) -> Produto:
+        self.session.add(produto)
+        return produto
+
     def get_by_id(self, produto_id: int) -> Optional[Produto]:
         return self.session.get(Produto, produto_id)
 
