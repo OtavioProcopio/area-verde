@@ -6,24 +6,27 @@ Implementado.
 
 ## Objetivo
 
-Permitir abrir comandas por nome/apelido, lançar produtos consumidos, alterar
-quantidades, remover itens, cancelar comandas e integrar automaticamente com o
-estoque.
+Permitir abrir comandas por nome/apelido, lançar produtos consumidos, ajustar
+quantidades, remover itens e cancelar comandas. Cada alteração recalcula o total
+e integra automaticamente com o estoque quando o produto controla estoque.
+
+Este módulo não implementa fechamento com pagamento, fiado, caixa, relatórios,
+impressão, integrações de pagamento, autenticação complexa ou frontend.
 
 ## Casos de uso atendidos
 
-- Criar comanda.
-- Listar comandas.
-- Listar comandas abertas.
+- Criar comanda por nome/apelido.
+- Listar comandas e comandas abertas.
 - Buscar comandas por nome, status e data.
 - Consultar detalhes de uma comanda.
 - Adicionar produto à comanda.
 - Incrementar quantidade de item.
 - Diminuir quantidade de item.
-- Remover item.
-- Cancelar comanda.
-- Recalcular total.
+- Remover item da comanda.
+- Cancelar comanda aberta.
+- Recalcular total pela soma dos itens.
 - Baixar e devolver estoque automaticamente.
+- Registrar movimentos de estoque.
 
 ## Entidades envolvidas
 
@@ -52,21 +55,24 @@ estoque.
 ## Regras de negócio
 
 - Toda comanda inicia com status `ABERTA` e total zero.
-- Apenas comandas abertas podem ser alteradas ou canceladas.
-- O total da comanda é sempre a soma dos itens.
+- Apenas comandas abertas podem receber itens, alterações ou cancelamento.
+- O total da comanda é sempre derivado da soma dos itens.
+- O cliente da API nunca envia total manualmente.
 - Item guarda snapshot de nome e preço do produto.
 - Adicionar produto já existente na comanda incrementa o item existente.
 - Produto com controle de estoque gera baixa automática.
-- Diminuir, remover ou cancelar devolve estoque.
-- Venda pode deixar estoque negativo no MVP.
-- Comanda cancelada permanece no histórico.
+- Produto sem controle de estoque não gera movimento de estoque.
+- Diminuir, remover ou cancelar devolve estoque proporcional.
+- Venda pode deixar estoque negativo no MVP para não travar atendimento.
+- Comanda cancelada permanece no histórico com seus itens e movimentos.
 
 ## Validações
 
-- `nomeCliente` é obrigatório e não pode ser vazio.
+- `nomeCliente` é obrigatório, não pode ser vazio e aceita até 160 caracteres.
+- Várias comandas abertas podem ter o mesmo nome/apelido.
+- `quantidade` deve ser maior que zero.
 - Produto deve existir. Erro: `produto_nao_encontrado`.
 - Produto deve estar ativo. Erro: `produto_inativo`.
-- Quantidade deve ser maior que zero. Erro: `quantidade_invalida`.
 - Comanda deve estar aberta. Erro: `comanda_nao_aberta`.
 - Item deve pertencer à comanda informada.
 
@@ -90,6 +96,16 @@ Adicionar item:
 }
 ```
 
+Incrementar ou diminuir item:
+
+```json
+{
+  "quantidade": 1
+}
+```
+
+Se o corpo for omitido em incrementar/diminuir, a quantidade padrão é `1`.
+
 Cancelar comanda:
 
 ```json
@@ -99,6 +115,24 @@ Cancelar comanda:
 ```
 
 ## Exemplos de response
+
+Comanda criada:
+
+```json
+{
+  "id": 1,
+  "nomeCliente": "João",
+  "status": "ABERTA",
+  "total": 0.0,
+  "abertaEm": "2026-05-26T18:40:00",
+  "fechadaEm": null,
+  "canceladaEm": null,
+  "observacao": "Cliente voltou mais tarde",
+  "itens": []
+}
+```
+
+Comanda com item:
 
 ```json
 {
@@ -124,6 +158,61 @@ Cancelar comanda:
 }
 ```
 
+## Snapshot do produto
+
+Ao lançar um item, o sistema grava:
+
+- `nomeProduto`: nome do produto no momento da inclusão.
+- `precoUnitario`: preço de venda no momento da inclusão.
+
+Alterações futuras no cadastro do produto não mudam itens já lançados.
+
+## Integração com estoque
+
+Quando `controlaEstoque = true`, a comanda baixa estoque na adição ou incremento:
+
+```text
+quantidade_baixada = quantidade_baixa_por_venda * quantidade_vendida
+```
+
+Exemplos:
+
+- 3 cervejas com baixa de 1 unidade por venda baixam 3 unidades.
+- 2 doses com baixa de 50 ml por venda baixam 100 ml.
+
+Cada baixa registra movimento:
+
+- `tipo = SAIDA_VENDA`
+- `origem = COMANDA`
+- `referencia_id = id do item da comanda`
+
+Produtos sem controle de estoque não geram movimento.
+
+## Estoque negativo
+
+No MVP, a venda não é bloqueada quando o estoque fica negativo. A operação é
+permitida para não travar atendimento, o movimento é registrado e a consulta de
+estoque negativo evidencia o problema operacional.
+
+## Devolução de estoque
+
+Diminuir ou remover item devolve a quantidade proporcional já baixada.
+
+Cada devolução registra movimento:
+
+- `tipo = DEVOLUCAO_CANCELAMENTO`
+- `origem = COMANDA`
+
+## Cancelamento
+
+Cancelar uma comanda aberta:
+
+- devolve o estoque de todos os itens controlados;
+- registra movimentos de devolução com origem `CANCELAMENTO`;
+- altera o status para `CANCELADA`;
+- preenche `canceladaEm`;
+- mantém a comanda, itens e movimentos para histórico.
+
 ## Testes relacionados
 
 - `app/comandas_test.py`
@@ -134,7 +223,11 @@ Cancelar comanda:
 - Pagamento.
 - Fiado.
 - Caixa diário.
+- Relatórios.
 - Impressão.
+- Integrações de pagamento.
+- Autenticação complexa.
+- Frontend.
 
 ## Próximo passo relacionado
 

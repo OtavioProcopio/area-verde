@@ -56,5 +56,6 @@ repositório.
 
 ## Postman
 
+- [Índice de arquivos Postman](postman/README.md)
 - [Collection Postman](postman/area-verde-collection.json)
 - [Ambiente Postman](postman/area-verde-dev.json)

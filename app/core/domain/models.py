@@ -122,6 +122,9 @@ class Comanda(SQLModel, table=True):
     fechada_em: Optional[datetime] = Field(
         default=None, sa_column=Column(DateTime, nullable=True)
     )
+    cancelada_em: Optional[datetime] = Field(
+        default=None, sa_column=Column(DateTime, nullable=True)
+    )
     vencimento_em: Optional[date] = None
     observacao: Optional[str] = Field(default=None, sa_column=Column(String(500)))
     criado_em: datetime = Field(default_factory=datetime.now)
@@ -155,6 +158,7 @@ class ItemComanda(SQLModel, table=True):
         sa_column=Column(MONEY_COLUMN, nullable=False),
     )
     criado_em: datetime = Field(default_factory=datetime.now)
+    atualizado_em: datetime = Field(default_factory=datetime.now)
 
     comanda: Optional[Comanda] = Relationship(back_populates="itens")
     produto: Optional[Produto] = Relationship(back_populates="itens_comanda")
