@@ -7,6 +7,7 @@ RUN apt-get update && apt-get upgrade -y && \
     telnet \
     curl \
     gcc \
+    gh \
     python3-dev && \
     rm -rf /var/lib/apt/lists/*
 

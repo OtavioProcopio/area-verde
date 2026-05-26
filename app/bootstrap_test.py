@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from fastapi import FastAPI
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 from api import create_app
 from core.domain.enums import StatusCaixa, StatusComanda, UnidadeEstoque
@@ -31,8 +31,35 @@ def test_sqlmodel_schema_can_be_created(test_engine):
     }.issubset(set(inspector.get_table_names()))
 
 
+def test_product_category_indexes_can_be_created(test_engine):
+    inspector = inspect(test_engine)
+
+    categoria_indexes = {
+        index["name"] for index in inspector.get_indexes("categoria_produto")
+    }
+    produto_indexes = {index["name"] for index in inspector.get_indexes("produto")}
+
+    assert "idx_categorias_produto_nome" in categoria_indexes
+    with test_engine.connect() as connection:
+        expression_index = connection.execute(text("""
+                SELECT name
+                FROM sqlite_master
+                WHERE type = 'index'
+                AND name = 'idx_categorias_produto_nome_ativo_unique'
+                """)).first()
+
+    assert expression_index is not None
+    assert "idx_produtos_categoria_id" in produto_indexes
+    assert "idx_produtos_nome" in produto_indexes
+    assert "idx_produtos_ativo" in produto_indexes
+
+
 def test_domain_defaults_match_mvp():
-    produto = Produto(nome="Cerveja", preco_venda=Decimal("12.00"))
+    produto = Produto(
+        nome="Cerveja",
+        categoria_id=1,
+        preco_venda=Decimal("12.00"),
+    )
     comanda = Comanda(nome_cliente="Mesa 1")
     caixa = Caixa()
 
