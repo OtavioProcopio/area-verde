@@ -1,0 +1,6 @@
+[run]
+omit =
+    *_test.py
+    conftest.py
+    core/interfaces/*
+    migrations/*

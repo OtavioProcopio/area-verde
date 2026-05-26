@@ -1,0 +1,11 @@
+{
+	"id": "area-verde-env-dev",
+	"name": "Area Verde API - Dev",
+	"values": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8001",
+			"enabled": true
+		}
+	]
+}
