@@ -4,11 +4,13 @@ from sqlmodel import Session
 from adapter.repositories.categoria_produto_repository import (
     CategoriaProdutoRepository,
 )
+from adapter.repositories.comanda_repository import ComandaRepository
 from adapter.repositories.movimento_estoque_repository import MovimentoEstoqueRepository
 from adapter.repositories.produto_repository import ProdutoRepository
 from core.application.use_cases.categoria_produto_service import (
     CategoriaProdutoService,
 )
+from core.application.use_cases.comanda_service import ComandaService
 from core.application.use_cases.estoque_service import EstoqueService
 from core.application.use_cases.produto_service import ProdutoService
 from infra.config.context import db_session_context
@@ -42,4 +44,19 @@ def build_estoque_service(session: Session) -> EstoqueService:
     return EstoqueService(
         produto_repository=produto_repository,
         movimento_repository=movimento_repository,
+    )
+
+
+def build_comanda_service(session: Session) -> ComandaService:
+    comanda_repository = ComandaRepository(session)
+    produto_repository = ProdutoRepository(session)
+    movimento_repository = MovimentoEstoqueRepository(session)
+    estoque_service = EstoqueService(
+        produto_repository=produto_repository,
+        movimento_repository=movimento_repository,
+    )
+    return ComandaService(
+        comanda_repository=comanda_repository,
+        produto_repository=produto_repository,
+        estoque_service=estoque_service,
     )
