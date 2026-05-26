@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: area-verde-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-area_verde}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - POSTGRES_DB=${POSTGRES_DB:-area_verde}
+    ports:
+      - "${POSTGRES_PORT_LOCAL:-55433}:5432"
+    volumes:
+      - area_verde_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - area-verde-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: area-verde-api-prod
+    ports:
+      - "${API_PORT:-58001}:8000"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-area_verde}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - POSTGRES_DB=${POSTGRES_DB:-area_verde}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - RUN_MIGRATIONS=${RUN_MIGRATIONS:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - area-verde-network
+    restart: always
+
+volumes:
+  area_verde_postgres_data:
+
+networks:
+  area-verde-network:
+    driver: bridge

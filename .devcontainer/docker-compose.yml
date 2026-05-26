@@ -1,0 +1,50 @@
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspaces/area-verde:cached
+      - ${HOME}/.ssh:/home/vscode/.ssh:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    command: sleep infinity
+    environment:
+      - LOG_LEVEL=DEBUG
+      - TZ=America/Sao_Paulo
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=area_verde
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - area-verde-dev-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: area-verde-dev-postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=area_verde
+    ports:
+      - "55434:5432"
+    volumes:
+      - area_verde_dev_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d area_verde"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - area-verde-dev-network
+
+volumes:
+  area_verde_dev_postgres_data:
+
+networks:
+  area-verde-dev-network:
+    driver: bridge

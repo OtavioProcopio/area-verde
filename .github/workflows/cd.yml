@@ -1,0 +1,117 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    tags:
+      - "v*.*.*"
+
+env:
+  PYTHON_VERSION: "3.11"
+  POSTGRES_USER: area_verde_cd
+  POSTGRES_PASSWORD: cd-${{ github.run_id }}
+  POSTGRES_DB: area_verde_cd
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  RUN_MIGRATIONS: "false"
+  LOG_LEVEL: INFO
+
+jobs:
+  prepare-artifact:
+    name: Prepare deploy artifact
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/develop' && 'development' || 'production' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate semantic version tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tags must follow vMAJOR.MINOR.PATCH. Current tag: $tag"
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: app/requirements.txt
+
+      - name: Install dependencies
+        working-directory: app
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Build check
+        working-directory: app
+        run: python -m py_compile api.py
+
+      - name: Tests
+        working-directory: app
+        run: pytest . -v -m "not integration"
+
+      - name: Docker Compose config
+        working-directory: app
+        run: docker compose config
+
+      - name: Docker build
+        working-directory: app
+        run: docker build -t area-verde-api:${GITHUB_SHA} .
+
+      - name: Generate artifact
+        run: |
+          mkdir -p dist
+          ref_name="${GITHUB_REF_NAME//\//-}"
+          short_sha="${GITHUB_SHA::7}"
+          artifact_name="area-verde-api-${ref_name}-${short_sha}.tar.gz"
+
+          tar \
+            --exclude=".git" \
+            --exclude="app/.venv" \
+            --exclude="app/.pytest_cache" \
+            --exclude="app/.mypy_cache" \
+            --exclude="app/htmlcov" \
+            --exclude="app/.coverage" \
+            --exclude="dist" \
+            -czf "dist/${artifact_name}" .
+
+          echo "ARTIFACT_NAME=${artifact_name}" >> "$GITHUB_ENV"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: dist/${{ env.ARTIFACT_NAME }}
+          if-no-files-found: error
+
+      - name: Deployment summary
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## CD preparatorio
+
+          Nenhum deploy real foi executado. Este workflow apenas valida build,
+          testa a aplicacao, builda a imagem Docker e publica um artefato.
+
+          Ambientes planejados:
+
+          - development: builds gerados a partir de `develop`.
+          - staging: reservado para fluxo futuro de homologacao.
+          - production: builds gerados a partir de `main` e tags `v*.*.*`.
+
+          Secrets esperados para um deploy futuro:
+
+          - `DEPLOY_HOST`
+          - `DEPLOY_USER`
+          - `DEPLOY_SSH_KEY`
+          - `CONTAINER_REGISTRY`
+          - `CONTAINER_REGISTRY_USER`
+          - `CONTAINER_REGISTRY_TOKEN`
+          - `DATABASE_URL` ou variaveis equivalentes de banco
+          - `POSTGRES_PASSWORD`
+          EOF
