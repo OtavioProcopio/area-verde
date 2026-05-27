@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
+from core.application.use_cases.caixa_service import CaixaService
 from core.domain.enums import FormaPagamento, StatusComanda
 from core.domain.exceptions import ApplicationError, NotFoundError
 from core.domain.models import Comanda, Pagamento
@@ -25,9 +26,11 @@ class PagamentoService:
         self,
         pagamento_repository: IPagamentoRepository,
         comanda_repository: IComandaRepository,
+        caixa_service: CaixaService,
     ):
         self.pagamento_repository = pagamento_repository
         self.comanda_repository = comanda_repository
+        self.caixa_service = caixa_service
 
     def fechar_comanda(
         self,
@@ -61,7 +64,16 @@ class PagamentoService:
             )
 
         try:
+            try:
+                caixa = self.caixa_service.get_caixa_aberto()
+            except NotFoundError:
+                raise ApplicationError(
+                    "caixa_aberto_nao_encontrado",
+                    "Nenhum caixa aberto encontrado",
+                    400,
+                )
             pagamento = Pagamento(
+                caixa_id=caixa.id,
                 comanda_id=comanda.id,
                 forma_pagamento=forma_pagamento,
                 valor=valor_pago,
@@ -69,6 +81,11 @@ class PagamentoService:
             )
 
             self.pagamento_repository.criar_pagamento(pagamento)
+            self.caixa_service.aplicar_pagamento(
+                caixa=caixa,
+                forma_pagamento=forma_pagamento,
+                valor=valor_pago,
+            )
 
             comanda.status = StatusComanda.FECHADA
             comanda.fechada_em = datetime.now()

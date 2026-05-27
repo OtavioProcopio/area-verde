@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "area-verde-api-collection",
     "name": "Area Verde API",
-    "description": "Collection da API do Area Verde para validar o fluxo do MVP: produtos, estoque, comandas e pagamentos.",
+    "description": "Collection da API do Area Verde para validar o fluxo do MVP: produtos, estoque, comandas, caixa diário e pagamentos.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -384,6 +384,110 @@
       ]
     },
     {
+      "name": "Caixas",
+      "item": [
+        {
+          "name": "POST /api/caixas/abrir",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valorInicial\": 100.0,\n  \"observacao\": \"Abertura do turno\"\n}"
+            },
+            "url": "{{baseUrl}}/api/caixas/abrir"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/caixas/aberto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/caixas/aberto"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/caixas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/caixas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/caixas/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/caixas/:id/reforcos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": 50.0,\n  \"observacao\": \"Troco adicional\"\n}"
+            },
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}/reforcos"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/caixas/:id/sangrias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": 30.0,\n  \"observacao\": \"Retirada parcial\"\n}"
+            },
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}/sangrias"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/caixas/:id/fechar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dinheiroInformado\": 120.0,\n  \"observacao\": \"Fechamento do turno\"\n}"
+            },
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}/fechar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Pagamentos",
       "item": [
         {
@@ -431,6 +535,10 @@
     },
     {
       "key": "comandaId",
+      "value": "1"
+    },
+    {
+      "key": "caixaId",
       "value": "1"
     },
     {

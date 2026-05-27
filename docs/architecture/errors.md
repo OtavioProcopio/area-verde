@@ -28,6 +28,11 @@ Internamente, as exceptions de domínio carregam:
 | `comanda_sem_consumo` | 400 | Fechamento exige consumo lançado |
 | `valor_pago_invalido` | 400 | Valor pago diferente do total da comanda |
 | `fiado_nao_implementado` | 400 | FIADO bloqueado no MVP |
+| `caixa_ja_aberto` | 400 | Abertura duplicada de caixa |
+| `caixa_aberto_nao_encontrado` | 400/404 | Operação exige caixa aberto ou consulta não encontrou caixa aberto |
+| `caixa_nao_encontrado` | 404 | Caixa inexistente |
+| `caixa_fechado` | 400 | Caixa fechado não aceita movimentação |
+| `sangria_invalida` | 400 | Sangria deixaria dinheiro esperado negativo |
 | `quantidade_invalida` | 400 | Quantidade menor ou igual a zero |
 | `dados_invalidos` | 400/422 | Entrada inválida |
 | `nome_duplicado` | 409 | Conflito de nome ativo |

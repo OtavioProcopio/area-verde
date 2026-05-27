@@ -7,14 +7,15 @@ Implementado.
 ## Objetivo
 
 Permitir fechar comanda aberta com forma de pagamento à vista, registrar o valor
-pago e preparar integração futura com caixa diário. Neste MVP, o caixa não é
-obrigatório para registrar pagamentos.
+pago e vincular o pagamento ao caixa diário aberto. Neste MVP, o caixa precisa
+estar aberto para registrar pagamentos.
 
 ## Casos de uso atendidos
 
 - Fechar comanda aberta.
 - Registrar forma de pagamento (DINHEIRO, PIX, CARTAO).
 - Registrar valor pago e observação opcional.
+- Vincular pagamento ao caixa aberto.
 - Validar valor pago igual ao total consumido na comanda.
 - Rejeitar pagamentos com forma de pagamento FIADO (não implementado).
 - Rejeitar fechamento de comanda vazia (sem itens consumidos).
@@ -28,6 +29,7 @@ obrigatório para registrar pagamentos.
 
 - `Comanda`
 - `Pagamento`
+- `Caixa`
 - `FormaPagamento` (DINHEIRO, PIX, CARTAO, FIADO)
 - `StatusComanda`
 
@@ -45,7 +47,9 @@ obrigatório para registrar pagamentos.
 - Não é permitido adicionar, incrementar, diminuir ou remover itens em comandas fechadas.
 - O valor pago deve ser exatamente igual ao valor total de consumo da comanda.
 - FIADO não está disponível no momento.
-- O pagamento não exige `caixa_id` enquanto o módulo de Caixa Diário estiver pendente.
+- O pagamento exige caixa aberto.
+- Pagamento em DINHEIRO soma o valor em `dinheiro_esperado` do caixa.
+- Pagamentos em PIX e CARTAO ficam vinculados ao caixa, mas não alteram o dinheiro físico esperado.
 - O fechamento não calcula troco no MVP.
 
 ## Validações
@@ -56,6 +60,7 @@ obrigatório para registrar pagamentos.
 - `valorPago` deve ser maior que zero.
 - `valorPago` deve ser igual ao total. Erro: `valor_pago_invalido`.
 - `formaPagamento=FIADO` é bloqueada. Erro: `fiado_nao_implementado`.
+- Deve existir caixa aberto. Erro: `caixa_aberto_nao_encontrado`.
 - `observacao` aceita até 500 caracteres.
 
 ## Exemplos de request
@@ -85,6 +90,7 @@ obrigatório para registrar pagamentos.
   "pagamentos": [
     {
       "id": 10,
+      "caixaId": 1,
       "comandaId": 1,
       "formaPagamento": "PIX",
       "valor": "100.50",
@@ -100,6 +106,7 @@ obrigatório para registrar pagamentos.
 [
   {
     "id": 10,
+    "caixaId": 1,
     "comandaId": 1,
     "formaPagamento": "PIX",
     "valor": "100.50",
@@ -116,7 +123,6 @@ obrigatório para registrar pagamentos.
 ## O que ainda não está incluso
 
 - Fiado completo.
-- Caixa Diário.
 - Relatórios financeiros.
 - Troco.
 - Integração real com Pix, TEF, cartão ou gateway.
@@ -125,4 +131,4 @@ obrigatório para registrar pagamentos.
 
 ## Próximo passo relacionado
 
-- Implementar Fiado / Pendências e depois integrar pagamentos ao Caixa Diário.
+- Implementar Fiado / Pendências.

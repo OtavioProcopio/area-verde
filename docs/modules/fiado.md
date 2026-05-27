@@ -57,4 +57,4 @@ Pendente.
 
 ## Próximo passo relacionado
 
-- Implementar a partir do fluxo de Pagamentos e Fechamento já existente.
+- Implementar a partir dos fluxos de Pagamentos, Fechamento e Caixa Diário.

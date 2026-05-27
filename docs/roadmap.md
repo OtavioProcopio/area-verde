@@ -6,6 +6,7 @@
 - Estoque
 - Comandas e Itens
 - Pagamentos e Fechamento de Comanda
+- Caixa Diário
 
 ## Próximo
 
@@ -13,7 +14,6 @@
 
 ## Depois
 
-- Caixa Diário
 - Relatórios básicos
 - Configurações
 - Acesso / Senha
