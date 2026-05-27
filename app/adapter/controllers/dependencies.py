@@ -6,12 +6,14 @@ from adapter.repositories.categoria_produto_repository import (
 )
 from adapter.repositories.comanda_repository import ComandaRepository
 from adapter.repositories.movimento_estoque_repository import MovimentoEstoqueRepository
+from adapter.repositories.pagamento_repository import PagamentoRepository
 from adapter.repositories.produto_repository import ProdutoRepository
 from core.application.use_cases.categoria_produto_service import (
     CategoriaProdutoService,
 )
 from core.application.use_cases.comanda_service import ComandaService
 from core.application.use_cases.estoque_service import EstoqueService
+from core.application.use_cases.pagamento_service import PagamentoService
 from core.application.use_cases.produto_service import ProdutoService
 from infra.config.context import db_session_context
 
@@ -59,4 +61,13 @@ def build_comanda_service(session: Session) -> ComandaService:
         comanda_repository=comanda_repository,
         produto_repository=produto_repository,
         estoque_service=estoque_service,
+    )
+
+
+def build_pagamento_service(session: Session) -> PagamentoService:
+    pagamento_repository = PagamentoRepository(session)
+    comanda_repository = ComandaRepository(session)
+    return PagamentoService(
+        pagamento_repository=pagamento_repository,
+        comanda_repository=comanda_repository,
     )
