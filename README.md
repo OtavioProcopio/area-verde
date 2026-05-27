@@ -129,6 +129,10 @@ make check
 | Erros | [docs/architecture/errors.md](docs/architecture/errors.md) |
 | Testes | [docs/architecture/tests.md](docs/architecture/tests.md) |
 | Comandos Make | [docs/workflows/makefile.md](docs/workflows/makefile.md) |
+| Preflight | [docs/policies/preflight-policy.md](docs/policies/preflight-policy.md) |
+| Migrations | [docs/policies/migration-policy.md](docs/policies/migration-policy.md) |
+| Documentação | [docs/policies/documentation-policy.md](docs/policies/documentation-policy.md) |
+| Review | [docs/policies/review-policy.md](docs/policies/review-policy.md) |
 | Diagramas | [docs/diagrams/README.md](docs/diagrams/README.md) |
 | Postman | [docs/postman/README.md](docs/postman/README.md) |
 
@@ -136,16 +140,20 @@ make check
 
 Antes de abrir PR:
 
-- Leia [CONTRIBUTING.md](CONTRIBUTING.md).
+- Execute o [Preflight obrigatório](docs/policies/preflight-policy.md).
 - Siga a [Git Flow Policy](docs/policies/git-flow-policy.md).
 - Use a [Branch Policy](docs/policies/branch-policy.md).
 - Escreva commits conforme a [Commit Policy](docs/policies/commit-policy.md).
 - Abra PR seguindo a [Pull Request Policy](docs/policies/pull-request-policy.md).
+- Atualize documentação conforme a [Documentation Policy](docs/policies/documentation-policy.md).
+- Trate migrations conforme a [Migration Policy](docs/policies/migration-policy.md).
 - Não commite secrets: [Security Policy](docs/policies/security-policy.md).
 
 Fluxo padrão:
 
 ```bash
+git status
+git fetch origin
 git checkout develop
 git pull origin develop
 git checkout -b feature/nome-do-modulo

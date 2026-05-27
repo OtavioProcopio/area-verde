@@ -7,48 +7,61 @@ Este guia descreve a rotina diária de trabalho no Area Verde API.
 Use `develop` como base para todo desenvolvimento comum:
 
 ```bash
+git status
+git fetch origin
 git checkout develop
 git pull origin develop
+git checkout -b feature/nome-da-feature
 ```
 
-Crie uma branch curta e objetiva:
-
-```bash
-git checkout -b feature/comandas
-```
-
-ou:
+Use o prefixo correto para o tipo de tarefa:
 
 ```bash
 git checkout -b bugfix/corrigir-total-comanda
+git checkout -b docs/atualiza-politicas
 ```
 
 ## Antes de abrir Pull Request
 
-Rode as validações locais dentro de `app/`:
+Rode as validações recomendadas dentro de `app/`:
 
 ```bash
-make build
-make test
-make lint
+cd app
+make validate
+make ci
+git diff --check
 ```
 
-Se estiver trabalhando só com Docker:
+## Validações Docker
+
+Se estiver dentro do DevContainer e não houver binário `docker`, execute no host:
 
 ```bash
+cd app
 POSTGRES_PASSWORD=local-dev-only docker compose config
 docker build -t area-verde-api-test .
-POSTGRES_PASSWORD=local-dev-only docker compose run --rm -e RUN_MIGRATIONS=false api python -m pytest . -v -m "not integration"
-POSTGRES_PASSWORD=local-dev-only docker compose run --rm -e RUN_MIGRATIONS=false api black --check .
-POSTGRES_PASSWORD=local-dev-only docker compose run --rm -e RUN_MIGRATIONS=false api isort --check-only .
-POSTGRES_PASSWORD=local-dev-only docker compose run --rm -e RUN_MIGRATIONS=false api flake8 --max-line-length=88 --exclude=.venv .
-POSTGRES_PASSWORD=local-dev-only docker compose run --rm -e RUN_MIGRATIONS=false api mypy --ignore-missing-imports --explicit-package-bases .
-docker compose down
 ```
+
+Informe na PR se cada validação foi executada no DevContainer ou no host.
+
+## Antes de pedir revisão
+
+```bash
+git status
+git branch --show-current
+git log --oneline --decorate -5
+```
+
+Confirme:
+
+- branch não é `main`;
+- branch não é `develop`;
+- branch nasceu da `develop` atualizada;
+- PR será aberta para `develop`.
 
 ## Pull Requests
 
-- PRs de `feature/*` e `bugfix/*` devem ir para `develop`.
+- PRs de `feature/*`, `bugfix/*` e `docs/*` devem ir para `develop`.
 - PRs para `main` devem vir apenas de `release/*` ou `hotfix/*`.
 - O merge só deve acontecer se build, testes, lint e type check passarem.
 - Resolva conflitos antes de pedir revisão final.

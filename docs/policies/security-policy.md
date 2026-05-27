@@ -17,6 +17,7 @@
 - Verifique `git status`.
 - Confirme que arquivos locais sensíveis não foram adicionados.
 - Prefira variáveis de ambiente para credenciais.
+- Confirme que a PR não inclui dumps, logs ou exemplos com dados reais.
 
 ## Exemplos de arquivos proibidos
 

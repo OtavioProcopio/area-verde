@@ -45,6 +45,7 @@ alembic upgrade head
 - Revisar FKs, índices e constraints antes de abrir PR.
 - Não criar tabela fora do escopo do módulo.
 - Não apagar dados históricos sem decisão explícita.
+- Seguir a [Migration Policy](../policies/migration-policy.md) antes de criar ou editar migrations.
 
 ## Migrations atuais do MVP
 

@@ -31,12 +31,16 @@ repositório.
 
 ## Policies
 
+- [Preflight obrigatório](policies/preflight-policy.md)
 - [Git Flow](policies/git-flow-policy.md)
 - [Branches](policies/branch-policy.md)
 - [Commits](policies/commit-policy.md)
 - [Pull Requests](policies/pull-request-policy.md)
 - [Arquitetura](policies/architecture-policy.md)
 - [Testes](policies/testing-policy.md)
+- [Migrations](policies/migration-policy.md)
+- [Documentação](policies/documentation-policy.md)
+- [Review](policies/review-policy.md)
 - [DevContainer](policies/devcontainer-policy.md)
 - [Agentes de código](policies/agent-policy.md)
 - [Segurança e secrets](policies/security-policy.md)

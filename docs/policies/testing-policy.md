@@ -3,13 +3,21 @@
 ## Regras
 
 - Toda feature deve ter teste.
-- Testar fluxo positivo e negativo.
+- Toda nova regra de negócio precisa de teste positivo e negativo.
+- Toda integração entre módulos precisa de teste de regressão.
+- Toda mudança em status de entidade precisa testar bloqueios posteriores.
 - Testar validações.
 - Testar erro esperado.
 - Testar integração entre módulos quando aplicável.
 - Não criar teste falso.
 - Não pular teste sem justificativa.
 - Não fazer merge com teste falhando.
+
+## Exemplos do sistema
+
+- Comanda fechada não pode receber item.
+- Pagamento não deve baixar estoque novamente.
+- Caixa fechado não deve aceitar sangria/reforço.
 
 ## Comandos
 
