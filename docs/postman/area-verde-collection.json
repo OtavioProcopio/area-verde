@@ -1,39 +1,441 @@
 {
-	"info": {
-		"_postman_id": "area-verde-api-collection",
-		"name": "Area Verde API",
-		"description": "Collection inicial da API do Area Verde.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Health",
-			"item": [
-				{
-					"name": "GET /health",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/health",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"health"
-							]
-						},
-						"description": "Verificacao de saude da API."
-					},
-					"response": []
-				}
-			]
-		}
-	],
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:8001"
-		}
-	]
+  "info": {
+    "_postman_id": "area-verde-api-collection",
+    "name": "Area Verde API",
+    "description": "Collection da API do Area Verde para validar o fluxo do MVP: produtos, estoque, comandas e pagamentos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Verificacao de saude da API."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categorias",
+      "item": [
+        {
+          "name": "POST /api/categorias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Bebidas\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categorias"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/categorias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/categorias/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/{{categoriaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/categorias/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Bebidas geladas\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categorias/{{categoriaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/categorias/:id/ativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/{{categoriaId}}/ativar"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/categorias/:id/inativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/{{categoriaId}}/inativar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        {
+          "name": "POST /api/produtos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Agua\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 5.0,\n  \"controlaEstoque\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/produtos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/produtos/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/produtos/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Agua mineral\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 6.0,\n  \"controlaEstoque\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos/{{produtoId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/produtos/:id/ativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoId}}/ativar"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/produtos/:id/inativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoId}}/inativar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Estoque",
+      "item": [
+        {
+          "name": "GET /api/estoque",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/estoque"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/estoque/baixo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/estoque/baixo"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/estoque/negativo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/estoque/negativo"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/estoque/produtos/:id/movimentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/estoque/produtos/{{produtoId}}/movimentos"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/estoque/produtos/:id/entrada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade\": 12,\n  \"observacao\": \"Compra do dia\"\n}"
+            },
+            "url": "{{baseUrl}}/api/estoque/produtos/{{produtoId}}/entrada"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/estoque/produtos/:id/ajuste",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"novoEstoque\": 10,\n  \"observacao\": \"Conferencia manual\"\n}"
+            },
+            "url": "{{baseUrl}}/api/estoque/produtos/{{produtoId}}/ajuste"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comandas",
+      "item": [
+        {
+          "name": "POST /api/comandas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeCliente\": \"Cliente Teste\",\n  \"observacao\": \"Mesa 1\"\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/comandas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/comandas/abertas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas/abertas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/comandas/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/comandas/:id/itens",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"produtoId\": {{produtoId}},\n  \"quantidade\": 2\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/comandas/:id/itens/:itemId/incrementar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens/{{itemId}}/incrementar"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/comandas/:id/itens/:itemId/diminuir",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens/{{itemId}}/diminuir"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/comandas/:id/itens/:itemId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens/{{itemId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/comandas/:id/cancelar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Lancamento errado\"\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/cancelar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pagamentos",
+      "item": [
+        {
+          "name": "POST /api/comandas/:id/fechar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formaPagamento\": \"PIX\",\n  \"valorPago\": 10.0,\n  \"observacao\": \"Pix confirmado\"\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/fechar"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/comandas/:id/pagamentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/pagamentos"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8001"
+    },
+    {
+      "key": "categoriaId",
+      "value": "1"
+    },
+    {
+      "key": "produtoId",
+      "value": "1"
+    },
+    {
+      "key": "comandaId",
+      "value": "1"
+    },
+    {
+      "key": "itemId",
+      "value": "1"
+    }
+  ]
 }

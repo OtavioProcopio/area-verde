@@ -44,6 +44,7 @@ class Comanda {
     +BigDecimal total
     +DateTime abertaEm
     +DateTime fechadaEm
+    +DateTime canceladaEm
     +Date vencimentoEm
     +String observacao
     +DateTime criadoEm
@@ -58,6 +59,7 @@ class ItemComanda {
     +BigDecimal quantidadeBaixadaEstoque
     +BigDecimal totalItem
     +DateTime criadoEm
+    +DateTime atualizadoEm
 }
 
 class Caixa {
@@ -76,8 +78,11 @@ class Caixa {
 
 class Pagamento {
     +Long id
+    +Long caixaId
+    +Long comandaId
     +FormaPagamento formaPagamento
     +BigDecimal valor
+    +String observacao
     +DateTime criadoEm
 }
 

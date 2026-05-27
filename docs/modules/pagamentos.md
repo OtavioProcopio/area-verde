@@ -6,38 +6,57 @@ Implementado.
 
 ## Objetivo
 
-Permitir fechar comanda com forma de pagamento, registrar valor pago e preparar
-integração com caixa diário (Cenário A - caixa não obrigatório para pagamentos no momento).
+Permitir fechar comanda aberta com forma de pagamento à vista, registrar o valor
+pago e preparar integração futura com caixa diário. Neste MVP, o caixa não é
+obrigatório para registrar pagamentos.
 
-## Casos de uso previstos
+## Casos de uso atendidos
 
 - Fechar comanda aberta.
 - Registrar forma de pagamento (DINHEIRO, PIX, CARTAO).
-- Validar total pago em relação ao total consumido na comanda.
+- Registrar valor pago e observação opcional.
+- Validar valor pago igual ao total consumido na comanda.
 - Rejeitar pagamentos com forma de pagamento FIADO (não implementado).
 - Rejeitar fechamento de comanda vazia (sem itens consumidos).
 - Atualizar status da comanda para fechada.
+- Preencher `fechada_em` no fechamento.
+- Listar pagamentos registrados para uma comanda.
+- Bloquear fechamento duplicado.
+- Bloquear alterações de itens após fechamento.
 
-## Entidades previstas
+## Entidades envolvidas
 
 - `Comanda`
 - `Pagamento`
 - `FormaPagamento` (DINHEIRO, PIX, CARTAO, FIADO)
+- `StatusComanda`
 
 ## Endpoints
 
 | Método | Rota | Descrição |
 |---|---|---|
-| POST | /api/comandas/{comanda_id}/fechar | Fechamento e registro de pagamento |
-| GET | /api/comandas/{comanda_id}/pagamentos | Lista de pagamentos de uma comanda |
+| `POST` | `/api/comandas/{comanda_id}/fechar` | Fecha comanda e registra pagamento |
+| `GET` | `/api/comandas/{comanda_id}/pagamentos` | Lista pagamentos da comanda |
 
 ## Regras de negócio
 
 - Não é permitido fechar comanda sem itens consumidos.
 - Comandas já fechadas não podem ser fechadas novamente.
-- Não é permitido adicionar itens em comandas fechadas.
-- O valor pago deve ser exatamente igual ou superior ao valor total de consumo da comanda.
+- Não é permitido adicionar, incrementar, diminuir ou remover itens em comandas fechadas.
+- O valor pago deve ser exatamente igual ao valor total de consumo da comanda.
 - FIADO não está disponível no momento.
+- O pagamento não exige `caixa_id` enquanto o módulo de Caixa Diário estiver pendente.
+- O fechamento não calcula troco no MVP.
+
+## Validações
+
+- Comanda deve existir. Erro: `comanda_nao_encontrada`.
+- Comanda deve estar aberta. Erro: `comanda_nao_aberta`.
+- Comanda deve ter consumo maior que zero. Erro: `comanda_sem_consumo`.
+- `valorPago` deve ser maior que zero.
+- `valorPago` deve ser igual ao total. Erro: `valor_pago_invalido`.
+- `formaPagamento=FIADO` é bloqueada. Erro: `fiado_nao_implementado`.
+- `observacao` aceita até 500 caracteres.
 
 ## Exemplos de request
 
@@ -55,13 +74,39 @@ integração com caixa diário (Cenário A - caixa não obrigatório para pagame
 **POST /api/comandas/1/fechar**
 ```json
 {
-  "comandaId": 1,
+  "id": 1,
+  "nomeCliente": "Maria",
   "status": "FECHADA",
-  "totalConsumo": 100.50,
-  "valorPago": 100.50,
-  "troco": 0.0,
-  "mensagem": "Comanda fechada com sucesso."
+  "total": "100.50",
+  "abertaEm": "2026-05-26T18:30:00",
+  "fechadaEm": "2026-05-26T19:10:00",
+  "canceladaEm": null,
+  "observacao": null,
+  "pagamentos": [
+    {
+      "id": 10,
+      "comandaId": 1,
+      "formaPagamento": "PIX",
+      "valor": "100.50",
+      "observacao": "",
+      "criadoEm": "2026-05-26T19:10:00"
+    }
+  ]
 }
+```
+
+**GET /api/comandas/1/pagamentos**
+```json
+[
+  {
+    "id": 10,
+    "comandaId": 1,
+    "formaPagamento": "PIX",
+    "valor": "100.50",
+    "observacao": "",
+    "criadoEm": "2026-05-26T19:10:00"
+  }
+]
 ```
 
 ## Testes relacionados
@@ -70,9 +115,14 @@ integração com caixa diário (Cenário A - caixa não obrigatório para pagame
 
 ## O que ainda não está incluso
 
-- Modulo Fiado.
-- Caixa Diário restrito.
+- Fiado completo.
+- Caixa Diário.
+- Relatórios financeiros.
+- Troco.
+- Integração real com Pix, TEF, cartão ou gateway.
+- Frontend.
+- Release ou tag.
 
 ## Próximo passo relacionado
 
-- Implementar módulo de Caixa e Fiado dependendo da decisão de negócio (Cenário B).
+- Implementar Fiado / Pendências e depois integrar pagamentos ao Caixa Diário.

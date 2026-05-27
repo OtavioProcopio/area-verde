@@ -27,9 +27,18 @@ def fechar_comanda(
     comanda_id: int,
     request: FecharComandaRequest,
     session: Session = Depends(get_current_session),
-):
+) -> FecharComandaResponse:
     service: PagamentoService = build_pagamento_service(session)
-    return service.fechar_comanda(comanda_id, request)
+    result = service.fechar_comanda(
+        comanda_id=comanda_id,
+        forma_pagamento=request.forma_pagamento,
+        valor_pago=request.valor_pago,
+        observacao=request.observacao,
+    )
+    return FecharComandaResponse.from_model(
+        comanda=result.comanda,
+        pagamentos=result.pagamentos,
+    )
 
 
 @router.get(
@@ -41,6 +50,7 @@ def fechar_comanda(
 def listar_pagamentos_da_comanda(
     comanda_id: int,
     session: Session = Depends(get_current_session),
-):
+) -> List[PagamentoResponse]:
     service: PagamentoService = build_pagamento_service(session)
-    return service.listar_pagamentos(comanda_id)
+    pagamentos = service.listar_pagamentos(comanda_id)
+    return [PagamentoResponse.from_model(pagamento) for pagamento in pagamentos]

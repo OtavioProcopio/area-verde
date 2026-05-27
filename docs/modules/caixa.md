@@ -8,6 +8,9 @@ Pendente.
 
 Controlar abertura, movimentações e fechamento financeiro diário do bar.
 
+Pagamentos de comanda já são registrados sem `caixa_id` obrigatório. Este módulo
+deverá definir como esses pagamentos serão vinculados ao caixa diário.
+
 ## Casos de uso previstos
 
 - Abrir caixa.
@@ -57,4 +60,4 @@ Pendente.
 
 ## Próximo passo relacionado
 
-- Implementar após pagamentos e fiado.
+- Implementar após a definição de Fiado / Pendências e vínculo de pagamentos ao caixa.

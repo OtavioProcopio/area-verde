@@ -59,10 +59,20 @@ subgraph COMANDAS["Módulo: Comandas"]
     UC_DEC_ITEM(["Diminuir quantidade do item"])
     UC_REMOVER_ITEM(["Remover item da comanda"])
     UC_CANCELAR_COMANDA(["Cancelar comanda"])
-    UC_FECHAR_COMANDA(["Fechar comanda"])
     UC_RECALCULAR_TOTAL(["Recalcular total da comanda"])
     UC_BAIXAR_ESTOQUE(["Baixar estoque automaticamente"])
     UC_DEVOLVER_ESTOQUE(["Devolver estoque automaticamente"])
+end
+
+%% =========================
+%% MÓDULO: PAGAMENTOS
+%% =========================
+
+subgraph PAGAMENTOS["Módulo: Pagamentos e Fechamento"]
+    UC_FECHAR_COMANDA(["Fechar comanda"])
+    UC_REG_PAGAMENTO(["Registrar pagamento"])
+    UC_LISTAR_PAGAMENTOS(["Listar pagamentos da comanda"])
+    UC_BLOQ_FIADO(["Bloquear FIADO no MVP"])
 end
 
 %% =========================
@@ -84,7 +94,6 @@ end
 subgraph CAIXA["Módulo: Caixa Diário"]
     UC_ABRIR_CAIXA(["Abrir caixa do dia"])
     UC_VER_CAIXA(["Consultar caixa do dia"])
-    UC_REG_PAGAMENTO(["Registrar pagamento"])
     UC_REG_SANGRIA(["Registrar sangria"])
     UC_REG_REFORCO(["Registrar reforço"])
     UC_FECHAR_CAIXA(["Fechar caixa"])
@@ -130,6 +139,7 @@ ATENDENTE --> UC_DEC_ITEM
 ATENDENTE --> UC_REMOVER_ITEM
 ATENDENTE --> UC_CANCELAR_COMANDA
 ATENDENTE --> UC_FECHAR_COMANDA
+ATENDENTE --> UC_LISTAR_PAGAMENTOS
 ATENDENTE --> UC_MARCAR_FIADO
 ATENDENTE --> UC_LISTAR_FIADOS
 ATENDENTE --> UC_PAGAR_FIADO
@@ -188,12 +198,11 @@ UC_REMOVER_ITEM --> UC_DEVOLVER_ESTOQUE
 UC_CANCELAR_COMANDA --> UC_DEVOLVER_ESTOQUE
 
 UC_FECHAR_COMANDA --> UC_REG_PAGAMENTO
-UC_FECHAR_COMANDA --> UC_RECALCULAR_TOTAL
+UC_FECHAR_COMANDA --> UC_BLOQ_FIADO
 
 UC_MARCAR_FIADO --> UC_ALERTA_FIADO
 UC_LISTAR_FIADOS --> UC_ALERTA_FIADO
 
-UC_REG_PAGAMENTO --> UC_VER_CAIXA
 UC_REG_SANGRIA --> UC_CALC_DINHEIRO
 UC_REG_REFORCO --> UC_CALC_DINHEIRO
 UC_FECHAR_CAIXA --> UC_CALC_DINHEIRO

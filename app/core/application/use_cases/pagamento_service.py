@@ -1,20 +1,23 @@
+from dataclasses import dataclass
 from datetime import datetime
-from typing import List
+from decimal import Decimal
+from typing import List, Optional
 
-from adapter.dtos.pagamento_dto import (
-    FecharComandaRequest,
-    FecharComandaResponse,
-    PagamentoResponse,
-)
 from core.domain.enums import FormaPagamento, StatusComanda
 from core.domain.exceptions import ApplicationError, NotFoundError
-from core.domain.models import Pagamento
+from core.domain.models import Comanda, Pagamento
 from core.interfaces.adapters.repositories.i_comanda_repository import (
     IComandaRepository,
 )
 from core.interfaces.adapters.repositories.i_pagamento_repository import (
     IPagamentoRepository,
 )
+
+
+@dataclass(frozen=True)
+class FechamentoComandaResult:
+    comanda: Comanda
+    pagamentos: list[Pagamento]
 
 
 class PagamentoService:
@@ -27,8 +30,12 @@ class PagamentoService:
         self.comanda_repository = comanda_repository
 
     def fechar_comanda(
-        self, comanda_id: int, request: FecharComandaRequest
-    ) -> FecharComandaResponse:
+        self,
+        comanda_id: int,
+        forma_pagamento: FormaPagamento,
+        valor_pago: Decimal,
+        observacao: Optional[str] = None,
+    ) -> FechamentoComandaResult:
         comanda = self.comanda_repository.get_by_id(comanda_id)
         if not comanda:
             raise NotFoundError("comanda_nao_encontrada", "Comanda não encontrada")
@@ -41,12 +48,12 @@ class PagamentoService:
                 "comanda_sem_consumo", "Comanda sem consumo para fechamento", 400
             )
 
-        if request.forma_pagamento == FormaPagamento.FIADO:
+        if forma_pagamento == FormaPagamento.FIADO:
             raise ApplicationError(
                 "fiado_nao_implementado", "Fiado ainda não implementado", 400
             )
 
-        if request.valor_pago != comanda.total:
+        if valor_pago != comanda.total:
             raise ApplicationError(
                 "valor_pago_invalido",
                 "Valor pago deve ser igual ao total da comanda",
@@ -56,9 +63,9 @@ class PagamentoService:
         try:
             pagamento = Pagamento(
                 comanda_id=comanda.id,
-                forma_pagamento=request.forma_pagamento,
-                valor=request.valor_pago,
-                observacao=request.observacao,
+                forma_pagamento=forma_pagamento,
+                valor=valor_pago,
+                observacao=observacao,
             )
 
             self.pagamento_repository.criar_pagamento(pagamento)
@@ -76,18 +83,14 @@ class PagamentoService:
             raise e
 
         pagamentos_comanda = self.pagamento_repository.listar_por_comanda(comanda_id)
+        return FechamentoComandaResult(
+            comanda=comanda,
+            pagamentos=pagamentos_comanda,
+        )
 
-        response_model = FecharComandaResponse.model_validate(comanda)
-        response_model.pagamentos = [
-            PagamentoResponse.model_validate(p) for p in pagamentos_comanda
-        ]
-
-        return response_model
-
-    def listar_pagamentos(self, comanda_id: int) -> List[PagamentoResponse]:
+    def listar_pagamentos(self, comanda_id: int) -> List[Pagamento]:
         comanda = self.comanda_repository.get_by_id(comanda_id)
         if not comanda:
             raise NotFoundError("comanda_nao_encontrada", "Comanda não encontrada")
 
-        pagamentos = self.pagamento_repository.listar_por_comanda(comanda_id)
-        return [PagamentoResponse.model_validate(p) for p in pagamentos]
+        return self.pagamento_repository.listar_por_comanda(comanda_id)

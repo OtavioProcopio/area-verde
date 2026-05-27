@@ -8,6 +8,9 @@ Pendente.
 
 Controlar comandas ou saldos deixados para pagamento futuro.
 
+No estado atual do MVP, `FormaPagamento.FIADO` existe no domínio, mas o
+fechamento de comanda rejeita essa forma com o erro `fiado_nao_implementado`.
+
 ## Casos de uso previstos
 
 - Marcar comanda como pendente/fiado.
@@ -54,4 +57,4 @@ Pendente.
 
 ## Próximo passo relacionado
 
-- Implementar após pagamentos e fechamento.
+- Implementar a partir do fluxo de Pagamentos e Fechamento já existente.
