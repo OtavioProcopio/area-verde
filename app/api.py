@@ -10,6 +10,7 @@ from adapter.controllers.categoria_produto_controller import (
 )
 from adapter.controllers.comanda_controller import router as comanda_router
 from adapter.controllers.estoque_controller import router as estoque_router
+from adapter.controllers.pagamento_controller import router as pagamento_router
 from adapter.controllers.produto_controller import router as produto_router
 from core.domain.exceptions import ApplicationError
 from infra.config.container import Container
@@ -95,6 +96,7 @@ def create_app() -> FastAPI:
     app.include_router(produto_router)
     app.include_router(estoque_router)
     app.include_router(comanda_router)
+    app.include_router(pagamento_router)
 
     @app.get("/health", tags=["Health"])
     async def health_check():

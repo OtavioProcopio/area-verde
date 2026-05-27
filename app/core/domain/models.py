@@ -205,9 +205,14 @@ class Caixa(SQLModel, table=True):
 
 class Pagamento(SQLModel, table=True):
     __tablename__: ClassVar[str] = "pagamento"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_pagamento_comanda_id", "comanda_id"),
+        Index("idx_pagamento_forma_pagamento", "forma_pagamento"),
+        Index("idx_pagamento_criado_em", "criado_em"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    caixa_id: int = Field(foreign_key="caixa.id")
+    caixa_id: Optional[int] = Field(default=None, foreign_key="caixa.id")
     comanda_id: int = Field(foreign_key="comanda.id")
     forma_pagamento: FormaPagamento = Field(
         sa_column=Column(
@@ -219,6 +224,7 @@ class Pagamento(SQLModel, table=True):
         default=Decimal("0.00"),
         sa_column=Column(MONEY_COLUMN, nullable=False),
     )
+    observacao: Optional[str] = Field(default=None, sa_column=Column(String(500)))
     criado_em: datetime = Field(default_factory=datetime.now)
 
     caixa: Optional[Caixa] = Relationship(back_populates="pagamentos")
