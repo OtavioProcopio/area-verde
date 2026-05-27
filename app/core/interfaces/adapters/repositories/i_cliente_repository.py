@@ -1,4 +1,6 @@
-from typing import Optional, Protocol
+from __future__ import annotations
+
+from typing import List, Optional, Protocol
 
 from core.domain.models import Cliente
 
@@ -15,7 +17,9 @@ class IClienteRepository(Protocol):
         ativo: Optional[bool] = None,
         nome: Optional[str] = None,
         telefone: Optional[str] = None,
-    ) -> list[Cliente]: ...
+    ) -> List[Cliente]: ...
+
+    def list_ativos(self) -> List[Cliente]: ...
 
     def commit(self) -> None: ...
 

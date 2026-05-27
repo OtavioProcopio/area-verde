@@ -42,11 +42,15 @@ class QuitarFiadoRequest(BaseModel):
 
 class PendenciaResumoResponse(BaseModel):
     comanda_id: int = Field(alias="comandaId")
+    caixa_origem_id: Optional[int] = Field(default=None, alias="caixaOrigemId")
     cliente: Optional[ClienteFiadoResponse] = None
     nome_cliente: str = Field(alias="nomeCliente")
+    nome_comanda: str = Field(alias="nomeComanda")
+    nome_exibicao: str = Field(alias="nomeExibicao")
     total: Decimal
     status: StatusComanda
     aberta_em: datetime = Field(alias="abertaEm")
+    pendente_em: Optional[datetime] = Field(default=None, alias="pendenteEm")
     vencimento_em: Optional[date] = Field(alias="vencimentoEm")
     vencida: bool
 
@@ -65,14 +69,24 @@ class PendenciaResumoResponse(BaseModel):
         )
         return cls(
             comandaId=comanda.id,
+            caixaOrigemId=comanda.caixa_origem_id,
             cliente=ClienteFiadoResponse.from_model(comanda.cliente),
             nomeCliente=comanda.nome_cliente,
+            nomeComanda=comanda.nome_cliente,
+            nomeExibicao=cls._nome_exibicao(comanda),
             total=comanda.total,
             status=comanda.status,
             abertaEm=comanda.aberta_em,
+            pendenteEm=comanda.pendente_em,
             vencimentoEm=comanda.vencimento_em,
             vencida=vencida,
         )
+
+    @staticmethod
+    def _nome_exibicao(comanda: Comanda) -> str:
+        if comanda.cliente is not None:
+            return comanda.cliente.apelido or comanda.cliente.nome
+        return comanda.nome_cliente
 
 
 class PendenciaDetalheResponse(PendenciaResumoResponse):
@@ -102,6 +116,7 @@ class QuitarFiadoResponse(BaseModel):
     id: int
     status: StatusComanda
     total: Decimal
+    pendente_em: Optional[datetime] = Field(alias="pendenteEm")
     vencimento_em: Optional[date] = Field(alias="vencimentoEm")
     fechada_em: Optional[datetime] = Field(alias="fechadaEm")
     pagamentos: list[PagamentoResponse]
@@ -121,6 +136,7 @@ class QuitarFiadoResponse(BaseModel):
             id=comanda.id,
             status=comanda.status,
             total=comanda.total,
+            pendenteEm=comanda.pendente_em,
             vencimentoEm=comanda.vencimento_em,
             fechadaEm=comanda.fechada_em,
             pagamentos=[

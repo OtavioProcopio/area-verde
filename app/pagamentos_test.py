@@ -21,9 +21,9 @@ def client(test_engine) -> Generator[TestClient, None, None]:
     with test_engine.connect() as conn:
         conn.execute(text("DELETE FROM pagamento;"))
         conn.execute(text("DELETE FROM movimento_caixa;"))
-        conn.execute(text("DELETE FROM caixa;"))
         conn.execute(text("DELETE FROM item_comanda;"))
         conn.execute(text("DELETE FROM comanda;"))
+        conn.execute(text("DELETE FROM caixa;"))
         conn.execute(text("DELETE FROM movimento_estoque;"))
         conn.execute(text("DELETE FROM produto;"))
         conn.execute(text("DELETE FROM categoria_produto;"))
@@ -31,6 +31,7 @@ def client(test_engine) -> Generator[TestClient, None, None]:
 
 
 def _create_comanda(client: TestClient) -> dict:
+    _ensure_caixa_aberto(client)
     response = client.post("/api/comandas", json={"nomeCliente": "Cliente Teste"})
     return response.json()
 
@@ -65,6 +66,13 @@ def _abrir_caixa(client: TestClient) -> dict:
     response = client.post("/api/caixas/abrir", json={"valorInicial": 100})
     assert response.status_code == 201
     return response.json()
+
+
+def _ensure_caixa_aberto(client: TestClient) -> dict:
+    response = client.get("/api/caixas/aberto")
+    if response.status_code == 200:
+        return response.json()
+    return _abrir_caixa(client)
 
 
 def test_fechar_comanda_valida_dinheiro(client: TestClient):

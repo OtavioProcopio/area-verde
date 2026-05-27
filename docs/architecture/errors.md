@@ -36,6 +36,7 @@ Internamente, as exceptions de domínio carregam:
 | `cliente_nao_encontrado` | 404 | Cliente inexistente |
 | `cliente_inativo` | 400 | Cliente não pode ser usado |
 | `cliente_obrigatorio_para_fiado` | 400 | Fiado exige cliente cadastrado |
+| `cliente_duplicado` | 409 | Já existe cliente ativo com mesmo nome ou telefone normalizado |
 | `vencimento_invalido` | 400 | Vencimento anterior à data atual |
 | `forma_pagamento_invalida` | 400 | Forma de pagamento bloqueada para o fluxo |
 | `fiado_nao_pode_quitar_fiado` | 400 | FIADO não pode quitar pendência |

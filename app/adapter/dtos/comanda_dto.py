@@ -83,6 +83,7 @@ class ItemComandaResponse(BaseModel):
 
 class ComandaResumoResponse(BaseModel):
     id: int
+    caixa_origem_id: Optional[int] = Field(default=None, alias="caixaOrigemId")
     cliente_id: Optional[int] = Field(default=None, alias="clienteId")
     nome_cliente: str = Field(alias="nomeCliente")
     nome_cliente_snapshot: Optional[str] = Field(
@@ -92,6 +93,7 @@ class ComandaResumoResponse(BaseModel):
     status: StatusComanda
     total: float
     aberta_em: datetime = Field(alias="abertaEm")
+    pendente_em: Optional[datetime] = Field(default=None, alias="pendenteEm")
     vencimento_em: Optional[date] = Field(default=None, alias="vencimentoEm")
     quantidade_itens: int = Field(alias="quantidadeItens")
 
@@ -104,12 +106,14 @@ class ComandaResumoResponse(BaseModel):
 
         return cls(
             id=comanda.id,
+            caixaOrigemId=comanda.caixa_origem_id,
             clienteId=comanda.cliente_id,
             nomeCliente=comanda.nome_cliente,
             nomeClienteSnapshot=comanda.nome_cliente_snapshot,
             status=comanda.status,
             total=float(comanda.total),
             abertaEm=comanda.aberta_em,
+            pendenteEm=comanda.pendente_em,
             vencimentoEm=comanda.vencimento_em,
             quantidadeItens=len(comanda.itens),
         )
@@ -117,6 +121,7 @@ class ComandaResumoResponse(BaseModel):
 
 class ComandaDetalheResponse(BaseModel):
     id: int
+    caixa_origem_id: Optional[int] = Field(default=None, alias="caixaOrigemId")
     cliente_id: Optional[int] = Field(default=None, alias="clienteId")
     nome_cliente: str = Field(alias="nomeCliente")
     nome_cliente_snapshot: Optional[str] = Field(
@@ -128,6 +133,7 @@ class ComandaDetalheResponse(BaseModel):
     aberta_em: datetime = Field(alias="abertaEm")
     fechada_em: Optional[datetime] = Field(alias="fechadaEm")
     cancelada_em: Optional[datetime] = Field(alias="canceladaEm")
+    pendente_em: Optional[datetime] = Field(default=None, alias="pendenteEm")
     vencimento_em: Optional[date] = Field(default=None, alias="vencimentoEm")
     observacao: Optional[str]
     itens: list[ItemComandaResponse]
@@ -141,6 +147,7 @@ class ComandaDetalheResponse(BaseModel):
 
         return cls(
             id=comanda.id,
+            caixaOrigemId=comanda.caixa_origem_id,
             clienteId=comanda.cliente_id,
             nomeCliente=comanda.nome_cliente,
             nomeClienteSnapshot=comanda.nome_cliente_snapshot,
@@ -149,6 +156,7 @@ class ComandaDetalheResponse(BaseModel):
             abertaEm=comanda.aberta_em,
             fechadaEm=comanda.fechada_em,
             canceladaEm=comanda.cancelada_em,
+            pendenteEm=comanda.pendente_em,
             vencimentoEm=comanda.vencimento_em,
             observacao=comanda.observacao,
             itens=[ItemComandaResponse.from_model(item) for item in comanda.itens],

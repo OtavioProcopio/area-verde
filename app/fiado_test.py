@@ -4,8 +4,11 @@ from typing import Any
 
 from dependency_injector import providers
 from fastapi.testclient import TestClient
+from sqlmodel import Session
 
 from api import create_app
+from core.domain.enums import StatusCaixa
+from core.domain.models import Caixa
 
 
 def build_client(test_engine):
@@ -25,6 +28,22 @@ def criar_cliente(client: TestClient, nome: str = "João da Oficina") -> dict:
     )
     assert response.status_code == 201
     return response.json()
+
+
+def garantir_caixa_aberto(client: TestClient) -> dict:
+    response = client.get("/api/caixas/aberto")
+    if response.status_code == 200:
+        return response.json()
+    return abrir_caixa(client)
+
+
+def fechar_caixa_direto(test_engine, caixa_id: int) -> None:
+    with Session(test_engine) as session:
+        caixa = session.get(Caixa, caixa_id)
+        assert caixa is not None
+        caixa.status = StatusCaixa.FECHADO
+        session.add(caixa)
+        session.commit()
 
 
 def criar_produto(client: TestClient, nome: str = "Agua") -> dict:
@@ -47,6 +66,7 @@ def criar_comanda_com_consumo(
     cliente_id: int | None = None,
     nome: str | None = "João",
 ) -> dict:
+    garantir_caixa_aberto(client)
     payload: dict[str, Any] = {"observacao": "Mesa 1"}
     if nome is not None:
         payload["nomeCliente"] = nome
@@ -80,6 +100,7 @@ def test_deve_criar_comanda_com_cliente_e_usar_nome_quando_nome_nao_enviado(
     test_engine,
 ):
     client = build_client(test_engine)
+    abrir_caixa(client)
     cliente = criar_cliente(client)
 
     com_nome = client.post(
@@ -98,6 +119,7 @@ def test_deve_criar_comanda_com_cliente_e_usar_nome_quando_nome_nao_enviado(
 
 def test_deve_rejeitar_cliente_inexistente_ou_inativo_em_comanda(test_engine):
     client = build_client(test_engine)
+    abrir_caixa(client)
     cliente = criar_cliente(client)
     client.patch(f"/api/clientes/{cliente['id']}/inativar")
 
@@ -112,6 +134,7 @@ def test_deve_rejeitar_cliente_inexistente_ou_inativo_em_comanda(test_engine):
 
 def test_deve_vincular_cliente_a_comanda_aberta(test_engine):
     client = build_client(test_engine)
+    abrir_caixa(client)
     cliente = criar_cliente(client)
     comanda = client.post("/api/comandas", json={"nomeCliente": "Balcão"}).json()
 
@@ -127,6 +150,7 @@ def test_deve_vincular_cliente_a_comanda_aberta(test_engine):
 
 def test_deve_rejeitar_vincular_cliente_a_comanda_nao_aberta(test_engine):
     client = build_client(test_engine)
+    abrir_caixa(client)
     cliente = criar_cliente(client)
     comanda = client.post("/api/comandas", json={"nomeCliente": "Balcão"}).json()
     client.patch(f"/api/comandas/{comanda['id']}/cancelar")
@@ -151,8 +175,25 @@ def test_deve_marcar_comanda_aberta_com_consumo_como_pendente(test_engine):
     body = response.json()
     assert body["status"] == "PENDENTE"
     assert body["cliente"]["id"] == cliente["id"]
+    assert body["caixaOrigemId"] == comanda["caixaOrigemId"]
+    assert body["nomeComanda"] == comanda["nomeCliente"]
+    assert body["nomeExibicao"] == "João"
+    assert body["pendenteEm"] is not None
     assert body["vencimentoEm"] == str(date.today() + timedelta(days=7))
     assert body["pagamentos"] == []
+
+
+def test_deve_rejeitar_marcar_fiado_sem_caixa_aberto(test_engine):
+    client = build_client(test_engine)
+    caixa = abrir_caixa(client)
+    cliente = criar_cliente(client)
+    comanda = criar_comanda_com_consumo(client)
+    fechar_caixa_direto(test_engine, caixa["id"])
+
+    response = marcar_fiado(client, comanda["id"], cliente["id"])
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "caixa_aberto_nao_encontrado"
 
 
 def test_deve_exigir_cliente_para_fiado_e_permitir_cliente_ja_vinculado(test_engine):
@@ -173,6 +214,7 @@ def test_deve_exigir_cliente_para_fiado_e_permitir_cliente_ja_vinculado(test_eng
 def test_deve_validar_vencimento_comanda_vazia_status_e_cliente_inativo(test_engine):
     client = build_client(test_engine)
     cliente = criar_cliente(client)
+    garantir_caixa_aberto(client)
     comanda_vazia = client.post("/api/comandas", json={"nomeCliente": "Vazia"}).json()
 
     vencimento_passado = client.post(
@@ -222,6 +264,9 @@ def test_deve_listar_pendencias_vencidas_e_consultar_por_comanda(test_engine):
     assert vencidas.json() == []
     assert detalhe.status_code == 200
     assert detalhe.json()["comandaId"] == comanda["id"]
+    assert detalhe.json()["pendenteEm"] is not None
+    assert detalhe.json()["nomeComanda"] == comanda["nomeCliente"]
+    assert detalhe.json()["nomeExibicao"] == "João"
     assert historico.status_code == 200
     assert historico.json()["totalPendente"] == "20.00"
 
@@ -242,9 +287,50 @@ def test_deve_quitar_pendencia_com_dinheiro_e_somar_no_caixa(test_engine):
     assert response.status_code == 200
     assert response.json()["status"] == "FECHADA"
     assert response.json()["fechadaEm"] is not None
+    assert response.json()["pendenteEm"] is not None
     assert response.json()["vencimentoEm"] is not None
     assert response.json()["pagamentos"][0]["caixaId"] == caixa["id"]
     assert _money(detalhe_caixa["dinheiroEsperado"]) == Decimal("120.00")
+
+
+def test_deve_quitar_pendencia_mesmo_com_cliente_inativo(test_engine):
+    client = build_client(test_engine)
+    caixa = abrir_caixa(client)
+    cliente = criar_cliente(client)
+    comanda = criar_comanda_com_consumo(client)
+    pendencia = marcar_fiado(client, comanda["id"], cliente["id"]).json()
+    client.patch(f"/api/clientes/{cliente['id']}/inativar")
+
+    response = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "PIX", "valorPago": comanda["total"]},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "FECHADA"
+    assert response.json()["pendenteEm"] == pendencia["pendenteEm"]
+    assert response.json()["vencimentoEm"] == pendencia["vencimentoEm"]
+    assert response.json()["pagamentos"][0]["caixaId"] == caixa["id"]
+
+
+def test_deve_mostrar_pendencias_de_cliente_inativo(test_engine):
+    client = build_client(test_engine)
+    abrir_caixa(client)
+    cliente = criar_cliente(client)
+    comanda = criar_comanda_com_consumo(client)
+    marcar_fiado(client, comanda["id"], cliente["id"])
+    client.patch(f"/api/clientes/{cliente['id']}/inativar")
+
+    historico = client.get(f"/api/clientes/{cliente['id']}/pendencias")
+    fiados = client.get("/api/fiados")
+    detalhe = client.get(f"/api/fiados/{comanda['id']}")
+
+    assert historico.status_code == 200
+    assert historico.json()["pendencias"][0]["comandaId"] == comanda["id"]
+    assert fiados.status_code == 200
+    assert fiados.json()[0]["comandaId"] == comanda["id"]
+    assert detalhe.status_code == 200
+    assert detalhe.json()["comandaId"] == comanda["id"]
 
 
 def test_deve_quitar_pendencia_com_pix_e_cartao_sem_somar_dinheiro(test_engine):
@@ -276,6 +362,8 @@ def test_deve_validar_quitacao(test_engine):
     cliente = criar_cliente(client)
     comanda = criar_comanda_com_consumo(client)
     marcar_fiado(client, comanda["id"], cliente["id"])
+    caixa = client.get("/api/caixas/aberto").json()
+    fechar_caixa_direto(test_engine, caixa["id"])
 
     sem_caixa = client.post(
         f"/api/fiados/{comanda['id']}/quitar",

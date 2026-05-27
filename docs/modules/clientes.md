@@ -19,6 +19,7 @@ continua disponível para atendimento comum.
 - Ativar e inativar cliente.
 - Consultar pendências do cliente.
 - Usar cliente como vínculo opcional em comanda.
+- Bloquear duplicidade de cliente ativo por nome ou telefone normalizados.
 
 ## Entidade Cliente
 
@@ -34,6 +35,12 @@ Campos:
 - `atualizado_em`
 
 O cliente inicia ativo. Não há exclusão física no MVP.
+
+Clientes ativos devem ser únicos por:
+
+- nome normalizado com `trim` e comparação case-insensitive;
+- telefone normalizado, quando informado, removendo espaços e caracteres comuns
+  como `(`, `)`, `-` e `.`.
 
 ## Endpoints
 
@@ -99,11 +106,19 @@ O cliente inicia ativo. Não há exclusão física no MVP.
 - `observacao` é opcional e aceita até 500 caracteres.
 - Cliente inexistente retorna `cliente_nao_encontrado`.
 - Cliente inativo não pode ser usado para nova comanda com vínculo nem para fiado.
+- Cliente ativo duplicado retorna `cliente_duplicado`.
 
 ## Regras de ativação
 
 Cliente inativo permanece no histórico, mas não pode ser usado para novo fiado.
 Reativar cliente libera novamente o uso em comandas futuras.
+
+Inativar cliente não oculta nem remove pendências. Elas continuam aparecendo em:
+
+- `GET /api/clientes/{cliente_id}/pendencias`
+- `GET /api/fiados`
+- `GET /api/fiados/vencidos`
+- `GET /api/fiados/{comanda_id}`
 
 ## Testes relacionados
 

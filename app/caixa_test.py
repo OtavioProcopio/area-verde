@@ -5,8 +5,11 @@ import pytest
 from dependency_injector import providers
 from fastapi.testclient import TestClient
 from sqlalchemy import text
+from sqlmodel import Session
 
 from api import create_app
+from core.domain.enums import StatusCaixa
+from core.domain.models import Caixa
 
 
 def build_client(test_engine):
@@ -22,9 +25,9 @@ def client(test_engine) -> Generator[TestClient, None, None]:
     with test_engine.connect() as conn:
         conn.execute(text("DELETE FROM pagamento;"))
         conn.execute(text("DELETE FROM movimento_caixa;"))
-        conn.execute(text("DELETE FROM caixa;"))
         conn.execute(text("DELETE FROM item_comanda;"))
         conn.execute(text("DELETE FROM comanda;"))
+        conn.execute(text("DELETE FROM caixa;"))
         conn.execute(text("DELETE FROM movimento_estoque;"))
         conn.execute(text("DELETE FROM produto;"))
         conn.execute(text("DELETE FROM categoria_produto;"))
@@ -63,6 +66,15 @@ def _create_comanda_com_consumo(client: TestClient, nome_produto="Agua") -> dict
         json={"produtoId": prod_res.json()["id"], "quantidade": 2},
     )
     return client.get(f"/api/comandas/{comanda['id']}").json()
+
+
+def _fechar_caixa_direto(test_engine, caixa_id: int) -> None:
+    with Session(test_engine) as session:
+        caixa = session.get(Caixa, caixa_id)
+        assert caixa is not None
+        caixa.status = StatusCaixa.FECHADO
+        session.add(caixa)
+        session.commit()
 
 
 def _fechar_comanda(client: TestClient, comanda: dict, forma_pagamento: str) -> dict:
@@ -265,8 +277,10 @@ def test_rejeita_dinheiro_informado_negativo(client: TestClient):
     assert response.status_code == 422
 
 
-def test_pagamento_exige_caixa_aberto(client: TestClient):
+def test_pagamento_exige_caixa_aberto(client: TestClient, test_engine):
+    caixa = _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
+    _fechar_caixa_direto(test_engine, caixa["id"])
 
     response = client.post(
         f"/api/comandas/{comanda['id']}/fechar",

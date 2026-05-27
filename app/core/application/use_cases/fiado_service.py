@@ -46,6 +46,15 @@ class FiadoService:
         observacao: Optional[str] = None,
     ) -> Comanda:
         try:
+            try:
+                caixa = self.caixa_service.get_caixa_aberto()
+            except NotFoundError:
+                raise ApplicationError(
+                    "caixa_aberto_nao_encontrado",
+                    "Nenhum caixa aberto encontrado",
+                    400,
+                )
+
             comanda = self._get_comanda(comanda_id)
             self._ensure_aberta(comanda)
             self._ensure_com_consumo(comanda)
@@ -56,7 +65,10 @@ class FiadoService:
 
             comanda.cliente_id = cliente.id
             comanda.nome_cliente_snapshot = ClienteService.nome_operacional(cliente)
+            if comanda.caixa_origem_id is None:
+                comanda.caixa_origem_id = caixa.id
             comanda.status = StatusComanda.PENDENTE
+            comanda.pendente_em = datetime.now()
             comanda.vencimento_em = vencimento
             comanda.observacao = (
                 observacao if observacao is not None else comanda.observacao

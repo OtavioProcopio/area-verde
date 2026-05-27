@@ -13,14 +13,16 @@ no caixa do dia.
 ## Diferença entre FIADO e pagamento recebido
 
 `FormaPagamento.FIADO` não é pagamento. Ela representa a decisão operacional de
-marcar a comanda como pendente. A quitação futura deve usar `DINHEIRO`, `PIX` ou
-`CARTAO` e exige caixa aberto no dia do recebimento.
+marcar a comanda como pendente dentro de um caixa aberto. A quitação futura deve
+usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 
 ## Casos de uso atendidos
 
 - Marcar comanda aberta como fiado.
 - Exigir cliente cadastrado e ativo para fiado.
 - Definir `vencimento_em` manual ou padrão de 7 dias.
+- Registrar `pendente_em`.
+- Preservar `caixa_origem_id` da comanda.
 - Listar pendências.
 - Listar pendências vencidas.
 - Consultar pendência por comanda.
@@ -70,10 +72,13 @@ marcar a comanda como pendente. A quitação futura deve usar `DINHEIRO`, `PIX` 
       "nome": "João da Oficina",
       "apelido": "João"
     },
-    "nomeCliente": "João",
+    "nomeCliente": "Balcão",
+    "nomeComanda": "Balcão",
+    "nomeExibicao": "João",
     "total": "80.00",
     "status": "PENDENTE",
     "abertaEm": "2026-05-27T18:00:00",
+    "pendenteEm": "2026-05-27T20:30:00",
     "vencimentoEm": "2026-06-03",
     "vencida": false
   }
@@ -86,6 +91,7 @@ marcar a comanda como pendente. A quitação futura deve usar `DINHEIRO`, `PIX` 
   "id": 10,
   "status": "FECHADA",
   "total": "80.00",
+  "pendenteEm": "2026-05-27T20:30:00",
   "vencimentoEm": "2026-06-03",
   "fechadaEm": "2026-06-01T20:00:00",
   "pagamentos": [
@@ -105,17 +111,22 @@ marcar a comanda como pendente. A quitação futura deve usar `DINHEIRO`, `PIX` 
 ## Regras de negócio
 
 - Apenas comanda `ABERTA` pode virar fiado.
+- Deve existir caixa aberto para marcar fiado.
 - Comanda deve ter itens e total maior que zero.
 - Cliente cadastrado e ativo é obrigatório.
 - Se a comanda já tiver cliente, `clienteId` pode ser omitido no request.
 - Se `vencimentoEm` não for enviado, o padrão é hoje + 7 dias.
 - Vencimento anterior à data atual é bloqueado.
+- `pendente_em` recebe a data e hora em que a comanda virou `PENDENTE`.
+- `caixa_origem_id` identifica o caixa em que a comanda foi aberta.
 - Marcar fiado não cria pagamento e não altera caixa.
 - Quitar fiado exige caixa aberto.
+- Quitação continua permitida mesmo se o cliente foi inativado após a pendência.
 - `FIADO` não pode quitar fiado.
 - Pagamento em `DINHEIRO` soma em `dinheiro_esperado`.
 - Pagamento em `PIX` ou `CARTAO` fica vinculado ao caixa sem alterar dinheiro físico.
 - A quitação altera a comanda para `FECHADA` e mantém `vencimento_em` para histórico.
+- A quitação não altera `pendente_em`.
 
 ## Validações
 

@@ -60,12 +60,16 @@ consumo fica para pagamento futuro.
 ## Regras de negócio
 
 - Toda comanda inicia com status `ABERTA` e total zero.
+- Criar comanda exige caixa aberto. Erro: `caixa_aberto_nao_encontrado`.
+- Ao criar, a comanda recebe `caixa_origem_id` com o caixa aberto.
 - Comanda comum pode ser aberta apenas com `nomeCliente`.
 - `clienteId` é opcional e não substitui a abertura rápida.
+- Também é permitido informar `nomeCliente` e `clienteId` juntos.
 - Quando `clienteId` é informado, o cliente deve existir e estar ativo.
 - Se `clienteId` for informado sem `nomeCliente`, o sistema usa apelido ou nome do cliente.
 - `nome_cliente_snapshot` registra o nome operacional do cliente cadastrado.
 - Cliente só é obrigatório para fiado.
+- Comanda sem cliente pode ser paga normalmente, mas não pode virar fiado.
 - Status `PENDENTE` representa fiado ou valor a receber.
 - Apenas comandas abertas podem receber itens, alterações ou cancelamento.
 - O total da comanda é sempre derivado da soma dos itens.
@@ -86,6 +90,7 @@ consumo fica para pagamento futuro.
 - Várias comandas abertas podem ter o mesmo nome/apelido.
 - Cliente inexistente retorna `cliente_nao_encontrado`.
 - Cliente inativo retorna `cliente_inativo`.
+- Caixa aberto inexistente na criação retorna `caixa_aberto_nao_encontrado`.
 - `quantidade` deve ser maior que zero.
 - Produto deve existir. Erro: `produto_nao_encontrado`.
 - Produto deve estar ativo. Erro: `produto_inativo`.
@@ -109,6 +114,15 @@ Criar comanda com cliente:
 {
   "clienteId": 1,
   "observacao": "Cliente cadastrado"
+}
+```
+
+Criar comanda com nome operacional e cliente:
+
+```json
+{
+  "nomeCliente": "João balcão",
+  "clienteId": 1
 }
 ```
 
@@ -154,6 +168,7 @@ Comanda criada:
 ```json
 {
   "id": 1,
+  "caixaOrigemId": 1,
   "clienteId": null,
   "nomeCliente": "João",
   "nomeClienteSnapshot": null,
@@ -162,6 +177,7 @@ Comanda criada:
   "abertaEm": "2026-05-26T18:40:00",
   "fechadaEm": null,
   "canceladaEm": null,
+  "pendenteEm": null,
   "vencimentoEm": null,
   "observacao": "Cliente voltou mais tarde",
   "itens": []
@@ -173,6 +189,7 @@ Comanda com item:
 ```json
 {
   "id": 1,
+  "caixaOrigemId": 1,
   "clienteId": null,
   "nomeCliente": "João",
   "nomeClienteSnapshot": null,
@@ -181,6 +198,7 @@ Comanda com item:
   "abertaEm": "2026-05-26T18:40:00",
   "fechadaEm": null,
   "canceladaEm": null,
+  "pendenteEm": null,
   "vencimentoEm": null,
   "observacao": null,
   "itens": [

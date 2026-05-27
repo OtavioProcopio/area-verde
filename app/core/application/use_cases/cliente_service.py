@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional
@@ -29,10 +30,16 @@ class ClienteService:
         observacao: Optional[str] = None,
     ) -> Cliente:
         now = datetime.now()
+        nome_normalizado = self._normalize_required(nome)
+        telefone_normalizado = self._normalize_optional(telefone)
+        self._ensure_cliente_unico(
+            nome=nome_normalizado,
+            telefone=telefone_normalizado,
+        )
         cliente = Cliente(
-            nome=self._normalize_required(nome),
+            nome=nome_normalizado,
             apelido=self._normalize_optional(apelido),
-            telefone=self._normalize_optional(telefone),
+            telefone=telefone_normalizado,
             observacao=self._normalize_optional(observacao),
             ativo=True,
             criado_em=now,
@@ -73,9 +80,16 @@ class ClienteService:
     ) -> Cliente:
         try:
             cliente = self.get_by_id(cliente_id)
-            cliente.nome = self._normalize_required(nome)
+            nome_normalizado = self._normalize_required(nome)
+            telefone_normalizado = self._normalize_optional(telefone)
+            self._ensure_cliente_unico(
+                nome=nome_normalizado,
+                telefone=telefone_normalizado,
+                ignore_cliente_id=cliente_id,
+            )
+            cliente.nome = nome_normalizado
             cliente.apelido = self._normalize_optional(apelido)
-            cliente.telefone = self._normalize_optional(telefone)
+            cliente.telefone = telefone_normalizado
             cliente.observacao = self._normalize_optional(observacao)
             cliente.atualizado_em = datetime.now()
             self.cliente_repository.save(cliente)
@@ -116,6 +130,12 @@ class ClienteService:
     def _set_ativo(self, cliente_id: int, ativo: bool) -> Cliente:
         try:
             cliente = self.get_by_id(cliente_id)
+            if ativo:
+                self._ensure_cliente_unico(
+                    nome=cliente.nome,
+                    telefone=cliente.telefone,
+                    ignore_cliente_id=cliente_id,
+                )
             cliente.ativo = ativo
             cliente.atualizado_em = datetime.now()
             self.cliente_repository.save(cliente)
@@ -148,4 +168,45 @@ class ClienteService:
         if value is None:
             return None
         normalized = value.strip()
+        return normalized or None
+
+    def _ensure_cliente_unico(
+        self,
+        nome: str,
+        telefone: Optional[str],
+        ignore_cliente_id: Optional[int] = None,
+    ) -> None:
+        nome_key = self._normalize_nome_key(nome)
+        telefone_key = self._normalize_telefone_key(telefone)
+
+        for cliente in self.cliente_repository.list_ativos():
+            if ignore_cliente_id is not None and cliente.id == ignore_cliente_id:
+                continue
+
+            if self._normalize_nome_key(cliente.nome) == nome_key:
+                raise ApplicationError(
+                    "cliente_duplicado",
+                    "Já existe cliente ativo com os mesmos dados",
+                    409,
+                )
+
+            if (
+                telefone_key
+                and self._normalize_telefone_key(cliente.telefone) == telefone_key
+            ):
+                raise ApplicationError(
+                    "cliente_duplicado",
+                    "Já existe cliente ativo com os mesmos dados",
+                    409,
+                )
+
+    @staticmethod
+    def _normalize_nome_key(value: str) -> str:
+        return value.strip().casefold()
+
+    @staticmethod
+    def _normalize_telefone_key(value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = re.sub(r"[\s().-]", "", value)
         return normalized or None

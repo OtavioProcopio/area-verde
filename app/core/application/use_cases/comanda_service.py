@@ -9,6 +9,7 @@ from core.application.use_cases.estoque_service import EstoqueService
 from core.domain.enums import OrigemMovimentoEstoque, StatusComanda
 from core.domain.exceptions import ApplicationError, NotFoundError
 from core.domain.models import Cliente, Comanda, ItemComanda, Produto
+from core.interfaces.adapters.repositories.i_caixa_repository import ICaixaRepository
 from core.interfaces.adapters.repositories.i_cliente_repository import (
     IClienteRepository,
 )
@@ -27,11 +28,13 @@ class ComandaService:
         produto_repository: IProdutoRepository,
         estoque_service: EstoqueService,
         cliente_repository: IClienteRepository,
+        caixa_repository: ICaixaRepository,
     ):
         self.comanda_repository = comanda_repository
         self.produto_repository = produto_repository
         self.estoque_service = estoque_service
         self.cliente_repository = cliente_repository
+        self.caixa_repository = caixa_repository
 
     def create(
         self,
@@ -40,11 +43,19 @@ class ComandaService:
         cliente_id: Optional[int] = None,
     ) -> Comanda:
         now = datetime.now()
+        caixa = self.caixa_repository.get_aberto()
+        if caixa is None:
+            raise ApplicationError(
+                "caixa_aberto_nao_encontrado",
+                "Nenhum caixa aberto encontrado",
+                400,
+            )
         cliente = (
             self._get_cliente_ativo(cliente_id) if cliente_id is not None else None
         )
         nome_operacional = self._resolve_nome_cliente(nome_cliente, cliente)
         comanda = Comanda(
+            caixa_origem_id=caixa.id,
             cliente_id=cliente.id if cliente is not None else None,
             nome_cliente=nome_operacional,
             nome_cliente_snapshot=(

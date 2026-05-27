@@ -1,4 +1,6 @@
-from typing import Any, Optional, cast
+from __future__ import annotations
+
+from typing import Any, List, Optional, cast
 
 from sqlalchemy import func, or_, text
 from sqlmodel import Session, select
@@ -31,7 +33,7 @@ class ClienteRepository(IClienteRepository):
         ativo: Optional[bool] = None,
         nome: Optional[str] = None,
         telefone: Optional[str] = None,
-    ) -> list[Cliente]:
+    ) -> List[Cliente]:
         statement = select(Cliente)
 
         if ativo is not None:
@@ -50,6 +52,9 @@ class ClienteRepository(IClienteRepository):
 
         statement = statement.order_by(text("nome ASC"), text("id ASC"))
         return list(self.session.exec(statement).all())
+
+    def list_ativos(self) -> List[Cliente]:
+        return self.list(ativo=True)
 
     def commit(self) -> None:
         self.session.commit()

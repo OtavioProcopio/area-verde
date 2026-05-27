@@ -20,8 +20,10 @@ consumo, ajustes e divergências.
 O fluxo operacional começa no cadastro de categorias e produtos. Produtos podem
 controlar estoque por unidade ou por medida fracionada, como ml. Depois, o
 estoque recebe entradas ou ajustes manuais. Na operação de atendimento, o caixa
-do turno é aberto, uma comanda é aberta por nome/apelido, recebe itens e depois
-é resolvida como paga, pendente/fiado ou cancelada.
+do turno é aberto antes de qualquer nova comanda. A comanda é aberta por
+nome/apelido ou cliente cadastrado, recebe itens e depois é resolvida como paga,
+pendente/fiado ou cancelada. O caixa só fecha quando não restarem comandas
+abertas.
 
 ## Fluxo atual implementado
 
@@ -38,7 +40,9 @@ Produto -> Estoque -> Caixa -> Cliente -> Comanda -> Item -> Pagamento/Fiado
 - Pagamento registra forma, valor, observação e caixa vinculado.
 - Fechamento altera a comanda para `FECHADA` e preenche `fechada_em`.
 - Cliente pode ser vinculado opcionalmente à comanda.
-- Fiado altera a comanda para `PENDENTE` e define vencimento.
+- Comanda nova exige caixa aberto e grava `caixa_origem_id`.
+- Fiado exige caixa aberto, altera a comanda para `PENDENTE`, define
+  `pendente_em` e vencimento.
 - Quitação de fiado registra pagamento real no caixa aberto do dia.
 - Caixa não fecha com comandas `ABERTA`; pode fechar com `PENDENTE`.
 

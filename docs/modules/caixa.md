@@ -12,6 +12,7 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 ## Casos de uso atendidos
 
 - Abrir caixa.
+- Criar comandas somente com caixa aberto.
 - Consultar caixa aberto.
 - Listar caixas com filtros por status e data.
 - Consultar caixa por ID.
@@ -56,6 +57,7 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 - Sangria exige caixa aberto, cria movimento `SANGRIA` e subtrai de `dinheiroEsperado`.
 - Sangria não pode deixar `dinheiroEsperado` negativo.
 - Fechamento exige caixa aberto e dinheiro informado maior ou igual a zero.
+- Abertura de comanda exige caixa aberto e grava `caixa_origem_id`.
 - Fechamento bloqueia comandas `ABERTA`.
 - Comandas `PENDENTE`, `FECHADA` e `CANCELADA` não bloqueiam fechamento.
 - Diferença é calculada por `dinheiroInformado - dinheiroEsperado`.
@@ -65,6 +67,7 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 - Pagamentos PIX e CARTAO ficam vinculados ao caixa, mas não alteram dinheiro físico esperado.
 - FIADO não é entrada de caixa.
 - Fiado gerado não soma no dinheiro esperado.
+- Marcar fiado exige caixa aberto, mas não movimenta dinheiro.
 - Quitação futura entra no caixa aberto do dia em que foi paga.
 
 ## Validações

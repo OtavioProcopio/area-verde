@@ -125,9 +125,14 @@ class Cliente(SQLModel, table=True):
 
 class Comanda(SQLModel, table=True):
     __tablename__: ClassVar[str] = "comanda"
-    __table_args__: ClassVar[tuple] = (Index("idx_comanda_cliente_id", "cliente_id"),)
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_comanda_cliente_id", "cliente_id"),
+        Index("idx_comanda_caixa_origem_id", "caixa_origem_id"),
+        Index("idx_comanda_pendente_em", "pendente_em"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    caixa_origem_id: Optional[int] = Field(default=None, foreign_key="caixa.id")
     cliente_id: Optional[int] = Field(default=None, foreign_key="cliente.id")
     nome_cliente: str = Field(sa_column=Column(String(160), nullable=False))
     nome_cliente_snapshot: Optional[str] = Field(
@@ -151,6 +156,9 @@ class Comanda(SQLModel, table=True):
     cancelada_em: Optional[datetime] = Field(
         default=None, sa_column=Column(DateTime, nullable=True)
     )
+    pendente_em: Optional[datetime] = Field(
+        default=None, sa_column=Column(DateTime, nullable=True)
+    )
     vencimento_em: Optional[date] = None
     observacao: Optional[str] = Field(default=None, sa_column=Column(String(500)))
     criado_em: datetime = Field(default_factory=datetime.now)
@@ -159,6 +167,7 @@ class Comanda(SQLModel, table=True):
     itens: List["ItemComanda"] = Relationship(back_populates="comanda")
     pagamentos: List["Pagamento"] = Relationship(back_populates="comanda")
     cliente: Optional[Cliente] = Relationship(back_populates="comandas")
+    caixa_origem: Optional["Caixa"] = Relationship(back_populates="comandas_origem")
 
 
 class ItemComanda(SQLModel, table=True):
@@ -232,6 +241,7 @@ class Caixa(SQLModel, table=True):
 
     pagamentos: List["Pagamento"] = Relationship(back_populates="caixa")
     movimentos: List["MovimentoCaixa"] = Relationship(back_populates="caixa")
+    comandas_origem: List["Comanda"] = Relationship(back_populates="caixa_origem")
 
 
 class Pagamento(SQLModel, table=True):

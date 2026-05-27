@@ -344,12 +344,50 @@
             "url": "{{baseUrl}}/api/clientes/{{clienteId}}/pendencias"
           },
           "response": []
+        },
+        {
+          "name": "POST /api/clientes duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \" joão da oficina \",\n  \"telefone\": \"(16) 99999-9999\"\n}"
+            },
+            "description": "Deve retornar cliente_duplicado quando já existir cliente ativo com nome ou telefone normalizado."
+          },
+          "response": []
         }
       ]
     },
     {
       "name": "Comandas",
       "item": [
+        {
+          "name": "POST /api/comandas rápida",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeCliente\": \"João mesa 2\"\n}"
+            },
+            "description": "Exige caixa aberto."
+          },
+          "response": []
+        },
         {
           "name": "POST /api/comandas",
           "request": {
@@ -511,6 +549,25 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "POST /api/comandas com nome e cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeCliente\": \"João balcão\",\n  \"clienteId\": \"{{clienteId}}\"\n}"
+            },
+            "description": "Preserva nome operacional e vínculo com cliente cadastrado."
+          },
+          "response": []
         }
       ]
     },
@@ -531,7 +588,8 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"vencimentoEm\": \"2026-06-03\",\n  \"observacao\": \"Cliente pagará na próxima semana\"\n}"
-            }
+            },
+            "description": "Exige caixa aberto, comanda aberta com consumo e cliente cadastrado ativo. Preenche pendenteEm e preserva caixaOrigemId."
           },
           "response": []
         },
@@ -585,7 +643,8 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"formaPagamento\": \"DINHEIRO\",\n  \"valorPago\": 80.0,\n  \"observacao\": \"Quitado no balcão\"\n}"
-            }
+            },
+            "description": "Quita pendência no caixa aberto atual. Funciona mesmo se o cliente foi inativado depois de gerar o fiado."
           },
           "response": []
         }
