@@ -33,7 +33,7 @@
 | Área | Atalho | Para quê serve |
 |---|---|---|
 | Produto e estoque | [Produtos](docs/modules/produtos-categorias.md) · [Estoque](docs/modules/estoque.md) | Cadastro vendável e controle operacional |
-| Atendimento | [Comandas](docs/modules/comandas.md) | Lançamento de consumo e baixa automática |
+| Atendimento | [Clientes](docs/modules/clientes.md) · [Comandas](docs/modules/comandas.md) | Cadastro simples, lançamento de consumo e baixa automática |
 | Financeiro | [Pagamentos](docs/modules/pagamentos.md) · [Caixa](docs/modules/caixa.md) · [Fiado](docs/modules/fiado.md) | Fechamento, caixa diário e pendências futuras |
 | Gestão futura | [Relatórios](docs/modules/relatorios.md) · [Configurações](docs/modules/configuracoes.md) | Consolidação e parâmetros do sistema |
 | Engenharia | [Arquitetura](docs/architecture/architecture.md) · [Testes](docs/architecture/tests.md) · [Policies](docs/policies/) | Padrões para humanos e agentes |
@@ -50,15 +50,17 @@
 | Comandas e Itens | Abre comanda, lança itens, recalcula total e movimenta estoque | [Abrir](docs/modules/comandas.md) |
 | Pagamentos e Fechamento | Fecha comanda aberta, registra pagamento e bloqueia alterações posteriores | [Abrir](docs/modules/pagamentos.md) |
 | Caixa Diário | Abre caixa, registra reforço/sangria, vincula pagamentos e fecha com conferência | [Abrir](docs/modules/caixa.md) |
+| Clientes | Cadastra, lista, edita, ativa e inativa clientes para histórico de pendências | [Abrir](docs/modules/clientes.md) |
+| Fiado / Pendências | Marca comanda como pendente, lista vencidos e quita no caixa aberto | [Abrir](docs/modules/fiado.md) |
 
 ### Pendente
 
 | Módulo | Próximo papel no MVP | Documentação |
 |---|---|---|
-| Fiado / Pendências | Marcar e quitar saldos futuros | [Abrir](docs/modules/fiado.md) |
 | Relatórios | Consolidar operação e financeiro | [Abrir](docs/modules/relatorios.md) |
 | Configurações | Parametrizar comportamento do sistema | [Abrir](docs/modules/configuracoes.md) |
 | Acesso / Senha | Controle simples de acesso | [Roadmap](docs/roadmap.md) |
+| Frontend | Operação visual do bar | [Roadmap](docs/roadmap.md) |
 
 ## Stack
 

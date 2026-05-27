@@ -53,7 +53,9 @@ class PagamentoService:
 
         if forma_pagamento == FormaPagamento.FIADO:
             raise ApplicationError(
-                "fiado_nao_implementado", "Fiado ainda não implementado", 400
+                "forma_pagamento_invalida",
+                "FIADO deve ser tratado pelo módulo de pendências",
+                400,
             )
 
         if valor_pago != comanda.total:

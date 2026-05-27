@@ -4,10 +4,14 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 
+from core.application.use_cases.cliente_service import ClienteService
 from core.application.use_cases.estoque_service import EstoqueService
 from core.domain.enums import OrigemMovimentoEstoque, StatusComanda
 from core.domain.exceptions import ApplicationError, NotFoundError
-from core.domain.models import Comanda, ItemComanda, Produto
+from core.domain.models import Cliente, Comanda, ItemComanda, Produto
+from core.interfaces.adapters.repositories.i_cliente_repository import (
+    IClienteRepository,
+)
 from core.interfaces.adapters.repositories.i_comanda_repository import (
     IComandaRepository,
 )
@@ -22,15 +26,32 @@ class ComandaService:
         comanda_repository: IComandaRepository,
         produto_repository: IProdutoRepository,
         estoque_service: EstoqueService,
+        cliente_repository: IClienteRepository,
     ):
         self.comanda_repository = comanda_repository
         self.produto_repository = produto_repository
         self.estoque_service = estoque_service
+        self.cliente_repository = cliente_repository
 
-    def create(self, nome_cliente: str, observacao: Optional[str] = None) -> Comanda:
+    def create(
+        self,
+        nome_cliente: Optional[str] = None,
+        observacao: Optional[str] = None,
+        cliente_id: Optional[int] = None,
+    ) -> Comanda:
         now = datetime.now()
+        cliente = (
+            self._get_cliente_ativo(cliente_id) if cliente_id is not None else None
+        )
+        nome_operacional = self._resolve_nome_cliente(nome_cliente, cliente)
         comanda = Comanda(
-            nome_cliente=nome_cliente.strip(),
+            cliente_id=cliente.id if cliente is not None else None,
+            nome_cliente=nome_operacional,
+            nome_cliente_snapshot=(
+                ClienteService.nome_operacional(cliente)
+                if cliente is not None
+                else None
+            ),
             status=StatusComanda.ABERTA,
             total=Decimal("0.00"),
             aberta_em=now,
@@ -48,6 +69,22 @@ class ComandaService:
             raise
 
         return comanda
+
+    def vincular_cliente(self, comanda_id: int, cliente_id: int) -> Comanda:
+        try:
+            comanda = self._get_comanda_aberta(comanda_id)
+            cliente = self._get_cliente_ativo(cliente_id)
+            comanda.cliente_id = cliente.id
+            comanda.nome_cliente_snapshot = ClienteService.nome_operacional(cliente)
+            comanda.atualizado_em = datetime.now()
+            self.comanda_repository.save(comanda)
+            self.comanda_repository.commit()
+            self.comanda_repository.refresh(comanda)
+        except Exception:
+            self.comanda_repository.rollback()
+            raise
+
+        return self.get_by_id(comanda_id)
 
     def listar(
         self,
@@ -312,6 +349,31 @@ class ComandaService:
                 status_code=400,
             )
         return produto
+
+    def _get_cliente_ativo(self, cliente_id: int) -> Cliente:
+        cliente = self.cliente_repository.get_by_id(cliente_id)
+        if cliente is None:
+            raise NotFoundError(
+                code="cliente_nao_encontrado",
+                message="Cliente não encontrado",
+            )
+        ClienteService.ensure_ativo(cliente)
+        return cliente
+
+    @staticmethod
+    def _resolve_nome_cliente(
+        nome_cliente: Optional[str],
+        cliente: Optional[Cliente],
+    ) -> str:
+        if nome_cliente is not None:
+            nome = nome_cliente.strip()
+            if nome:
+                return nome
+
+        if cliente is not None:
+            return ClienteService.nome_operacional(cliente)
+
+        raise ApplicationError("dados_invalidos", "Nome obrigatório", 400)
 
     def _get_produto_para_estoque(self, produto_id: Optional[int]) -> Produto:
         if produto_id is None:

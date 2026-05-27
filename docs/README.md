@@ -16,6 +16,7 @@ repositório.
 - [Estoque](modules/estoque.md)
 - [Comandas e Itens](modules/comandas.md)
 - [Pagamentos e Fechamento](modules/pagamentos.md)
+- [Clientes](modules/clientes.md)
 - [Fiado / Pendências](modules/fiado.md)
 - [Caixa Diário](modules/caixa.md)
 - [Relatórios](modules/relatorios.md)

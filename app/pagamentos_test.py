@@ -138,12 +138,12 @@ def test_fechar_comanda_valor_maior(client: TestClient):
     assert response.json()["code"] == "valor_pago_invalido"
 
 
-def test_fechar_comanda_fiado_nao_implementado(client: TestClient):
+def test_fechar_comanda_rejeita_fiado_como_pagamento_recebido(client: TestClient):
     comanda = _create_comanda_com_consumo(client)
     payload = {"formaPagamento": "FIADO", "valorPago": comanda["total"]}
     response = client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
     assert response.status_code == 400
-    assert "fiado_nao_implementado" in response.json()["code"]
+    assert response.json()["code"] == "forma_pagamento_invalida"
 
 
 def test_listar_pagamentos_sucesso(client: TestClient):

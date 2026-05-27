@@ -11,7 +11,12 @@ Expor consultas consolidadas para acompanhamento operacional e financeiro.
 ## Casos de uso previstos
 
 - Relatório diário.
+- Total vendido.
+- Total recebido.
+- Total fiado.
+- Total pendente.
 - Produtos mais vendidos.
+- Pagamentos por forma.
 - Estoque baixo.
 - Estoque negativo.
 - Comandas por status.
@@ -25,6 +30,7 @@ Expor consultas consolidadas para acompanhamento operacional e financeiro.
 - `MovimentoEstoque`
 - `Pagamento`
 - `Caixa`
+- `Cliente`
 
 ## Endpoints
 
@@ -58,4 +64,4 @@ Pendente.
 
 ## Próximo passo relacionado
 
-- Implementar após revisão do fluxo de Fiado / Pendências e consolidação financeira.
+- Próximo módulo recomendado após Clientes e Fiado / Pendências.

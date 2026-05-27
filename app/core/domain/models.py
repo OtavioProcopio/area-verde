@@ -102,11 +102,37 @@ class Produto(SQLModel, table=True):
     )
 
 
-class Comanda(SQLModel, table=True):
-    __tablename__: ClassVar[str] = "comanda"
+class Cliente(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "cliente"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_cliente_nome", "nome"),
+        Index("idx_cliente_apelido", "apelido"),
+        Index("idx_cliente_telefone", "telefone"),
+        Index("idx_cliente_ativo", "ativo"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    nome: str = Field(sa_column=Column(String(160), nullable=False))
+    apelido: Optional[str] = Field(default=None, sa_column=Column(String(160)))
+    telefone: Optional[str] = Field(default=None, sa_column=Column(String(40)))
+    observacao: Optional[str] = Field(default=None, sa_column=Column(String(500)))
+    ativo: bool = Field(default=True)
+    criado_em: datetime = Field(default_factory=datetime.now)
+    atualizado_em: datetime = Field(default_factory=datetime.now)
+
+    comandas: List["Comanda"] = Relationship(back_populates="cliente")
+
+
+class Comanda(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "comanda"
+    __table_args__: ClassVar[tuple] = (Index("idx_comanda_cliente_id", "cliente_id"),)
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    cliente_id: Optional[int] = Field(default=None, foreign_key="cliente.id")
     nome_cliente: str = Field(sa_column=Column(String(160), nullable=False))
+    nome_cliente_snapshot: Optional[str] = Field(
+        default=None, sa_column=Column(String(160))
+    )
     status: StatusComanda = Field(
         default=StatusComanda.ABERTA,
         sa_column=Column(
@@ -132,6 +158,7 @@ class Comanda(SQLModel, table=True):
 
     itens: List["ItemComanda"] = Relationship(back_populates="comanda")
     pagamentos: List["Pagamento"] = Relationship(back_populates="comanda")
+    cliente: Optional[Cliente] = Relationship(back_populates="comandas")
 
 
 class ItemComanda(SQLModel, table=True):

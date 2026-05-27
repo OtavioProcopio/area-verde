@@ -6,6 +6,21 @@
 			"key": "baseUrl",
 			"value": "http://localhost:8001",
 			"enabled": true
+		},
+		{
+			"key": "clienteId",
+			"value": "1",
+			"enabled": true
+		},
+		{
+			"key": "comandaId",
+			"value": "1",
+			"enabled": true
+		},
+		{
+			"key": "caixaId",
+			"value": "1",
+			"enabled": true
 		}
 	]
 }

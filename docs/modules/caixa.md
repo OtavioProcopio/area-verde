@@ -22,6 +22,8 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 - Registrar dinheiro informado.
 - Calcular diferença de fechamento.
 - Vincular pagamentos ao caixa aberto.
+- Bloquear fechamento quando ainda existirem comandas abertas.
+- Permitir fechamento com comandas pendentes.
 
 ## Entidades envolvidas
 
@@ -54,12 +56,16 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 - Sangria exige caixa aberto, cria movimento `SANGRIA` e subtrai de `dinheiroEsperado`.
 - Sangria não pode deixar `dinheiroEsperado` negativo.
 - Fechamento exige caixa aberto e dinheiro informado maior ou igual a zero.
+- Fechamento bloqueia comandas `ABERTA`.
+- Comandas `PENDENTE`, `FECHADA` e `CANCELADA` não bloqueiam fechamento.
 - Diferença é calculada por `dinheiroInformado - dinheiroEsperado`.
 - Caixa fechado não aceita reforço, sangria ou novo fechamento.
 - Pagamento de comanda exige caixa aberto.
 - Pagamento DINHEIRO soma em `dinheiroEsperado`.
 - Pagamentos PIX e CARTAO ficam vinculados ao caixa, mas não alteram dinheiro físico esperado.
-- FIADO continua bloqueado.
+- FIADO não é entrada de caixa.
+- Fiado gerado não soma no dinheiro esperado.
+- Quitação futura entra no caixa aberto do dia em que foi paga.
 
 ## Validações
 
@@ -68,6 +74,7 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 - Caixa inexistente. Erro: `caixa_nao_encontrado`.
 - Movimentação em caixa fechado. Erro: `caixa_fechado`.
 - Sangria maior que dinheiro esperado. Erro: `sangria_invalida`.
+- Comandas abertas no fechamento. Erro: `existem_comandas_abertas`.
 - Valores negativos ou zero em reforço/sangria retornam validação de entrada.
 
 ## Exemplos de request
@@ -101,6 +108,23 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 {
   "dinheiroInformado": 248.00,
   "observacao": "Fechamento do turno"
+}
+```
+
+Erro ao fechar com comanda aberta:
+
+```json
+{
+  "code": "existem_comandas_abertas",
+  "message": "Não é possível fechar o caixa com comandas abertas",
+  "details": [
+    {
+      "id": 1,
+      "nomeCliente": "João",
+      "total": "80.00",
+      "abertaEm": "2026-05-27T18:00:00"
+    }
+  ]
 }
 ```
 
@@ -172,10 +196,10 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 
 - `app/caixa_test.py`
 - `app/pagamentos_test.py`
+- `app/fiado_test.py`
 
 ## O que ainda não está incluso
 
-- Fiado completo.
 - Relatórios financeiros.
 - Dashboard.
 - Frontend.
@@ -188,4 +212,4 @@ mantendo pagamentos de comandas vinculados ao caixa aberto.
 
 ## Próximo passo relacionado
 
-- Implementar Fiado / Pendências ou Relatórios básicos, conforme revisão após merge.
+- Relatórios básicos.

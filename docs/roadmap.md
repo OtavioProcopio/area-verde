@@ -7,17 +7,19 @@
 - Comandas e Itens
 - Pagamentos e Fechamento de Comanda
 - Caixa Diário
+- Clientes
+- Fiado / Pendências
 
 ## Próximo
 
-- Fiado / Pendências
+- Relatórios básicos
 
 ## Depois
 
-- Relatórios básicos
 - Configurações
 - Acesso / Senha
 - Release MVP para `main`
+- Frontend operacional
 
 ## Fora do escopo imediato
 

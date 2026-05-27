@@ -1,3 +1,5 @@
+from typing import Any
+
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -9,8 +11,10 @@ from adapter.controllers.caixa_controller import router as caixa_router
 from adapter.controllers.categoria_produto_controller import (
     router as categoria_produto_router,
 )
+from adapter.controllers.cliente_controller import router as cliente_router
 from adapter.controllers.comanda_controller import router as comanda_router
 from adapter.controllers.estoque_controller import router as estoque_router
+from adapter.controllers.fiado_controller import router as fiado_router
 from adapter.controllers.pagamento_controller import router as pagamento_router
 from adapter.controllers.produto_controller import router as produto_router
 from core.domain.exceptions import ApplicationError
@@ -52,9 +56,13 @@ def create_app() -> FastAPI:
     async def application_error_handler(
         request: Request, exc: ApplicationError
     ) -> JSONResponse:
+        content: dict[str, Any] = {"code": exc.code, "message": exc.message}
+        if exc.details is not None:
+            content["details"] = exc.details
+
         return JSONResponse(
             status_code=exc.status_code,
-            content={"code": exc.code, "message": exc.message},
+            content=content,
         )
 
     @app.exception_handler(RequestValidationError)
@@ -96,7 +104,9 @@ def create_app() -> FastAPI:
     app.include_router(categoria_produto_router)
     app.include_router(produto_router)
     app.include_router(estoque_router)
+    app.include_router(cliente_router)
     app.include_router(comanda_router)
+    app.include_router(fiado_router)
     app.include_router(pagamento_router)
     app.include_router(caixa_router)
 

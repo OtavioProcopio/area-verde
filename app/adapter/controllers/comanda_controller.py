@@ -12,6 +12,7 @@ from adapter.dtos.comanda_dto import (
     ComandaDetalheResponse,
     ComandaResumoResponse,
     CriarComandaRequest,
+    VincularClienteComandaRequest,
 )
 from core.application.use_cases.comanda_service import ComandaService
 from core.domain.enums import StatusComanda
@@ -35,6 +36,7 @@ def criar_comanda(
     comanda = service.create(
         nome_cliente=request.nome_cliente,
         observacao=request.observacao,
+        cliente_id=request.cliente_id,
     )
     return ComandaDetalheResponse.from_model(comanda)
 
@@ -64,6 +66,19 @@ def consultar_comanda(
     service: ComandaService = Depends(get_service),
 ) -> ComandaDetalheResponse:
     comanda = service.get_by_id(comanda_id)
+    return ComandaDetalheResponse.from_model(comanda)
+
+
+@router.patch("/{comanda_id}/cliente", response_model=ComandaDetalheResponse)
+def vincular_cliente(
+    comanda_id: int,
+    request: VincularClienteComandaRequest,
+    service: ComandaService = Depends(get_service),
+) -> ComandaDetalheResponse:
+    comanda = service.vincular_cliente(
+        comanda_id=comanda_id,
+        cliente_id=request.cliente_id,
+    )
     return ComandaDetalheResponse.from_model(comanda)
 
 

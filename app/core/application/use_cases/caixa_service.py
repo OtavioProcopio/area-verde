@@ -6,11 +6,19 @@ from core.domain.enums import FormaPagamento, StatusCaixa, TipoMovimentoCaixa
 from core.domain.exceptions import ApplicationError, NotFoundError
 from core.domain.models import Caixa, MovimentoCaixa
 from core.interfaces.adapters.repositories.i_caixa_repository import ICaixaRepository
+from core.interfaces.adapters.repositories.i_comanda_repository import (
+    IComandaRepository,
+)
 
 
 class CaixaService:
-    def __init__(self, caixa_repository: ICaixaRepository):
+    def __init__(
+        self,
+        caixa_repository: ICaixaRepository,
+        comanda_repository: IComandaRepository,
+    ):
         self.caixa_repository = caixa_repository
+        self.comanda_repository = comanda_repository
 
     def abrir_caixa(
         self,
@@ -115,6 +123,7 @@ class CaixaService:
 
         try:
             caixa = self._get_caixa_aberto_by_id(caixa_id)
+            self._ensure_sem_comandas_abertas()
             now = datetime.now()
             caixa.dinheiro_informado = dinheiro_informado
             caixa.diferenca = dinheiro_informado - caixa.dinheiro_esperado
@@ -186,6 +195,26 @@ class CaixaService:
         caixa = self.get_by_id(caixa_id)
         self._ensure_caixa_aberto(caixa)
         return caixa
+
+    def _ensure_sem_comandas_abertas(self) -> None:
+        abertas = self.comanda_repository.list_abertas()
+        if not abertas:
+            return
+
+        raise ApplicationError(
+            "existem_comandas_abertas",
+            "Não é possível fechar o caixa com comandas abertas",
+            400,
+            details=[
+                {
+                    "id": comanda.id,
+                    "nomeCliente": comanda.nome_cliente,
+                    "total": str(comanda.total),
+                    "abertaEm": comanda.aberta_em.isoformat(),
+                }
+                for comanda in abertas[:10]
+            ],
+        )
 
     @staticmethod
     def _ensure_caixa_aberto(caixa: Caixa) -> None:
