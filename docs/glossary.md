@@ -40,6 +40,16 @@ cancelamento.
 
 Comanda ou saldo deixado pendente para pagamento futuro.
 
+## Pagamento
+
+Registro financeiro associado a uma comanda fechada. No MVP, aceita DINHEIRO,
+PIX e CARTAO, e exige valor igual ao total da comanda.
+
+## Forma de Pagamento
+
+Meio usado para liquidar a comanda. `FIADO` existe no enum do domínio, mas fica
+bloqueado até o módulo de pendências ser implementado.
+
 ## Caixa Diário
 
 Controle financeiro do dia, reunindo abertura, pagamentos, sangrias, reforços e

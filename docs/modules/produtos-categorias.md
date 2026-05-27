@@ -136,4 +136,4 @@ Produto sem controle de estoque:
 
 ## Próximo passo relacionado
 
-- Usar produtos cadastrados no módulo de Pagamentos e Fechamento.
+- Usar dados de produtos em relatórios operacionais e financeiros.

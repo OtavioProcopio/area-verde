@@ -36,9 +36,6 @@ def _create_comanda(client: TestClient) -> dict:
 def _create_comanda_com_consumo(client: TestClient) -> dict:
     comanda = _create_comanda(client)
 
-    # Adicionar item sem criar produto (produtoId = None)
-    # Supondo que api.py aceita produtoId opcional para item avulso
-    # Vamos criar produto para garantir
     cat_res = client.post("/api/categorias", json={"nome": "Bebidas"})
     cat_id = cat_res.json()["id"]
 
@@ -80,6 +77,7 @@ def test_fechar_comanda_valida_dinheiro(client: TestClient):
     assert len(data["pagamentos"]) == 1
     assert data["pagamentos"][0]["formaPagamento"] == "DINHEIRO"
     assert float(data["pagamentos"][0]["valor"]) == total
+    assert data["pagamentos"][0]["observacao"] == "Pago com dinheiro"
 
 
 def test_fechar_comanda_valida_pix(client: TestClient):
@@ -138,7 +136,11 @@ def test_fechar_comanda_fiado_nao_implementado(client: TestClient):
 
 def test_listar_pagamentos_sucesso(client: TestClient):
     comanda = _create_comanda_com_consumo(client)
-    payload = {"formaPagamento": "PIX", "valorPago": comanda["total"]}
+    payload = {
+        "formaPagamento": "PIX",
+        "valorPago": comanda["total"],
+        "observacao": "Pix confirmado",
+    }
     client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
 
     response = client.get(f"/api/comandas/{comanda['id']}/pagamentos")
@@ -146,6 +148,7 @@ def test_listar_pagamentos_sucesso(client: TestClient):
     data = response.json()
     assert len(data) == 1
     assert data[0]["formaPagamento"] == "PIX"
+    assert data[0]["observacao"] == "Pix confirmado"
 
 
 def test_listar_pagamentos_vazia(client: TestClient):
@@ -184,3 +187,28 @@ def test_regressao_nao_adicionar_item_comanda_fechada(client: TestClient):
 
     response = client.post(f"/api/comandas/{comanda['id']}/itens", json=item_payload)
     assert response.status_code == 400
+    assert response.json()["code"] == "comanda_nao_aberta"
+
+
+def test_regressao_nao_alterar_itens_comanda_fechada(client: TestClient):
+    comanda = _create_comanda_com_consumo(client)
+    item = comanda["itens"][0]
+    payload = {"formaPagamento": "PIX", "valorPago": comanda["total"]}
+    client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
+
+    incrementar = client.patch(
+        f"/api/comandas/{comanda['id']}/itens/{item['id']}/incrementar",
+        json={"quantidade": 1},
+    )
+    diminuir = client.patch(
+        f"/api/comandas/{comanda['id']}/itens/{item['id']}/diminuir",
+        json={"quantidade": 1},
+    )
+    remover = client.delete(f"/api/comandas/{comanda['id']}/itens/{item['id']}")
+
+    assert incrementar.status_code == 400
+    assert incrementar.json()["code"] == "comanda_nao_aberta"
+    assert diminuir.status_code == 400
+    assert diminuir.json()["code"] == "comanda_nao_aberta"
+    assert remover.status_code == 400
+    assert remover.json()["code"] == "comanda_nao_aberta"

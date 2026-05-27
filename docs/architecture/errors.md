@@ -25,6 +25,9 @@ Internamente, as exceptions de domínio carregam:
 | `produto_inativo` | 400 | Produto não pode ser usado |
 | `comanda_nao_encontrada` | 404 | Comanda inexistente |
 | `comanda_nao_aberta` | 400 | Operação exige comanda aberta |
+| `comanda_sem_consumo` | 400 | Fechamento exige consumo lançado |
+| `valor_pago_invalido` | 400 | Valor pago diferente do total da comanda |
+| `fiado_nao_implementado` | 400 | FIADO bloqueado no MVP |
 | `quantidade_invalida` | 400 | Quantidade menor ou igual a zero |
 | `dados_invalidos` | 400/422 | Entrada inválida |
 | `nome_duplicado` | 409 | Conflito de nome ativo |

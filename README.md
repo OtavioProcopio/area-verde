@@ -34,7 +34,7 @@
 |---|---|---|
 | Produto e estoque | [Produtos](docs/modules/produtos-categorias.md) · [Estoque](docs/modules/estoque.md) | Cadastro vendável e controle operacional |
 | Atendimento | [Comandas](docs/modules/comandas.md) | Lançamento de consumo e baixa automática |
-| Financeiro futuro | [Pagamentos](docs/modules/pagamentos.md) · [Fiado](docs/modules/fiado.md) · [Caixa](docs/modules/caixa.md) | Fechamento, pendências e caixa diário |
+| Financeiro | [Pagamentos](docs/modules/pagamentos.md) · [Fiado](docs/modules/fiado.md) · [Caixa](docs/modules/caixa.md) | Fechamento implementado, pendências e caixa futuro |
 | Gestão futura | [Relatórios](docs/modules/relatorios.md) · [Configurações](docs/modules/configuracoes.md) | Consolidação e parâmetros do sistema |
 | Engenharia | [Arquitetura](docs/architecture/architecture.md) · [Testes](docs/architecture/tests.md) · [Policies](docs/policies/) | Padrões para humanos e agentes |
 | Operação local | [Make](docs/workflows/makefile.md) · [Postman](docs/postman/README.md) · [Workflows](docs/workflows/README.md) | Automação, testes manuais e rotina de desenvolvimento |
@@ -48,12 +48,12 @@
 | Produtos e Categorias | Cadastra, lista, edita, ativa e inativa categorias e produtos | [Abrir](docs/modules/produtos-categorias.md) |
 | Estoque | Consulta estoque, registra entrada/ajuste e lista movimentos | [Abrir](docs/modules/estoque.md) |
 | Comandas e Itens | Abre comanda, lança itens, recalcula total e movimenta estoque | [Abrir](docs/modules/comandas.md) |
+| Pagamentos e Fechamento | Fecha comanda aberta, registra pagamento e bloqueia alterações posteriores | [Abrir](docs/modules/pagamentos.md) |
 
 ### Pendente
 
 | Módulo | Próximo papel no MVP | Documentação |
 |---|---|---|
-| Pagamentos e Fechamento | Fechar comanda com forma de pagamento | [Abrir](docs/modules/pagamentos.md) |
 | Fiado / Pendências | Marcar e quitar saldos futuros | [Abrir](docs/modules/fiado.md) |
 | Caixa Diário | Abrir, movimentar e fechar caixa | [Abrir](docs/modules/caixa.md) |
 | Relatórios | Consolidar operação e financeiro | [Abrir](docs/modules/relatorios.md) |

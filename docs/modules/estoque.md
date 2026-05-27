@@ -107,4 +107,4 @@ Ajuste:
 
 ## Próximo passo relacionado
 
-- Baixa e devolução automática via Comandas e Itens.
+- Usar movimentos de estoque em relatórios e conferências operacionais.

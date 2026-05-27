@@ -5,14 +5,14 @@
 - Produtos e Categorias
 - Estoque
 - Comandas e Itens
+- Pagamentos e Fechamento de Comanda
 
 ## Próximo
 
-- Pagamentos e Fechamento de Comanda
+- Fiado / Pendências
 
 ## Depois
 
-- Fiado / Pendências
 - Caixa Diário
 - Relatórios básicos
 - Configurações

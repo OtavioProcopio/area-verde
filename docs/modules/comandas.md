@@ -10,8 +10,9 @@ Permitir abrir comandas por nome/apelido, lançar produtos consumidos, ajustar
 quantidades, remover itens e cancelar comandas. Cada alteração recalcula o total
 e integra automaticamente com o estoque quando o produto controla estoque.
 
-Este módulo não implementa fechamento com pagamento, fiado, caixa, relatórios,
-impressão, integrações de pagamento, autenticação complexa ou frontend.
+O fechamento com pagamento é atendido pelo módulo de Pagamentos e Fechamento. O
+módulo de comandas não implementa fiado, caixa, relatórios, impressão,
+integrações de pagamento, autenticação complexa ou frontend.
 
 ## Casos de uso atendidos
 
@@ -65,6 +66,7 @@ impressão, integrações de pagamento, autenticação complexa ou frontend.
 - Diminuir, remover ou cancelar devolve estoque proporcional.
 - Venda pode deixar estoque negativo no MVP para não travar atendimento.
 - Comanda cancelada permanece no histórico com seus itens e movimentos.
+- Comanda fechada pelo módulo de pagamentos não pode receber novas alterações.
 
 ## Validações
 
@@ -219,8 +221,6 @@ Cancelar uma comanda aberta:
 
 ## O que ainda não está incluso
 
-- Fechamento de comanda.
-- Pagamento.
 - Fiado.
 - Caixa diário.
 - Relatórios.
@@ -231,4 +231,4 @@ Cancelar uma comanda aberta:
 
 ## Próximo passo relacionado
 
-- Pagamentos e Fechamento de Comanda.
+- Fiado / Pendências.

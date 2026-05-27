@@ -23,6 +23,7 @@
 - Orquestra transações.
 - Chama repositories.
 - Coordena integração entre módulos.
+- Não importa DTOs da camada `adapter`.
 
 ## Repository
 
