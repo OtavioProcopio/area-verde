@@ -71,11 +71,32 @@ Os comandos abaixo devem ser executados em `app/` a partir do host:
 | `make dev-validate` | Executa `make validate` dentro do DevContainer |
 | `make dev-down` | Derruba o DevContainer |
 
+Para alterações Python, testes, lint, type check e validações da aplicação, use
+o DevContainer como ambiente preferencial. Dentro dele, execute:
+
+```bash
+cd app
+make validate
+make check
+make ci
+git diff --check
+```
+
+Alguns DevContainers podem não possuir o binário `docker`. Nesse caso, rode as
+validações Docker no host e informe isso na PR:
+
+```bash
+cd app
+POSTGRES_PASSWORD=local-dev-only docker compose config
+docker build -t area-verde-api-test .
+```
+
 ## Rotina recomendada
 
 Para uma alteração de documentação:
 
 ```bash
+git diff --check
 make check
 ```
 

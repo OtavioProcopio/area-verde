@@ -9,9 +9,12 @@ Use nomes curtos, descritivos e em kebab-case.
 - `feature/produtos-categorias`
 - `feature/estoque`
 - `feature/comandas`
-- `feature/pagamentos`
-- `bugfix/corrige-total-comanda`
-- `docs/organiza-repositorio-e-policies`
+- `feature/pagamentos-fechamento`
+- `feature/caixa-diario`
+- `feature/fiado-pendencias`
+- `feature/relatorios-basicos`
+- `docs/endurece-politicas-agentes`
+- `bugfix/corrige-fechamento-comanda`
 - `release/v0.1.0`
 - `hotfix/corrige-migration-producao`
 
@@ -22,3 +25,6 @@ Use nomes curtos, descritivos e em kebab-case.
 - Use `docs/*` para mudanças exclusivas de documentação.
 - Use `release/*` apenas para preparação de versão.
 - Use `hotfix/*` apenas para correção urgente a partir de `main`.
+- O nome da branch deve indicar o escopo real.
+- Não usar branch genérica quando o módulo for específico.
+- Não reutilizar branch antiga para novo módulo.

@@ -9,6 +9,40 @@
 - PR deve passar no CI.
 - PR para `develop` deve vir de `feature/*`, `bugfix/*` ou `docs/*`.
 - PR para `main` deve vir de `release/*` ou `hotfix/*`.
+- Se a PR foi aberta com base errada, não corrigir via merge. Fechar ou retargetar a PR antes da revisão.
+
+## Base correta da PR
+
+| Branch de origem | Base correta |
+|---|---|
+| `feature/*` | `develop` |
+| `bugfix/*` | `develop` |
+| `docs/*` | `develop` |
+| `release/*` | `main` |
+| `hotfix/*` | `main` |
+
+Antes de abrir a PR, confirmar:
+
+```text
+base: develop
+compare: feature/* | bugfix/* | docs/*
+```
+
+Para features comuns, se a base for `main`, a PR está errada.
+
+## Checklist obrigatório da PR
+
+- [ ] Branch nasceu de `develop`.
+- [ ] `develop` foi atualizado antes da branch.
+- [ ] PR está apontando para `develop`.
+- [ ] CI passou.
+- [ ] `make validate` foi executado.
+- [ ] `git diff --check` foi executado.
+- [ ] Docker Compose config foi validado.
+- [ ] Docker build foi validado.
+- [ ] Documentação foi atualizada quando necessário.
+- [ ] Nenhum secret foi commitado.
+- [ ] Nenhuma migration antiga foi alterada indevidamente.
 
 ## Template sugerido
 
