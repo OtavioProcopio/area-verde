@@ -58,4 +58,4 @@ Pendente.
 
 ## Próximo passo relacionado
 
-- Implementar após caixa diário.
+- Implementar após revisão do fluxo de Fiado / Pendências e consolidação financeira.

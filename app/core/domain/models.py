@@ -166,6 +166,10 @@ class ItemComanda(SQLModel, table=True):
 
 class Caixa(SQLModel, table=True):
     __tablename__: ClassVar[str] = "caixa"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_caixa_status", "status"),
+        Index("idx_caixa_data", "data"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
     data: date = Field(default_factory=date.today)
@@ -206,6 +210,7 @@ class Caixa(SQLModel, table=True):
 class Pagamento(SQLModel, table=True):
     __tablename__: ClassVar[str] = "pagamento"
     __table_args__: ClassVar[tuple] = (
+        Index("idx_pagamento_caixa_id", "caixa_id"),
         Index("idx_pagamento_comanda_id", "comanda_id"),
         Index("idx_pagamento_forma_pagamento", "forma_pagamento"),
         Index("idx_pagamento_criado_em", "criado_em"),
@@ -233,6 +238,11 @@ class Pagamento(SQLModel, table=True):
 
 class MovimentoCaixa(SQLModel, table=True):
     __tablename__: ClassVar[str] = "movimento_caixa"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_movimento_caixa_caixa_id", "caixa_id"),
+        Index("idx_movimento_caixa_tipo", "tipo"),
+        Index("idx_movimento_caixa_criado_em", "criado_em"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
     caixa_id: int = Field(foreign_key="caixa.id")

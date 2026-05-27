@@ -11,7 +11,8 @@ A collection cobre:
 - categorias e produtos;
 - consultas e movimentos de estoque;
 - abertura, itens, cancelamento e consulta de comandas;
-- fechamento de comanda e consulta de pagamentos.
+- abertura, consulta, reforço, sangria e fechamento de caixa;
+- fechamento de comanda com caixa aberto e consulta de pagamentos.
 
 Por padrão, o ambiente aponta para a API local. Ajuste `baseUrl` conforme o modo
 de execução usado:

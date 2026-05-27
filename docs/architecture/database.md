@@ -56,3 +56,4 @@ alembic upgrade head
 | `c3d4e5f6a7b8` | Estoque | Índices de movimentos de estoque |
 | `d4e5f6a7b8c9` | Comandas | Cancelamento, atualização de itens e índices de comanda |
 | `f58650a646fe` | Pagamentos | `caixa_id` opcional, observação e índices de pagamentos |
+| `e6f7a8b9c0d1` | Caixa Diário | Índices de caixa, movimentos de caixa e vínculo de pagamento |

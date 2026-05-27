@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
+from adapter.controllers.caixa_controller import router as caixa_router
 from adapter.controllers.categoria_produto_controller import (
     router as categoria_produto_router,
 )
@@ -97,6 +98,7 @@ def create_app() -> FastAPI:
     app.include_router(estoque_router)
     app.include_router(comanda_router)
     app.include_router(pagamento_router)
+    app.include_router(caixa_router)
 
     @app.get("/health", tags=["Health"])
     async def health_check():

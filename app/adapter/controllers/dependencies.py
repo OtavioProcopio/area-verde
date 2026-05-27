@@ -1,6 +1,7 @@
 from fastapi import Request
 from sqlmodel import Session
 
+from adapter.repositories.caixa_repository import CaixaRepository
 from adapter.repositories.categoria_produto_repository import (
     CategoriaProdutoRepository,
 )
@@ -8,6 +9,7 @@ from adapter.repositories.comanda_repository import ComandaRepository
 from adapter.repositories.movimento_estoque_repository import MovimentoEstoqueRepository
 from adapter.repositories.pagamento_repository import PagamentoRepository
 from adapter.repositories.produto_repository import ProdutoRepository
+from core.application.use_cases.caixa_service import CaixaService
 from core.application.use_cases.categoria_produto_service import (
     CategoriaProdutoService,
 )
@@ -49,6 +51,11 @@ def build_estoque_service(session: Session) -> EstoqueService:
     )
 
 
+def build_caixa_service(session: Session) -> CaixaService:
+    caixa_repository = CaixaRepository(session)
+    return CaixaService(caixa_repository)
+
+
 def build_comanda_service(session: Session) -> ComandaService:
     comanda_repository = ComandaRepository(session)
     produto_repository = ProdutoRepository(session)
@@ -67,7 +74,9 @@ def build_comanda_service(session: Session) -> ComandaService:
 def build_pagamento_service(session: Session) -> PagamentoService:
     pagamento_repository = PagamentoRepository(session)
     comanda_repository = ComandaRepository(session)
+    caixa_service = build_caixa_service(session)
     return PagamentoService(
         pagamento_repository=pagamento_repository,
         comanda_repository=comanda_repository,
+        caixa_service=caixa_service,
     )

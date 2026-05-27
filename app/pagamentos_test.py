@@ -20,6 +20,8 @@ def client(test_engine) -> Generator[TestClient, None, None]:
     yield client
     with test_engine.connect() as conn:
         conn.execute(text("DELETE FROM pagamento;"))
+        conn.execute(text("DELETE FROM movimento_caixa;"))
+        conn.execute(text("DELETE FROM caixa;"))
         conn.execute(text("DELETE FROM item_comanda;"))
         conn.execute(text("DELETE FROM comanda;"))
         conn.execute(text("DELETE FROM movimento_estoque;"))
@@ -59,7 +61,14 @@ def _create_comanda_com_consumo(client: TestClient) -> dict:
     return res.json()
 
 
+def _abrir_caixa(client: TestClient) -> dict:
+    response = client.post("/api/caixas/abrir", json={"valorInicial": 100})
+    assert response.status_code == 201
+    return response.json()
+
+
 def test_fechar_comanda_valida_dinheiro(client: TestClient):
+    caixa = _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
     total = comanda["total"]
 
@@ -75,12 +84,14 @@ def test_fechar_comanda_valida_dinheiro(client: TestClient):
     assert data["status"] == "FECHADA"
     assert data["fechadaEm"] is not None
     assert len(data["pagamentos"]) == 1
+    assert data["pagamentos"][0]["caixaId"] == caixa["id"]
     assert data["pagamentos"][0]["formaPagamento"] == "DINHEIRO"
     assert float(data["pagamentos"][0]["valor"]) == total
     assert data["pagamentos"][0]["observacao"] == "Pago com dinheiro"
 
 
 def test_fechar_comanda_valida_pix(client: TestClient):
+    _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
     payload = {"formaPagamento": "PIX", "valorPago": comanda["total"]}
     response = client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
@@ -89,6 +100,7 @@ def test_fechar_comanda_valida_pix(client: TestClient):
 
 
 def test_fechar_comanda_valida_cartao(client: TestClient):
+    _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
     payload = {"formaPagamento": "CARTAO", "valorPago": comanda["total"]}
     response = client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
@@ -135,6 +147,7 @@ def test_fechar_comanda_fiado_nao_implementado(client: TestClient):
 
 
 def test_listar_pagamentos_sucesso(client: TestClient):
+    caixa = _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
     payload = {
         "formaPagamento": "PIX",
@@ -147,6 +160,7 @@ def test_listar_pagamentos_sucesso(client: TestClient):
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
+    assert data[0]["caixaId"] == caixa["id"]
     assert data[0]["formaPagamento"] == "PIX"
     assert data[0]["observacao"] == "Pix confirmado"
 
@@ -159,6 +173,7 @@ def test_listar_pagamentos_vazia(client: TestClient):
 
 
 def test_regressao_nao_fechar_comanda_ja_fechada(client: TestClient):
+    _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
     payload = {"formaPagamento": "PIX", "valorPago": comanda["total"]}
     client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
@@ -169,6 +184,7 @@ def test_regressao_nao_fechar_comanda_ja_fechada(client: TestClient):
 
 
 def test_regressao_nao_adicionar_item_comanda_fechada(client: TestClient):
+    _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
     payload = {"formaPagamento": "PIX", "valorPago": comanda["total"]}
     client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
@@ -191,6 +207,7 @@ def test_regressao_nao_adicionar_item_comanda_fechada(client: TestClient):
 
 
 def test_regressao_nao_alterar_itens_comanda_fechada(client: TestClient):
+    _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
     item = comanda["itens"][0]
     payload = {"formaPagamento": "PIX", "valorPago": comanda["total"]}

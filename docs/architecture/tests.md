@@ -17,6 +17,7 @@ Exemplos:
 - `estoque_test.py`
 - `comandas_test.py`
 - `pagamentos_test.py`
+- `caixa_test.py`
 
 ## O que testar
 
