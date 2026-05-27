@@ -2,59 +2,158 @@
 
 ## Status
 
-Pendente.
+Implementado.
 
 ## Objetivo
 
-Controlar comandas ou saldos deixados para pagamento futuro.
+Controlar comandas deixadas para pagamento futuro. Uma comanda fiada fica com
+status `PENDENTE`, representa valor a receber e não entra como dinheiro recebido
+no caixa do dia.
 
-No estado atual do MVP, `FormaPagamento.FIADO` existe no domínio, mas o
-fechamento de comanda rejeita essa forma com o erro `fiado_nao_implementado`.
+## Diferença entre FIADO e pagamento recebido
 
-## Casos de uso previstos
+`FormaPagamento.FIADO` não é pagamento. Ela representa a decisão operacional de
+marcar a comanda como pendente dentro de um caixa aberto. A quitação futura deve
+usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 
-- Marcar comanda como pendente/fiado.
+## Casos de uso atendidos
+
+- Marcar comanda aberta como fiado.
+- Exigir cliente cadastrado e ativo para fiado.
+- Definir `vencimento_em` manual ou padrão de 7 dias.
+- Registrar `pendente_em`.
+- Preservar `caixa_origem_id` da comanda.
 - Listar pendências.
-- Identificar pendências vencidas.
-- Registrar quitação futura.
-
-## Entidades previstas
-
-- `Comanda`
-- `Pagamento`
-- `FormaPagamento`
-- `ConfiguracaoSistema`
+- Listar pendências vencidas.
+- Consultar pendência por comanda.
+- Quitar pendência.
+- Registrar pagamento da quitação no caixa aberto.
+- Somar dinheiro esperado apenas quando a quitação for em dinheiro.
 
 ## Endpoints
 
 | Método | Rota | Descrição |
 |---|---|---|
-| A definir | A definir | Gestão de fiado |
+| `POST` | `/api/comandas/{comanda_id}/fiado` | Marca comanda como pendente |
+| `GET` | `/api/fiados` | Lista pendências |
+| `GET` | `/api/fiados/vencidos` | Lista pendências vencidas |
+| `GET` | `/api/fiados/{comanda_id}` | Consulta pendência |
+| `POST` | `/api/fiados/{comanda_id}/quitar` | Quita pendência |
+
+## Requests
+
+**POST /api/comandas/10/fiado**
+```json
+{
+  "clienteId": 1,
+  "vencimentoEm": "2026-06-03",
+  "observacao": "Cliente pagará na próxima semana"
+}
+```
+
+**POST /api/fiados/10/quitar**
+```json
+{
+  "formaPagamento": "DINHEIRO",
+  "valorPago": 80.00,
+  "observacao": "Quitado no balcão"
+}
+```
+
+## Responses
+
+**GET /api/fiados**
+```json
+[
+  {
+    "comandaId": 10,
+    "cliente": {
+      "id": 1,
+      "nome": "João da Oficina",
+      "apelido": "João"
+    },
+    "nomeCliente": "Balcão",
+    "nomeComanda": "Balcão",
+    "nomeExibicao": "João",
+    "total": "80.00",
+    "status": "PENDENTE",
+    "abertaEm": "2026-05-27T18:00:00",
+    "pendenteEm": "2026-05-27T20:30:00",
+    "vencimentoEm": "2026-06-03",
+    "vencida": false
+  }
+]
+```
+
+**POST /api/fiados/10/quitar**
+```json
+{
+  "id": 10,
+  "status": "FECHADA",
+  "total": "80.00",
+  "pendenteEm": "2026-05-27T20:30:00",
+  "vencimentoEm": "2026-06-03",
+  "fechadaEm": "2026-06-01T20:00:00",
+  "pagamentos": [
+    {
+      "id": 5,
+      "caixaId": 2,
+      "comandaId": 10,
+      "formaPagamento": "DINHEIRO",
+      "valor": "80.00",
+      "observacao": "Quitado no balcão",
+      "criadoEm": "2026-06-01T20:00:00"
+    }
+  ]
+}
+```
 
 ## Regras de negócio
 
-- Ainda não implementado.
+- Apenas comanda `ABERTA` pode virar fiado.
+- Deve existir caixa aberto para marcar fiado.
+- Comanda deve ter itens e total maior que zero.
+- Cliente cadastrado e ativo é obrigatório.
+- Se a comanda já tiver cliente, `clienteId` pode ser omitido no request.
+- Se `vencimentoEm` não for enviado, o padrão é hoje + 7 dias.
+- Vencimento anterior à data atual é bloqueado.
+- `pendente_em` recebe a data e hora em que a comanda virou `PENDENTE`.
+- `caixa_origem_id` identifica o caixa em que a comanda foi aberta.
+- Marcar fiado não cria pagamento e não altera caixa.
+- Quitar fiado exige caixa aberto.
+- Quitação continua permitida mesmo se o cliente foi inativado após a pendência.
+- `FIADO` não pode quitar fiado.
+- Pagamento em `DINHEIRO` soma em `dinheiro_esperado`.
+- Pagamento em `PIX` ou `CARTAO` fica vinculado ao caixa sem alterar dinheiro físico.
+- A quitação altera a comanda para `FECHADA` e mantém `vencimento_em` para histórico.
+- A quitação não altera `pendente_em`.
 
 ## Validações
 
-- A definir durante implementação.
-
-## Exemplos de request
-
-Pendente.
-
-## Exemplos de response
-
-Pendente.
+- `cliente_obrigatorio_para_fiado`
+- `cliente_nao_encontrado`
+- `cliente_inativo`
+- `comanda_nao_encontrada`
+- `comanda_nao_aberta`
+- `comanda_nao_pendente`
+- `comanda_sem_consumo`
+- `vencimento_invalido`
+- `valor_pago_invalido`
+- `fiado_nao_pode_quitar_fiado`
+- `caixa_aberto_nao_encontrado`
 
 ## Testes relacionados
 
-- A criar.
+- `app/fiado_test.py`
+- `app/clientes_test.py`
+- `app/caixa_test.py`
+- `app/pagamentos_test.py`
 
-## O que ainda não está incluso
+## Fora de escopo
 
-- Todo o módulo está pendente.
-
-## Próximo passo relacionado
-
-- Implementar a partir dos fluxos de Pagamentos, Fechamento e Caixa Diário.
+- Pagamento parcial.
+- Juros.
+- Parcelamento.
+- Limite de crédito.
+- Cobrança automática.
+- Integração Pix/cartão real.

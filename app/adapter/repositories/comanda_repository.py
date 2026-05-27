@@ -1,12 +1,14 @@
-from datetime import date, datetime, time
-from typing import Optional
+from __future__ import annotations
 
-from sqlalchemy import func, text
+from datetime import date, datetime, time
+from typing import Any, List, Optional, cast
+
+from sqlalchemy import func, or_, text
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from core.domain.enums import StatusComanda
-from core.domain.models import Comanda, ItemComanda
+from core.domain.models import Cliente, Comanda, ItemComanda
 
 
 class ComandaRepository:
@@ -36,6 +38,8 @@ class ComandaRepository:
             select(Comanda)
             .where(Comanda.id == comanda_id)
             .options(selectinload(Comanda.itens))  # type: ignore[arg-type]
+            .options(selectinload(Comanda.pagamentos))  # type: ignore[arg-type]
+            .options(selectinload(Comanda.cliente))  # type: ignore[arg-type]
         )
         return self.session.exec(statement).first()
 
@@ -56,9 +60,11 @@ class ComandaRepository:
         status: Optional[StatusComanda] = None,
         nome: Optional[str] = None,
         data: Optional[date] = None,
-    ) -> list[Comanda]:
-        statement = select(Comanda).options(
-            selectinload(Comanda.itens)  # type: ignore[arg-type]
+    ) -> List[Comanda]:
+        statement = (
+            select(Comanda)
+            .options(selectinload(Comanda.itens))  # type: ignore[arg-type]
+            .options(selectinload(Comanda.cliente))  # type: ignore[arg-type]
         )
 
         if status is not None:
@@ -76,6 +82,59 @@ class ComandaRepository:
             )
 
         statement = statement.order_by(text("aberta_em DESC"), text("id DESC"))
+        return list(self.session.exec(statement).all())
+
+    def list_abertas(self) -> List[Comanda]:
+        return self.list(status=StatusComanda.ABERTA)
+
+    def list_pendencias(
+        self,
+        cliente_id: Optional[int] = None,
+        vencidos: Optional[bool] = None,
+        data_inicio: Optional[date] = None,
+        data_fim: Optional[date] = None,
+        nome: Optional[str] = None,
+    ) -> List[Comanda]:
+        statement = (
+            select(Comanda)
+            .where(Comanda.status == StatusComanda.PENDENTE)
+            .options(selectinload(Comanda.itens))  # type: ignore[arg-type]
+            .options(selectinload(Comanda.pagamentos))  # type: ignore[arg-type]
+            .options(selectinload(Comanda.cliente))  # type: ignore[arg-type]
+        )
+
+        if cliente_id is not None:
+            statement = statement.where(Comanda.cliente_id == cliente_id)
+        vencimento_column = cast(Any, Comanda.vencimento_em)
+        if vencidos is True:
+            statement = statement.where(vencimento_column < date.today())
+        elif vencidos is False:
+            statement = statement.where(
+                or_(
+                    vencimento_column.is_(None),
+                    vencimento_column >= date.today(),
+                )
+            )
+        if data_inicio is not None:
+            statement = statement.where(
+                Comanda.aberta_em >= datetime.combine(data_inicio, time.min)
+            )
+        if data_fim is not None:
+            statement = statement.where(
+                Comanda.aberta_em <= datetime.combine(data_fim, time.max)
+            )
+        if nome:
+            termo = f"%{nome.strip().lower()}%"
+            statement = statement.outerjoin(Cliente).where(
+                or_(
+                    func.lower(Comanda.nome_cliente).like(termo),
+                    func.lower(Comanda.nome_cliente_snapshot).like(termo),
+                    func.lower(Cliente.nome).like(termo),
+                    func.lower(Cliente.apelido).like(termo),
+                )
+            )
+
+        statement = statement.order_by(text("vencimento_em ASC"), text("id DESC"))
         return list(self.session.exec(statement).all())
 
     def commit(self) -> None:

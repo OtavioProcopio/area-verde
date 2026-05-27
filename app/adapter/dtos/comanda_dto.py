@@ -1,26 +1,42 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from core.domain.enums import StatusComanda
 from core.domain.models import Comanda, ItemComanda
 
 
 class CriarComandaRequest(BaseModel):
-    nome_cliente: str = Field(alias="nomeCliente", min_length=1, max_length=160)
+    nome_cliente: Optional[str] = Field(
+        default=None,
+        alias="nomeCliente",
+        max_length=160,
+    )
+    cliente_id: Optional[int] = Field(default=None, alias="clienteId")
     observacao: Optional[str] = Field(default=None, max_length=500)
 
     model_config = ConfigDict(populate_by_name=True)
 
-    @field_validator("nome_cliente")
-    @classmethod
-    def validate_nome_cliente(cls, value: str) -> str:
-        nome = value.strip()
-        if not nome:
+    @model_validator(mode="after")
+    def validate_nome_ou_cliente(self) -> "CriarComandaRequest":
+        if self.cliente_id is not None:
+            if self.nome_cliente is not None:
+                self.nome_cliente = self.nome_cliente.strip() or None
+            return self
+
+        if self.nome_cliente is None or not self.nome_cliente.strip():
             raise ValueError("Nome obrigatório")
-        return nome
+
+        self.nome_cliente = self.nome_cliente.strip()
+        return self
+
+
+class VincularClienteComandaRequest(BaseModel):
+    cliente_id: int = Field(alias="clienteId")
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class AdicionarItemComandaRequest(BaseModel):
@@ -67,10 +83,18 @@ class ItemComandaResponse(BaseModel):
 
 class ComandaResumoResponse(BaseModel):
     id: int
+    caixa_origem_id: Optional[int] = Field(default=None, alias="caixaOrigemId")
+    cliente_id: Optional[int] = Field(default=None, alias="clienteId")
     nome_cliente: str = Field(alias="nomeCliente")
+    nome_cliente_snapshot: Optional[str] = Field(
+        default=None,
+        alias="nomeClienteSnapshot",
+    )
     status: StatusComanda
     total: float
     aberta_em: datetime = Field(alias="abertaEm")
+    pendente_em: Optional[datetime] = Field(default=None, alias="pendenteEm")
+    vencimento_em: Optional[date] = Field(default=None, alias="vencimentoEm")
     quantidade_itens: int = Field(alias="quantidadeItens")
 
     model_config = ConfigDict(populate_by_name=True)
@@ -82,22 +106,35 @@ class ComandaResumoResponse(BaseModel):
 
         return cls(
             id=comanda.id,
+            caixaOrigemId=comanda.caixa_origem_id,
+            clienteId=comanda.cliente_id,
             nomeCliente=comanda.nome_cliente,
+            nomeClienteSnapshot=comanda.nome_cliente_snapshot,
             status=comanda.status,
             total=float(comanda.total),
             abertaEm=comanda.aberta_em,
+            pendenteEm=comanda.pendente_em,
+            vencimentoEm=comanda.vencimento_em,
             quantidadeItens=len(comanda.itens),
         )
 
 
 class ComandaDetalheResponse(BaseModel):
     id: int
+    caixa_origem_id: Optional[int] = Field(default=None, alias="caixaOrigemId")
+    cliente_id: Optional[int] = Field(default=None, alias="clienteId")
     nome_cliente: str = Field(alias="nomeCliente")
+    nome_cliente_snapshot: Optional[str] = Field(
+        default=None,
+        alias="nomeClienteSnapshot",
+    )
     status: StatusComanda
     total: float
     aberta_em: datetime = Field(alias="abertaEm")
     fechada_em: Optional[datetime] = Field(alias="fechadaEm")
     cancelada_em: Optional[datetime] = Field(alias="canceladaEm")
+    pendente_em: Optional[datetime] = Field(default=None, alias="pendenteEm")
+    vencimento_em: Optional[date] = Field(default=None, alias="vencimentoEm")
     observacao: Optional[str]
     itens: list[ItemComandaResponse]
 
@@ -110,12 +147,17 @@ class ComandaDetalheResponse(BaseModel):
 
         return cls(
             id=comanda.id,
+            caixaOrigemId=comanda.caixa_origem_id,
+            clienteId=comanda.cliente_id,
             nomeCliente=comanda.nome_cliente,
+            nomeClienteSnapshot=comanda.nome_cliente_snapshot,
             status=comanda.status,
             total=float(comanda.total),
             abertaEm=comanda.aberta_em,
             fechadaEm=comanda.fechada_em,
             canceladaEm=comanda.cancelada_em,
+            pendenteEm=comanda.pendente_em,
+            vencimentoEm=comanda.vencimento_em,
             observacao=comanda.observacao,
             itens=[ItemComandaResponse.from_model(item) for item in comanda.itens],
         )

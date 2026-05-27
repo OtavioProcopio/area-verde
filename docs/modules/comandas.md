@@ -11,12 +11,14 @@ quantidades, remover itens e cancelar comandas. Cada alteração recalcula o tot
 e integra automaticamente com o estoque quando o produto controla estoque.
 
 O fechamento com pagamento é atendido pelo módulo de Pagamentos e Fechamento. O
-módulo de comandas não implementa fiado, caixa, relatórios, impressão,
-integrações de pagamento, autenticação complexa ou frontend.
+módulo de Fiado / Pendências altera comandas abertas para `PENDENTE` quando o
+consumo fica para pagamento futuro.
 
 ## Casos de uso atendidos
 
 - Criar comanda por nome/apelido.
+- Criar comanda com `clienteId` opcional.
+- Vincular cliente a comanda aberta.
 - Listar comandas e comandas abertas.
 - Buscar comandas por nome, status e data.
 - Consultar detalhes de uma comanda.
@@ -36,6 +38,7 @@ integrações de pagamento, autenticação complexa ou frontend.
 - `Produto`
 - `MovimentoEstoque`
 - `StatusComanda`
+- `Cliente`
 - `TipoMovimentoEstoque`
 - `OrigemMovimentoEstoque`
 
@@ -47,6 +50,7 @@ integrações de pagamento, autenticação complexa ou frontend.
 | `GET` | `/api/comandas` | Lista comandas com filtros |
 | `GET` | `/api/comandas/abertas` | Lista comandas abertas |
 | `GET` | `/api/comandas/{comanda_id}` | Consulta detalhes |
+| `PATCH` | `/api/comandas/{comanda_id}/cliente` | Vincula cliente ativo |
 | `POST` | `/api/comandas/{comanda_id}/itens` | Adiciona produto |
 | `PATCH` | `/api/comandas/{comanda_id}/itens/{item_id}/incrementar` | Incrementa item |
 | `PATCH` | `/api/comandas/{comanda_id}/itens/{item_id}/diminuir` | Diminui item |
@@ -56,6 +60,17 @@ integrações de pagamento, autenticação complexa ou frontend.
 ## Regras de negócio
 
 - Toda comanda inicia com status `ABERTA` e total zero.
+- Criar comanda exige caixa aberto. Erro: `caixa_aberto_nao_encontrado`.
+- Ao criar, a comanda recebe `caixa_origem_id` com o caixa aberto.
+- Comanda comum pode ser aberta apenas com `nomeCliente`.
+- `clienteId` é opcional e não substitui a abertura rápida.
+- Também é permitido informar `nomeCliente` e `clienteId` juntos.
+- Quando `clienteId` é informado, o cliente deve existir e estar ativo.
+- Se `clienteId` for informado sem `nomeCliente`, o sistema usa apelido ou nome do cliente.
+- `nome_cliente_snapshot` registra o nome operacional do cliente cadastrado.
+- Cliente só é obrigatório para fiado.
+- Comanda sem cliente pode ser paga normalmente, mas não pode virar fiado.
+- Status `PENDENTE` representa fiado ou valor a receber.
 - Apenas comandas abertas podem receber itens, alterações ou cancelamento.
 - O total da comanda é sempre derivado da soma dos itens.
 - O cliente da API nunca envia total manualmente.
@@ -71,7 +86,11 @@ integrações de pagamento, autenticação complexa ou frontend.
 ## Validações
 
 - `nomeCliente` é obrigatório, não pode ser vazio e aceita até 160 caracteres.
+- `nomeCliente` pode ser omitido quando `clienteId` for informado.
 - Várias comandas abertas podem ter o mesmo nome/apelido.
+- Cliente inexistente retorna `cliente_nao_encontrado`.
+- Cliente inativo retorna `cliente_inativo`.
+- Caixa aberto inexistente na criação retorna `caixa_aberto_nao_encontrado`.
 - `quantidade` deve ser maior que zero.
 - Produto deve existir. Erro: `produto_nao_encontrado`.
 - Produto deve estar ativo. Erro: `produto_inativo`.
@@ -86,6 +105,32 @@ Criar comanda:
 {
   "nomeCliente": "João",
   "observacao": "Cliente voltou mais tarde"
+}
+```
+
+Criar comanda com cliente:
+
+```json
+{
+  "clienteId": 1,
+  "observacao": "Cliente cadastrado"
+}
+```
+
+Criar comanda com nome operacional e cliente:
+
+```json
+{
+  "nomeCliente": "João balcão",
+  "clienteId": 1
+}
+```
+
+Vincular cliente:
+
+```json
+{
+  "clienteId": 1
 }
 ```
 
@@ -123,12 +168,17 @@ Comanda criada:
 ```json
 {
   "id": 1,
+  "caixaOrigemId": 1,
+  "clienteId": null,
   "nomeCliente": "João",
+  "nomeClienteSnapshot": null,
   "status": "ABERTA",
   "total": 0.0,
   "abertaEm": "2026-05-26T18:40:00",
   "fechadaEm": null,
   "canceladaEm": null,
+  "pendenteEm": null,
+  "vencimentoEm": null,
   "observacao": "Cliente voltou mais tarde",
   "itens": []
 }
@@ -139,12 +189,17 @@ Comanda com item:
 ```json
 {
   "id": 1,
+  "caixaOrigemId": 1,
+  "clienteId": null,
   "nomeCliente": "João",
+  "nomeClienteSnapshot": null,
   "status": "ABERTA",
   "total": 21.0,
   "abertaEm": "2026-05-26T18:40:00",
   "fechadaEm": null,
   "canceladaEm": null,
+  "pendenteEm": null,
+  "vencimentoEm": null,
   "observacao": null,
   "itens": [
     {
@@ -215,13 +270,18 @@ Cancelar uma comanda aberta:
 - preenche `canceladaEm`;
 - mantém a comanda, itens e movimentos para histórico.
 
+## Fiado
+
+O módulo de comandas não cria pagamento de fiado. Para pendência, use
+`POST /api/comandas/{comanda_id}/fiado`. A comanda deve estar aberta, ter
+consumo e possuir cliente cadastrado ativo.
+
 ## Testes relacionados
 
 - `app/comandas_test.py`
 
 ## O que ainda não está incluso
 
-- Fiado.
 - Caixa diário.
 - Relatórios.
 - Impressão.
@@ -231,4 +291,4 @@ Cancelar uma comanda aberta:
 
 ## Próximo passo relacionado
 
-- Fiado / Pendências.
+- Relatórios básicos.

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "area-verde-api-collection",
     "name": "Area Verde API",
-    "description": "Collection da API do Area Verde para validar o fluxo do MVP: produtos, estoque, comandas, caixa diário e pagamentos.",
+    "description": "Collection da API do Area Verde para validar o fluxo do MVP: produtos, estoque, clientes, comandas, fiado, caixa diário e pagamentos.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -253,8 +253,141 @@
       ]
     },
     {
+      "name": "Clientes",
+      "item": [
+        {
+          "name": "POST /api/clientes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João da Oficina\",\n  \"apelido\": \"João\",\n  \"telefone\": \"16999999999\",\n  \"observacao\": \"Cliente costuma pagar no fim da semana\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/clientes?nome=joao",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes?nome=joao"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/clientes/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/clientes/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João da Oficina\",\n  \"apelido\": \"João\",\n  \"telefone\": \"16999999999\",\n  \"observacao\": \"Atualizado no balcão\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/clientes/:id/inativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}/inativar"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/clientes/:id/ativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}/ativar"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/clientes/:id/pendencias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}/pendencias"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/clientes duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \" joão da oficina \",\n  \"telefone\": \"(16) 99999-9999\"\n}"
+            },
+            "description": "Deve retornar cliente_duplicado quando já existir cliente ativo com nome ou telefone normalizado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Comandas",
       "item": [
+        {
+          "name": "POST /api/comandas rápida",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeCliente\": \"João mesa 2\"\n}"
+            },
+            "description": "Exige caixa aberto."
+          },
+          "response": []
+        },
         {
           "name": "POST /api/comandas",
           "request": {
@@ -380,6 +513,140 @@
             "url": "{{baseUrl}}/api/comandas/{{comandaId}}/cancelar"
           },
           "response": []
+        },
+        {
+          "name": "POST /api/comandas com cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"observacao\": \"Cliente cadastrado\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/comandas/:id/cliente",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/cliente",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/comandas com nome e cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeCliente\": \"João balcão\",\n  \"clienteId\": \"{{clienteId}}\"\n}"
+            },
+            "description": "Preserva nome operacional e vínculo com cliente cadastrado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Fiado",
+      "item": [
+        {
+          "name": "POST /api/comandas/:id/fiado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/fiado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"vencimentoEm\": \"2026-06-03\",\n  \"observacao\": \"Cliente pagará na próxima semana\"\n}"
+            },
+            "description": "Exige caixa aberto, comanda aberta com consumo e cliente cadastrado ativo. Preenche pendenteEm e preserva caixaOrigemId."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/fiados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/fiados"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/fiados?vencidos=true",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/fiados?vencidos=true"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/fiados/vencidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/fiados/vencidos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/fiados/:comanda_id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/fiados/{{comandaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/fiados/:comanda_id/quitar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/fiados/{{comandaId}}/quitar",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formaPagamento\": \"DINHEIRO\",\n  \"valorPago\": 80.0,\n  \"observacao\": \"Quitado no balcão\"\n}"
+            },
+            "description": "Quita pendência no caixa aberto atual. Funciona mesmo se o cliente foi inativado depois de gerar o fiado."
+          },
+          "response": []
         }
       ]
     },
@@ -482,6 +749,24 @@
               "raw": "{\n  \"dinheiroInformado\": 120.0,\n  \"observacao\": \"Fechamento do turno\"\n}"
             },
             "url": "{{baseUrl}}/api/caixas/{{caixaId}}/fechar"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/caixas/:id/fechar com comanda aberta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}/fechar",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dinheiroInformado\": 100.0,\n  \"observacao\": \"Regressão: deve bloquear se houver comanda aberta\"\n}"
+            }
           },
           "response": []
         }

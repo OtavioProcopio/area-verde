@@ -27,7 +27,9 @@ Permitir configurar parâmetros operacionais simples do sistema.
 
 ## Regras de negócio
 
-- Ainda não implementado.
+- Ainda não implementado como módulo completo.
+- O módulo de Fiado / Pendências usa prazo padrão seguro de 7 dias para
+  vencimento automático quando o request não informa `vencimentoEm`.
 
 ## Validações
 

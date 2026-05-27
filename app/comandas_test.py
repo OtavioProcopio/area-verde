@@ -13,6 +13,15 @@ from core.domain.models import Comanda, ItemComanda, MovimentoEstoque, Produto
 def build_client(test_engine):
     app = create_app()
     app.container.engine.override(providers.Object(test_engine))
+    client = TestClient(app)
+    response = client.post("/api/caixas/abrir", json={"valorInicial": 100})
+    assert response.status_code == 201
+    return client
+
+
+def build_client_sem_caixa(test_engine):
+    app = create_app()
+    app.container.engine.override(providers.Object(test_engine))
     return TestClient(app)
 
 
@@ -101,6 +110,15 @@ def test_cria_comanda_valida_e_permite_nome_repetido(test_engine):
     list_response = client.get("/api/comandas?nome=joão&status=ABERTA")
     assert list_response.status_code == 200
     assert len(list_response.json()) == 2
+
+
+def test_deve_rejeitar_criar_comanda_sem_caixa_aberto(test_engine):
+    client = build_client_sem_caixa(test_engine)
+
+    response = client.post("/api/comandas", json={"nomeCliente": "João"})
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "caixa_aberto_nao_encontrado"
 
 
 def test_cria_comanda_rejeita_nome_vazio_ou_nulo(test_engine):

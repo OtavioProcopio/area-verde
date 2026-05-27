@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import date
-from typing import Optional, Protocol
+from typing import List, Optional, Protocol
 
 from core.domain.enums import StatusComanda
 from core.domain.models import Comanda, ItemComanda
@@ -27,7 +29,18 @@ class IComandaRepository(Protocol):
         status: Optional[StatusComanda] = None,
         nome: Optional[str] = None,
         data: Optional[date] = None,
-    ) -> list[Comanda]: ...
+    ) -> List[Comanda]: ...
+
+    def list_abertas(self) -> List[Comanda]: ...
+
+    def list_pendencias(
+        self,
+        cliente_id: Optional[int] = None,
+        vencidos: Optional[bool] = None,
+        data_inicio: Optional[date] = None,
+        data_fim: Optional[date] = None,
+        nome: Optional[str] = None,
+    ) -> List[Comanda]: ...
 
     def commit(self) -> None: ...
 

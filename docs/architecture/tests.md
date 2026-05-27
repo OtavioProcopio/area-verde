@@ -18,6 +18,8 @@ Exemplos:
 - `comandas_test.py`
 - `pagamentos_test.py`
 - `caixa_test.py`
+- `clientes_test.py`
+- `fiado_test.py`
 
 ## O que testar
 

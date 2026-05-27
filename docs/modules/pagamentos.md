@@ -17,7 +17,7 @@ estar aberto para registrar pagamentos.
 - Registrar valor pago e observação opcional.
 - Vincular pagamento ao caixa aberto.
 - Validar valor pago igual ao total consumido na comanda.
-- Rejeitar pagamentos com forma de pagamento FIADO (não implementado).
+- Rejeitar `FIADO` como pagamento recebido.
 - Rejeitar fechamento de comanda vazia (sem itens consumidos).
 - Atualizar status da comanda para fechada.
 - Preencher `fechada_em` no fechamento.
@@ -46,7 +46,9 @@ estar aberto para registrar pagamentos.
 - Comandas já fechadas não podem ser fechadas novamente.
 - Não é permitido adicionar, incrementar, diminuir ou remover itens em comandas fechadas.
 - O valor pago deve ser exatamente igual ao valor total de consumo da comanda.
-- FIADO não está disponível no momento.
+- `FIADO` não fecha comanda como pagamento recebido.
+- Fiado é tratado pelo módulo de Fiado / Pendências.
+- Quitação de fiado gera pagamento real no caixa atual.
 - O pagamento exige caixa aberto.
 - Pagamento em DINHEIRO soma o valor em `dinheiro_esperado` do caixa.
 - Pagamentos em PIX e CARTAO ficam vinculados ao caixa, mas não alteram o dinheiro físico esperado.
@@ -59,7 +61,7 @@ estar aberto para registrar pagamentos.
 - Comanda deve ter consumo maior que zero. Erro: `comanda_sem_consumo`.
 - `valorPago` deve ser maior que zero.
 - `valorPago` deve ser igual ao total. Erro: `valor_pago_invalido`.
-- `formaPagamento=FIADO` é bloqueada. Erro: `fiado_nao_implementado`.
+- `formaPagamento=FIADO` é bloqueada. Erro: `forma_pagamento_invalida`.
 - Deve existir caixa aberto. Erro: `caixa_aberto_nao_encontrado`.
 - `observacao` aceita até 500 caracteres.
 
@@ -122,7 +124,6 @@ estar aberto para registrar pagamentos.
 
 ## O que ainda não está incluso
 
-- Fiado completo.
 - Relatórios financeiros.
 - Troco.
 - Integração real com Pix, TEF, cartão ou gateway.
@@ -131,4 +132,4 @@ estar aberto para registrar pagamentos.
 
 ## Próximo passo relacionado
 
-- Implementar Fiado / Pendências.
+- Relatórios básicos.
