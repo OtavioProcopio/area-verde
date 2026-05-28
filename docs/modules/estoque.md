@@ -19,6 +19,8 @@ produto.
 - Registrar entrada manual.
 - Registrar ajuste manual.
 - Consultar histórico de movimentos por produto.
+- Registrar baixa automática por venda via comanda.
+- Registrar devolução automática por cancelamento, redução ou remoção de item.
 
 ## Entidades envolvidas
 
@@ -48,6 +50,8 @@ produto.
 - Estoque baixo ocorre quando `quantidadeEstoque <= estoqueMinimo`.
 - Estoque negativo ocorre quando `quantidadeEstoque < 0`.
 - Movimentos de estoque não possuem endpoint de exclusão.
+- Movimentos manuais usam origem `ENTRADA_MANUAL` ou `AJUSTE_MANUAL`.
+- Movimentos automáticos por comanda usam origem `COMANDA` ou `CANCELAMENTO`.
 
 ## Validações
 

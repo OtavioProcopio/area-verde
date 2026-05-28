@@ -282,7 +282,6 @@ consumo e possuir cliente cadastrado ativo.
 
 ## O que ainda não está incluso
 
-- Caixa diário.
 - Relatórios.
 - Impressão.
 - Integrações de pagamento.

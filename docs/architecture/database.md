@@ -67,3 +67,35 @@ alembic upgrade head
 - `comanda.nome_cliente_snapshot`: nome operacional do cliente cadastrado no momento do vínculo.
 - `comanda.caixa_origem_id`: caixa aberto no momento da criação da comanda.
 - `comanda.pendente_em`: data e hora em que a comanda virou fiado.
+- `comanda.vencimento_em`: vencimento da pendência de fiado.
+- `caixa.comandas_origem`: relacionamento operacional das comandas abertas
+  durante o caixa.
+
+## Entidades reais
+
+| Entidade | Tabela | Modulo principal | Observacao |
+|---|---|---|---|
+| `ConfiguracaoSistema` | `configuracao_sistema` | Configuracoes / Acesso | Tabela existe; modulo operacional pendente |
+| `CategoriaProduto` | `categoria_produto` | Produtos e Categorias | Possui produtos |
+| `Produto` | `produto` | Produtos / Estoque | Base de venda e controle de estoque |
+| `Cliente` | `cliente` | Clientes / Fiado | Mantem historico e pendencias |
+| `Comanda` | `comanda` | Comandas / Pagamentos / Fiado | Origem operacional do consumo |
+| `ItemComanda` | `item_comanda` | Comandas | Snapshot de produto e preco |
+| `Caixa` | `caixa` | Caixa Diario | Origem operacional de comandas e pagamentos |
+| `Pagamento` | `pagamento` | Pagamentos / Fiado | Recebimentos reais |
+| `MovimentoCaixa` | `movimento_caixa` | Caixa Diario | Abertura, reforco, sangria e ajuste |
+| `MovimentoEstoque` | `movimento_estoque` | Estoque / Comandas | Movimentos manuais e automaticos |
+
+## Relacionamentos principais
+
+| Origem | Destino | Relacionamento |
+|---|---|---|
+| `CategoriaProduto` | `Produto` | Uma categoria possui varios produtos |
+| `Produto` | `ItemComanda` | Um produto pode aparecer em varios itens |
+| `Produto` | `MovimentoEstoque` | Um produto possui movimentos de estoque |
+| `Cliente` | `Comanda` | Um cliente pode ter historico de comandas |
+| `Caixa` | `Comanda` | Um caixa pode originar varias comandas |
+| `Comanda` | `ItemComanda` | Uma comanda contem varios itens |
+| `Comanda` | `Pagamento` | Uma comanda recebe pagamentos |
+| `Caixa` | `Pagamento` | Um caixa registra pagamentos |
+| `Caixa` | `MovimentoCaixa` | Um caixa possui movimentos financeiros |

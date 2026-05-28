@@ -11,13 +11,16 @@ Permitir configurar parâmetros operacionais simples do sistema.
 ## Casos de uso previstos
 
 - Configurar nome do bar.
-- Configurar prazo de alerta de fiado.
+- Configurar dias para vencimento/alerta de fiado.
+- Configurar permissão de estoque negativo.
 - Configurar senha simples de acesso.
-- Revisar comportamento de estoque negativo, se necessário.
 
-## Entidades previstas
+## Entidades envolvidas
 
 - `ConfiguracaoSistema`
+
+Observação: a entidade existe em `models.py`, mas não há controller, service
+operacional ou endpoints para gestão de configurações nesta versão.
 
 ## Endpoints
 

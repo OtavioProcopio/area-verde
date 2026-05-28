@@ -124,6 +124,9 @@ make check
 | Portal completo | [docs/README.md](docs/README.md) |
 | Visão geral | [docs/overview.md](docs/overview.md) |
 | Roadmap | [docs/roadmap.md](docs/roadmap.md) |
+| Matriz funcional | [docs/matrix/functional-coverage.md](docs/matrix/functional-coverage.md) |
+| Endpoints por módulo | [docs/matrix/endpoints-by-module.md](docs/matrix/endpoints-by-module.md) |
+| Pendências e lacunas | [docs/matrix/pending-gaps.md](docs/matrix/pending-gaps.md) |
 | Glossário | [docs/glossary.md](docs/glossary.md) |
 | Arquitetura | [docs/architecture/architecture.md](docs/architecture/architecture.md) |
 | Camadas | [docs/architecture/layers.md](docs/architecture/layers.md) |

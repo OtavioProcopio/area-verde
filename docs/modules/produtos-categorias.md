@@ -28,6 +28,11 @@ Manter o cadastro base de categorias e produtos vendidos pelo bar. Este módulo
 - `CategoriaProduto`
 - `Produto`
 - `UnidadeEstoque`
+- `ItemComanda`
+- `MovimentoEstoque`
+
+`ItemComanda` e `MovimentoEstoque` usam produto como referencia operacional em
+vendas e movimentacoes, mas nao sao geridos diretamente por este modulo.
 
 ## Endpoints
 
@@ -54,6 +59,8 @@ Manter o cadastro base de categorias e produtos vendidos pelo bar. Este módulo
 - Categoria inativa não pode ser usada para criar ou editar produto.
 - Produto pode controlar estoque ou não.
 - Produto sem controle de estoque persiste valores de estoque zerados.
+- `unidadeEstoque`, `quantidadeBaixaPorVenda` e `estoqueMinimo` definem como o
+  produto participa dos fluxos de estoque e comanda.
 
 ## Validações
 

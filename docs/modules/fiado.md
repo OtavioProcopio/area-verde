@@ -20,6 +20,7 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 
 - Marcar comanda aberta como fiado.
 - Exigir cliente cadastrado e ativo para fiado.
+- Exigir caixa aberto para marcar fiado.
 - Definir `vencimento_em` manual ou padrão de 7 dias.
 - Registrar `pendente_em`.
 - Preservar `caixa_origem_id` da comanda.
@@ -29,6 +30,16 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 - Quitar pendência.
 - Registrar pagamento da quitação no caixa aberto.
 - Somar dinheiro esperado apenas quando a quitação for em dinheiro.
+- Manter pendências de cliente inativo visíveis.
+
+## Entidades envolvidas
+
+- `Cliente`
+- `Comanda`
+- `Pagamento`
+- `Caixa`
+- `FormaPagamento`
+- `StatusComanda`
 
 ## Endpoints
 
@@ -157,3 +168,7 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 - Limite de crédito.
 - Cobrança automática.
 - Integração Pix/cartão real.
+
+## Próximo passo relacionado
+
+- Relatórios básicos de fiados, vencidos e recebimentos por caixa.

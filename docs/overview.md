@@ -54,3 +54,34 @@ Relatórios
 
 Após clientes, fiado, pagamentos e caixa, o próximo passo é expor relatórios
 operacionais e financeiros básicos.
+
+## Ordem do MVP
+
+Implementado:
+
+1. Produtos e Categorias
+2. Estoque
+3. Comandas e Itens
+4. Pagamentos e Fechamento de Comanda
+5. Caixa Diário
+6. Clientes
+7. Fiado / Pendências
+
+Próximo:
+
+8. Relatórios básicos
+
+Depois:
+
+9. Configurações
+10. Acesso / Senha
+11. Release MVP
+12. Frontend operacional
+
+## Documentos de referencia
+
+- [Matriz funcional](matrix/functional-coverage.md)
+- [Endpoints por modulo](matrix/endpoints-by-module.md)
+- [Entidades por modulo](matrix/entities-by-module.md)
+- [Testes por modulo](matrix/tests-by-module.md)
+- [Pendencias e lacunas](matrix/pending-gaps.md)

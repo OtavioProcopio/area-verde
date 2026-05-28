@@ -22,6 +22,26 @@ A collection cobre:
 - regressão de fechamento bloqueado com comandas abertas;
 - fechamento de comanda com caixa aberto e consulta de pagamentos.
 
+## Fluxo operacional recomendado
+
+1. `GET /health`
+2. `POST /api/caixas/abrir`
+3. `POST /api/categorias`
+4. `POST /api/produtos`
+5. `POST /api/estoque/produtos/{produto_id}/entrada` ou `/ajuste`
+6. `POST /api/clientes`
+7. `POST /api/comandas` com `nomeCliente`
+8. `POST /api/comandas` com `clienteId`
+9. `POST /api/comandas/{comanda_id}/itens`
+10. `POST /api/comandas/{comanda_id}/fechar`
+11. `POST /api/comandas/{comanda_id}/fiado`
+12. `GET /api/fiados`
+13. `POST /api/fiados/{comanda_id}/quitar`
+14. `POST /api/caixas/{caixa_id}/fechar`
+
+Nao inclua na collection endpoints de Relatorios, Configuracoes, Acesso ou
+Frontend enquanto esses modulos nao existirem no backend.
+
 Por padrão, o ambiente aponta para a API local. Ajuste `baseUrl` conforme o modo
 de execução usado:
 

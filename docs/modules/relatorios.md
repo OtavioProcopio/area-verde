@@ -10,27 +10,24 @@ Expor consultas consolidadas para acompanhamento operacional e financeiro.
 
 ## Casos de uso previstos
 
-- Relatório diário.
-- Total vendido.
-- Total recebido.
-- Total fiado.
-- Total pendente.
-- Produtos mais vendidos.
-- Pagamentos por forma.
-- Estoque baixo.
-- Estoque negativo.
-- Comandas por status.
-- Fiados pendentes.
+- Gerar relatório diário.
+- Gerar relatório por caixa.
+- Gerar relatório por forma de pagamento.
+- Gerar relatório de produtos mais vendidos.
+- Gerar relatório de fiados.
+- Gerar relatório de estoque.
+- Gerar relatório de comandas por status.
 
-## Entidades previstas
+## Dependências disponíveis
 
 - `Comanda`
 - `ItemComanda`
 - `Produto`
-- `MovimentoEstoque`
+- `Cliente`
 - `Pagamento`
 - `Caixa`
-- `Cliente`
+- `MovimentoCaixa`
+- `MovimentoEstoque`
 
 ## Endpoints
 

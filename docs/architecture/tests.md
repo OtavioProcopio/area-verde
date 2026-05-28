@@ -11,15 +11,21 @@
 
 Os testes ficam em `app/` com sufixo `_test.py`.
 
-Exemplos:
+## Cobertura por modulo
 
-- `produtos_categorias_test.py`
-- `estoque_test.py`
-- `comandas_test.py`
-- `pagamentos_test.py`
-- `caixa_test.py`
-- `clientes_test.py`
-- `fiado_test.py`
+| Modulo | Arquivo principal | Cobertura |
+|---|---|---|
+| Health | `health_test.py` | Endpoint de saude |
+| Bootstrap / Infra | `bootstrap_test.py` | Criacao da app, schema e container |
+| Produtos e Categorias | `produtos_categorias_test.py` | Ciclo de vida, filtros e validacoes |
+| Estoque | `estoque_test.py` | Consultas, entrada, ajuste e historico |
+| Comandas e Itens | `comandas_test.py` | Criacao, itens, estoque e cancelamento |
+| Pagamentos e Fechamento | `pagamentos_test.py` | Fechamento, pagamentos e regressao de status |
+| Caixa Diario | `caixa_test.py` | Abertura, movimentacoes, pagamentos e fechamento |
+| Clientes | `clientes_test.py` | Cadastro, filtros, ativacao, inativacao e duplicidade |
+| Fiado / Pendencias | `fiado_test.py` | Pendencias, vencidos, quitacao e cliente inativo |
+
+Matriz detalhada: [Testes por Modulo](../matrix/tests-by-module.md).
 
 ## O que testar
 

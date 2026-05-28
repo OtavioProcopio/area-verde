@@ -21,6 +21,12 @@ continua disponível para atendimento comum.
 - Usar cliente como vínculo opcional em comanda.
 - Bloquear duplicidade de cliente ativo por nome ou telefone normalizados.
 
+## Entidades envolvidas
+
+- `Cliente`
+- `Comanda`
+- `StatusComanda`
+
 ## Entidade Cliente
 
 Campos:
@@ -132,3 +138,7 @@ Inativar cliente não oculta nem remove pendências. Elas continuam aparecendo e
 - Juros.
 - Parcelamento.
 - Exclusão física.
+
+## Próximo passo relacionado
+
+- Usar clientes e pendências em relatórios básicos.
