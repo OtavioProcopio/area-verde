@@ -279,10 +279,11 @@ consumo e possuir cliente cadastrado ativo.
 ## Testes relacionados
 
 - `app/comandas_test.py`
+- `app/relatorios_test.py`
 
 ## O que ainda não está incluso
 
-- Relatórios.
+- Relatórios avançados.
 - Impressão.
 - Integrações de pagamento.
 - Autenticação complexa.
@@ -290,4 +291,4 @@ consumo e possuir cliente cadastrado ativo.
 
 ## Próximo passo relacionado
 
-- Relatórios básicos.
+- Configurações.

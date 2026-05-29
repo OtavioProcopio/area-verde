@@ -24,6 +24,7 @@ Os testes ficam em `app/` com sufixo `_test.py`.
 | Caixa Diario | `caixa_test.py` | Abertura, movimentacoes, pagamentos e fechamento |
 | Clientes | `clientes_test.py` | Cadastro, filtros, ativacao, inativacao e duplicidade |
 | Fiado / Pendencias | `fiado_test.py` | Pendencias, vencidos, quitacao e cliente inativo |
+| Relatorios basicos | `relatorios_test.py` | Diario, caixa, produtos, fiados, estoque, comandas e validacoes |
 
 Matriz detalhada: [Testes por Modulo](../matrix/tests-by-module.md).
 

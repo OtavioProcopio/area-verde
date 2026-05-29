@@ -141,4 +141,4 @@ Inativar cliente não oculta nem remove pendências. Elas continuam aparecendo e
 
 ## Próximo passo relacionado
 
-- Usar clientes e pendências em relatórios básicos.
+- Configurações.

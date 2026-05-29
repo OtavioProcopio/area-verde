@@ -159,6 +159,7 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 - `app/clientes_test.py`
 - `app/caixa_test.py`
 - `app/pagamentos_test.py`
+- `app/relatorios_test.py`
 
 ## Fora de escopo
 
@@ -171,4 +172,4 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 
 ## Próximo passo relacionado
 
-- Relatórios básicos de fiados, vencidos e recebimentos por caixa.
+- Configurações de dias de vencimento e alerta.

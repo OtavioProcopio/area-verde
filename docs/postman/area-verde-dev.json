@@ -1,26 +1,41 @@
 {
-	"id": "area-verde-env-dev",
-	"name": "Area Verde API - Dev",
-	"values": [
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:8001",
-			"enabled": true
-		},
-		{
-			"key": "clienteId",
-			"value": "1",
-			"enabled": true
-		},
-		{
-			"key": "comandaId",
-			"value": "1",
-			"enabled": true
-		},
-		{
-			"key": "caixaId",
-			"value": "1",
-			"enabled": true
-		}
-	]
+  "id": "area-verde-env-dev",
+  "name": "Area Verde API - Dev",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8001",
+      "enabled": true
+    },
+    {
+      "key": "clienteId",
+      "value": "1",
+      "enabled": true
+    },
+    {
+      "key": "comandaId",
+      "value": "1",
+      "enabled": true
+    },
+    {
+      "key": "caixaId",
+      "value": "1",
+      "enabled": true
+    },
+    {
+      "key": "dataRelatorio",
+      "value": "2026-05-28",
+      "enabled": true
+    },
+    {
+      "key": "dataInicioRelatorio",
+      "value": "2026-05-01",
+      "enabled": true
+    },
+    {
+      "key": "dataFimRelatorio",
+      "value": "2026-05-28",
+      "enabled": true
+    }
+  ]
 }

@@ -17,6 +17,7 @@ from adapter.controllers.estoque_controller import router as estoque_router
 from adapter.controllers.fiado_controller import router as fiado_router
 from adapter.controllers.pagamento_controller import router as pagamento_router
 from adapter.controllers.produto_controller import router as produto_router
+from adapter.controllers.relatorio_controller import router as relatorio_router
 from core.domain.exceptions import ApplicationError
 from infra.config.container import Container
 from infra.config.context import db_session_context
@@ -109,6 +110,7 @@ def create_app() -> FastAPI:
     app.include_router(fiado_router)
     app.include_router(pagamento_router)
     app.include_router(caixa_router)
+    app.include_router(relatorio_router)
 
     @app.get("/health", tags=["Health"])
     async def health_check():

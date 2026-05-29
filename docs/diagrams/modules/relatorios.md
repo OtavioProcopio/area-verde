@@ -2,7 +2,7 @@
 
 ## Status
 
-Pendente.
+Implementado.
 
 ## Objetivo
 
@@ -10,7 +10,10 @@ Consolidar dados operacionais ja existentes em consultas de apoio a gestao.
 
 ```mermaid
 flowchart LR
-    Relatorios[Relatorios basicos]
+    Controller[RelatorioController]
+    Service[RelatorioService]
+    Repo[RelatorioRepository]
+
     Comanda[Comanda]
     Item[ItemComanda]
     Produto[Produto]
@@ -18,31 +21,30 @@ flowchart LR
     Pagamento[Pagamento]
     Caixa[Caixa]
     MovimentoCaixa[MovimentoCaixa]
-    MovimentoEstoque[MovimentoEstoque]
 
-    Diario["Relatorio diario"]
-    PorCaixa["Relatorio por caixa"]
-    PorForma["Relatorio por forma de pagamento"]
-    MaisVendidos["Produtos mais vendidos"]
-    Fiados["Relatorio de fiados"]
-    Estoque["Relatorio de estoque"]
-    Status["Comandas por status"]
+    Diario["GET /api/relatorios/diario"]
+    PorCaixa["GET /api/relatorios/caixas/{caixa_id}"]
+    MaisVendidos["GET /api/relatorios/produtos-mais-vendidos"]
+    Fiados["GET /api/relatorios/fiados"]
+    Estoque["GET /api/relatorios/estoque"]
+    Status["GET /api/relatorios/comandas"]
 
-    Comanda --> Relatorios
-    Item --> Relatorios
-    Produto --> Relatorios
-    Cliente --> Relatorios
-    Pagamento --> Relatorios
-    Caixa --> Relatorios
-    MovimentoCaixa --> Relatorios
-    MovimentoEstoque --> Relatorios
-    Relatorios --> Diario
-    Relatorios --> PorCaixa
-    Relatorios --> PorForma
-    Relatorios --> MaisVendidos
-    Relatorios --> Fiados
-    Relatorios --> Estoque
-    Relatorios --> Status
+    Diario --> Controller
+    PorCaixa --> Controller
+    MaisVendidos --> Controller
+    Fiados --> Controller
+    Estoque --> Controller
+    Status --> Controller
+
+    Controller --> Service
+    Service --> Repo
+    Repo --> Comanda
+    Repo --> Item
+    Repo --> Produto
+    Repo --> Cliente
+    Repo --> Pagamento
+    Repo --> Caixa
+    Repo --> MovimentoCaixa
 ```
 
 ## Entidades envolvidas
@@ -54,17 +56,20 @@ flowchart LR
 - `Pagamento`
 - `Caixa`
 - `MovimentoCaixa`
-- `MovimentoEstoque`
 
 ## Endpoints envolvidos
 
-A definir no modulo 8. Nenhum endpoint de relatorio existe hoje.
+- `GET /api/relatorios/diario`
+- `GET /api/relatorios/caixas/{caixa_id}`
+- `GET /api/relatorios/produtos-mais-vendidos`
+- `GET /api/relatorios/fiados`
+- `GET /api/relatorios/estoque`
+- `GET /api/relatorios/comandas`
 
-## Casos de uso previstos
+## Casos de uso implementados
 
 - Gerar relatorio diario.
 - Gerar relatorio por caixa.
-- Gerar relatorio por forma de pagamento.
 - Gerar relatorio de produtos mais vendidos.
 - Gerar relatorio de fiados.
 - Gerar relatorio de estoque.

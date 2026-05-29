@@ -4,8 +4,7 @@
 
 O Area Verde API é uma API para o MVP de controle operacional de um bar. O
 sistema organiza o cadastro de produtos, controle de estoque, clientes,
-comandas, pagamentos, fiado e caixa diário. Relatórios seguem como próximo
-módulo planejado.
+comandas, pagamentos, fiado, caixa diário e relatórios básicos.
 
 ## Problema que resolve
 
@@ -45,15 +44,16 @@ Produto -> Estoque -> Caixa -> Cliente -> Comanda -> Item -> Pagamento/Fiado
   `pendente_em` e vencimento.
 - Quitação de fiado registra pagamento real no caixa aberto do dia.
 - Caixa não fecha com comandas `ABERTA`; pode fechar com `PENDENTE`.
+- Relatórios consolidam vendas, recebimentos, fiados, estoque, comandas e caixa.
 
 ## Fluxo futuro
 
 ```text
-Relatórios
+Configurações
 ```
 
-Após clientes, fiado, pagamentos e caixa, o próximo passo é expor relatórios
-operacionais e financeiros básicos.
+Após relatórios básicos, o próximo passo é parametrizar comportamentos
+operacionais do sistema.
 
 ## Ordem do MVP
 
@@ -66,14 +66,14 @@ Implementado:
 5. Caixa Diário
 6. Clientes
 7. Fiado / Pendências
+8. Relatórios básicos
 
 Próximo:
 
-8. Relatórios básicos
+9. Configurações
 
 Depois:
 
-9. Configurações
 10. Acesso / Senha
 11. Release MVP
 12. Frontend operacional

@@ -102,6 +102,7 @@ Ajuste:
 ## Testes relacionados
 
 - `app/estoque_test.py`
+- `app/relatorios_test.py`
 
 ## O que ainda não está incluso
 
@@ -111,4 +112,4 @@ Ajuste:
 
 ## Próximo passo relacionado
 
-- Usar movimentos de estoque em relatórios e conferências operacionais.
+- Configurações para bloquear ou permitir estoque negativo.

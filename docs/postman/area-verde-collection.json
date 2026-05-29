@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "area-verde-api-collection",
     "name": "Area Verde API",
-    "description": "Collection da API do Area Verde para validar o fluxo do MVP: produtos, estoque, clientes, comandas, fiado, caixa diário e pagamentos.",
+    "description": "Collection da API do Area Verde para validar o fluxo do MVP: produtos, estoque, clientes, comandas, fiado, caixa diário, pagamentos e relatórios básicos.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -803,6 +803,71 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Relatórios",
+      "item": [
+        {
+          "name": "GET /api/relatorios/diario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/diario?data={{dataRelatorio}}",
+            "description": "Consolida caixa, vendas, pagamentos, comandas, fiados e estoque do dia."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/relatorios/caixas/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/caixas/{{caixaId}}",
+            "description": "Consolida recebimentos, movimentos, comandas e produtos de um caixa."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/relatorios/produtos-mais-vendidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/produtos-mais-vendidos?dataInicio={{dataInicioRelatorio}}&dataFim={{dataFimRelatorio}}&limite=10",
+            "description": "Lista produtos mais vendidos no periodo."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/relatorios/fiados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/fiados?status=todos&clienteId={{clienteId}}&dataInicio={{dataInicioRelatorio}}&dataFim={{dataFimRelatorio}}",
+            "description": "Resume pendencias, vencidos e quitados no periodo."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/relatorios/estoque",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/estoque?tipo=todos",
+            "description": "Lista produtos controlados com estoque baixo ou negativo."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/relatorios/comandas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/comandas?dataInicio={{dataInicioRelatorio}}&dataFim={{dataFimRelatorio}}",
+            "description": "Resume comandas por status e periodo."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -829,6 +894,18 @@
     {
       "key": "itemId",
       "value": "1"
+    },
+    {
+      "key": "dataRelatorio",
+      "value": "2026-05-28"
+    },
+    {
+      "key": "dataInicioRelatorio",
+      "value": "2026-05-01"
+    },
+    {
+      "key": "dataFimRelatorio",
+      "value": "2026-05-28"
     }
   ]
 }

@@ -178,3 +178,11 @@ Modulo principal: Estoque / Comandas. Status: Implementado.
 | `referencia_id` | Long | Nao | ID de origem operacional quando aplicavel |
 | `observacao` | String | Nao | Observacao |
 | `criado_em` | DateTime | Sim | Data/hora |
+
+## Relatorios basicos
+
+Modulo de consulta. Status: Implementado.
+
+Nao cria tabelas nem migrations. Consolida dados existentes de `Comanda`,
+`ItemComanda`, `Produto`, `Cliente`, `Pagamento`, `Caixa`, `MovimentoCaixa` e
+`MovimentoEstoque`.
