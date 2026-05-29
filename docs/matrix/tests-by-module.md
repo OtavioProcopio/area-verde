@@ -11,6 +11,7 @@ modulo de Relatorios.
 | Health | `app/health_test.py` | `GET /health` | Sem lacuna relevante |
 | Bootstrap / Infra | `app/bootstrap_test.py` | criacao da app, schema SQLModel, indices, defaults e container | Nao cobre execucao real de migrations em PostgreSQL |
 | Produtos e Categorias | `app/produtos_categorias_test.py` | ciclo de vida de categoria/produto, filtros, validacoes, ML e produto sem estoque | Nao cobre relatorios por produto |
+| Produtos Compostos | `app/produto_composicao_test.py`, `app/comandas_test.py` | endpoints de composicao, validacoes, venda de composto, baixa/devolucao de componentes e transacao | Nao cobre relatorio de consumo por componente |
 | Estoque | `app/estoque_test.py` | consulta de estoque, baixo, negativo, entrada, ajuste, historico e validacoes | Nao cobre inventario ou relatorio consolidado |
 | Comandas e Itens | `app/comandas_test.py` | criacao, caixa obrigatorio, filtros, itens, snapshots, baixa/devolucao e cancelamento | Nao cobre fluxo visual/front-end |
 | Pagamentos e Fechamento | `app/pagamentos_test.py` | fechamento por DINHEIRO/PIX/CARTAO, bloqueio de FIADO, valores invalidos, listagem de pagamentos e bloqueio de alteracoes | Nao cobre integracao real com meios de pagamento |

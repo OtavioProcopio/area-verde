@@ -32,6 +32,16 @@ Internamente, as exceptions de domínio carregam:
 | `nome_duplicado` | 409 | Conflito de nome ativo em categoria |
 | `produto_nao_encontrado` | 404 | Produto inexistente |
 | `produto_inativo` | 400 | Produto não pode ser usado |
+| `produto_pai_nao_encontrado` | 404 | Produto composto pai inexistente |
+| `produto_pai_inativo` | 400 | Produto composto pai inativo |
+| `produto_pai_deve_ser_composto` | 400 | Composicao exige produto pai composto |
+| `produto_componente_nao_encontrado` | 404 | Componente inexistente ou ausente na composicao |
+| `produto_componente_inativo` | 400 | Componente inativo bloqueia composicao ou venda |
+| `produto_componente_sem_controle_estoque` | 400 | Componente deve controlar estoque |
+| `produto_componente_duplicado` | 409 | Componente ja cadastrado no produto composto |
+| `componente_igual_produto_pai` | 400 | Produto composto nao pode compor a si mesmo |
+| `componente_composto_nao_permitido` | 400 | Produto composto nao pode ser componente no MVP |
+| `produto_composto_sem_composicao` | 400 | Produto composto sem componentes nao pode ser vendido |
 | `produto_sem_controle_estoque` | 400 | Produto nao aceita movimento de estoque |
 | `preco_invalido` | 400 | Preco de venda invalido |
 | `unidade_estoque_invalida` | 400 | Unidade de estoque invalida para produto com controle |

@@ -16,6 +16,9 @@ from adapter.controllers.comanda_controller import router as comanda_router
 from adapter.controllers.estoque_controller import router as estoque_router
 from adapter.controllers.fiado_controller import router as fiado_router
 from adapter.controllers.pagamento_controller import router as pagamento_router
+from adapter.controllers.produto_composicao_controller import (
+    router as produto_composicao_router,
+)
 from adapter.controllers.produto_controller import router as produto_router
 from adapter.controllers.relatorio_controller import router as relatorio_router
 from core.domain.exceptions import ApplicationError
@@ -104,6 +107,7 @@ def create_app() -> FastAPI:
 
     app.include_router(categoria_produto_router)
     app.include_router(produto_router)
+    app.include_router(produto_composicao_router)
     app.include_router(estoque_router)
     app.include_router(cliente_router)
     app.include_router(comanda_router)

@@ -4,8 +4,8 @@
 
 Implementado.
 
-Modelagem de produtos compostos implementada parcialmente no Modulo 9.1.
-Endpoints de composicao e integracao com comandas/estoque ainda estao pendentes.
+Produtos compostos possuem modelagem e endpoints de composicao implementados.
+A integracao com comandas baixa e devolve estoque dos componentes.
 
 ## Objetivo
 
@@ -27,6 +27,7 @@ Manter o cadastro base de categorias e produtos vendidos pelo bar. Este módulo
 - Configurar controle de estoque por produto.
 - Classificar produto como `SIMPLES` ou `COMPOSTO`.
 - Modelar composicao de produto composto por componentes de estoque.
+- Consultar, adicionar, editar e remover componentes de produto composto.
 
 ## Entidades envolvidas
 
@@ -57,9 +58,10 @@ vendas e movimentacoes, mas nao sao geridos diretamente por este modulo.
 | `PUT` | `/api/produtos/{id}` | Edita produto |
 | `PATCH` | `/api/produtos/{id}/ativar` | Ativa produto |
 | `PATCH` | `/api/produtos/{id}/inativar` | Inativa produto |
-
-Nao existem endpoints de composicao nesta etapa. A tabela e as regras de
-modelagem foram preparadas para o proximo incremento do Modulo 9.
+| `GET` | `/api/produtos/{id}/composicao` | Consulta composicao |
+| `POST` | `/api/produtos/{id}/composicao/componentes` | Adiciona componente |
+| `PUT` | `/api/produtos/{id}/composicao/componentes/{componente_id}` | Edita quantidade do componente |
+| `DELETE` | `/api/produtos/{id}/composicao/componentes/{componente_id}` | Remove componente |
 
 ## Regras de negócio
 
@@ -69,8 +71,7 @@ modelagem foram preparadas para o proximo incremento do Modulo 9.
 - Categoria inativa não pode ser usada para criar ou editar produto.
 - Produto pode controlar estoque ou não.
 - Produto inicia com `tipoProduto=SIMPLES` quando o tipo nao e informado.
-- Produto `COMPOSTO` e vendavel, mas sua baixa por componentes sera integrada
-  no modulo de comandas em etapa posterior.
+- Produto `COMPOSTO` e vendavel e baixa estoque pelos componentes.
 - Produto sem controle de estoque persiste valores de estoque zerados.
 - `unidadeEstoque`, `quantidadeBaixaPorVenda` e `estoqueMinimo` definem como o
   produto participa dos fluxos de estoque e comanda.
@@ -78,6 +79,7 @@ modelagem foram preparadas para o proximo incremento do Modulo 9.
 - Produto composto nao pode usar outro produto composto como componente no MVP.
 - Componentes de produto composto devem estar ativos, controlar estoque e ter
   quantidade de baixa maior que zero.
+- Produto composto sem composicao nao pode ser vendido em comanda.
 
 ## Validações
 
@@ -128,6 +130,15 @@ Produto composto:
 }
 ```
 
+Adicionar componente:
+
+```json
+{
+  "produtoComponenteId": 10,
+  "quantidadeBaixa": 50
+}
+```
+
 Produto sem controle de estoque:
 
 ```json
@@ -165,16 +176,15 @@ Produto sem controle de estoque:
 ## Testes relacionados
 
 - `app/produtos_categorias_test.py`
+- `app/produto_composicao_test.py`
 
 ## O que ainda não está incluso
 
 - Cadastro de fornecedores.
-- Endpoints para gerenciar composicao de produtos.
-- Baixa de estoque por componentes ao vender produto composto.
 - Importação de produtos.
 - Exclusão física de produtos.
 - Relatórios por produto.
 
 ## Próximo passo relacionado
 
-- Implementar os endpoints de composicao do Modulo 9.2.
+- Ajustar relatorios de consumo de estoque no Modulo 9.4.

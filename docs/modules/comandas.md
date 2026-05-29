@@ -30,6 +30,7 @@ consumo fica para pagamento futuro.
 - Recalcular total pela soma dos itens.
 - Baixar e devolver estoque automaticamente.
 - Registrar movimentos de estoque.
+- Vender produto composto baixando estoque dos componentes.
 
 ## Entidades envolvidas
 
@@ -78,6 +79,11 @@ consumo fica para pagamento futuro.
 - Adicionar produto já existente na comanda incrementa o item existente.
 - Produto com controle de estoque gera baixa automática.
 - Produto sem controle de estoque não gera movimento de estoque.
+- Produto composto cobra o preço do próprio produto vendido.
+- Produto composto não baixa o próprio estoque diretamente.
+- Produto composto baixa e devolve estoque de cada componente configurado.
+- Cada componente de produto composto gera movimento de estoque próprio.
+- Produto composto sem composição não pode ser vendido.
 - Diminuir, remover ou cancelar devolve estoque proporcional.
 - Venda pode deixar estoque negativo no MVP para não travar atendimento.
 - Comanda cancelada permanece no histórico com seus itens e movimentos.
@@ -94,6 +100,8 @@ consumo fica para pagamento futuro.
 - `quantidade` deve ser maior que zero.
 - Produto deve existir. Erro: `produto_nao_encontrado`.
 - Produto deve estar ativo. Erro: `produto_inativo`.
+- Produto composto sem componentes retorna `produto_composto_sem_composicao`.
+- Componente inativo ou sem controle de estoque bloqueia a venda do composto.
 - Comanda deve estar aberta. Erro: `comanda_nao_aberta`.
 - Item deve pertencer à comanda informada.
 

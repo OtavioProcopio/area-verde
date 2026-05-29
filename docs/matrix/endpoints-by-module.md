@@ -27,6 +27,10 @@ Mapear as rotas reais registradas em `app/api.py` e nos controllers em
 | `PUT` | `/api/produtos/{produto_id}` | `produto_controller.py` | Editar produto | Implementado |
 | `PATCH` | `/api/produtos/{produto_id}/ativar` | `produto_controller.py` | Ativar produto | Implementado |
 | `PATCH` | `/api/produtos/{produto_id}/inativar` | `produto_controller.py` | Inativar produto | Implementado |
+| `GET` | `/api/produtos/{produto_id}/composicao` | `produto_composicao_controller.py` | Consultar composicao | Implementado |
+| `POST` | `/api/produtos/{produto_id}/composicao/componentes` | `produto_composicao_controller.py` | Adicionar componente | Implementado |
+| `PUT` | `/api/produtos/{produto_id}/composicao/componentes/{componente_id}` | `produto_composicao_controller.py` | Editar componente | Implementado |
+| `DELETE` | `/api/produtos/{produto_id}/composicao/componentes/{componente_id}` | `produto_composicao_controller.py` | Remover componente | Implementado |
 
 ## Estoque
 

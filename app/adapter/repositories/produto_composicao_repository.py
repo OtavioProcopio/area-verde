@@ -15,6 +15,16 @@ class ProdutoComposicaoRepository:
         self.session.refresh(composicao)
         return composicao
 
+    def update(self, composicao: ProdutoComposicao) -> ProdutoComposicao:
+        self.session.add(composicao)
+        self.session.commit()
+        self.session.refresh(composicao)
+        return composicao
+
+    def delete(self, composicao: ProdutoComposicao) -> None:
+        self.session.delete(composicao)
+        self.session.commit()
+
     def get_by_parent_and_component(
         self,
         produto_pai_id: int,

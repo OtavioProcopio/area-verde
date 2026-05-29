@@ -20,6 +20,7 @@ produto.
 - Registrar ajuste manual.
 - Consultar histórico de movimentos por produto.
 - Registrar baixa automática por venda via comanda.
+- Registrar baixa automática por componente de produto composto.
 - Registrar devolução automática por cancelamento, redução ou remoção de item.
 
 ## Entidades envolvidas
@@ -52,6 +53,8 @@ produto.
 - Movimentos de estoque não possuem endpoint de exclusão.
 - Movimentos manuais usam origem `ENTRADA_MANUAL` ou `AJUSTE_MANUAL`.
 - Movimentos automáticos por comanda usam origem `COMANDA` ou `CANCELAMENTO`.
+- Produto composto vendido em comanda gera um movimento por componente consumido,
+  com observacao referenciando o produto composto vendido.
 
 ## Validações
 

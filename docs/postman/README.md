@@ -30,18 +30,22 @@ A collection cobre:
 2. `POST /api/caixas/abrir`
 3. `POST /api/categorias`
 4. `POST /api/produtos`
-5. `POST /api/estoque/produtos/{produto_id}/entrada` ou `/ajuste`
-6. `POST /api/clientes`
-7. `POST /api/comandas` com `nomeCliente`
-8. `POST /api/comandas` com `clienteId`
-9. `POST /api/comandas/{comanda_id}/itens`
-10. Resolver a comanda por um dos caminhos:
+5. Opcionalmente, configurar composicao em `/api/produtos/{produto_id}/composicao`
+6. `POST /api/estoque/produtos/{produto_id}/entrada` ou `/ajuste`
+7. `POST /api/clientes`
+8. `POST /api/comandas` com `nomeCliente`
+9. `POST /api/comandas` com `clienteId`
+10. `POST /api/comandas/{comanda_id}/itens`
+11. Resolver a comanda por um dos caminhos:
     - `POST /api/comandas/{comanda_id}/fechar`, se o cliente pagou.
     - `POST /api/comandas/{comanda_id}/fiado`, se ficou pendente.
-11. Se ficou fiado, usar `GET /api/fiados`
-12. Se for quitar, usar `POST /api/fiados/{comanda_id}/quitar`
-13. Fechar caixa com `POST /api/caixas/{caixa_id}/fechar`
-14. Consultar relatórios em `GET /api/relatorios/*`
+12. Se ficou fiado, usar `GET /api/fiados`
+13. Se for quitar, usar `POST /api/fiados/{comanda_id}/quitar`
+14. Fechar caixa com `POST /api/caixas/{caixa_id}/fechar`
+15. Consultar relatórios em `GET /api/relatorios/*`
+
+Os endpoints de composicao de produtos compostos existem no backend. A
+collection completa do Modulo 9 fica para a etapa documental final.
 
 Nao inclua na collection endpoints de Configuracoes, Acesso ou Frontend enquanto
 esses modulos nao existirem no backend.
