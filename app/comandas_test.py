@@ -41,11 +41,13 @@ def create_produto(
     quantidade_estoque: float = 24,
     quantidade_baixa_por_venda: float = 1,
     estoque_minimo: float = 6,
+    tipo_produto: str = "SIMPLES",
 ) -> dict:
     payload = {
         "nome": nome,
         "categoriaId": categoria_id,
         "precoVenda": preco_venda,
+        "tipoProduto": tipo_produto,
         "controlaEstoque": controla_estoque,
     }
     if controla_estoque:
@@ -57,6 +59,23 @@ def create_produto(
         }
 
     response = client.post("/api/produtos", json=payload)
+    assert response.status_code == 201
+    return response.json()
+
+
+def add_componente(
+    client: TestClient,
+    produto_pai_id: int,
+    produto_componente_id: int,
+    quantidade_baixa: float = 50,
+) -> dict:
+    response = client.post(
+        f"/api/produtos/{produto_pai_id}/composicao/componentes",
+        json={
+            "produtoComponenteId": produto_componente_id,
+            "quantidadeBaixa": quantidade_baixa,
+        },
+    )
     assert response.status_code == 201
     return response.json()
 
@@ -84,6 +103,28 @@ def list_movimentos(test_engine, produto_id: int) -> list[MovimentoEstoque]:
             .order_by(text("id"))
         )
         return list(session.exec(statement).all())
+
+
+def set_produto_ativo(test_engine, produto_id: int, ativo: bool) -> None:
+    with Session(test_engine) as session:
+        produto = session.get(Produto, produto_id)
+        assert produto is not None
+        produto.ativo = ativo
+        session.add(produto)
+        session.commit()
+
+
+def set_produto_controla_estoque(
+    test_engine,
+    produto_id: int,
+    controla_estoque: bool,
+) -> None:
+    with Session(test_engine) as session:
+        produto = session.get(Produto, produto_id)
+        assert produto is not None
+        produto.controla_estoque = controla_estoque
+        session.add(produto)
+        session.commit()
 
 
 def test_cria_comanda_valida_e_permite_nome_repetido(test_engine):
@@ -462,3 +503,343 @@ def test_cancela_comanda_devolve_estoque_preserva_historico(test_engine):
             select(ItemComanda).where(ItemComanda.comanda_id == comanda["id"])
         ).all()
         assert len(itens) == 2
+
+
+def test_adiciona_produto_composto_baixa_componentes_e_movimentos(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+    composto = create_produto(
+        client,
+        categoria["id"],
+        nome="Dose Mista A+B",
+        preco_venda=12,
+        controla_estoque=False,
+        tipo_produto="COMPOSTO",
+    )
+    pinga_a = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga A",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+        quantidade_baixa_por_venda=50,
+    )
+    pinga_b = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga B",
+        unidade_estoque="ML",
+        quantidade_estoque=500,
+        quantidade_baixa_por_venda=50,
+    )
+    add_componente(client, composto["id"], pinga_a["id"], quantidade_baixa=50)
+    add_componente(client, composto["id"], pinga_b["id"], quantidade_baixa=25)
+    comanda = client.post("/api/comandas", json={"nomeCliente": "João"}).json()
+
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 1},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    item = body["itens"][0]
+    assert item["produtoId"] == composto["id"]
+    assert item["nomeProduto"] == "Dose Mista A+B"
+    assert item["precoUnitario"] == 12.0
+    assert item["quantidadeBaixadaEstoque"] == 75.0
+    assert body["total"] == 12.0
+    assert get_produto(test_engine, composto["id"]).quantidade_estoque == Decimal(
+        "0.000"
+    )
+    assert get_produto(test_engine, pinga_a["id"]).quantidade_estoque == Decimal(
+        "950.000"
+    )
+    assert get_produto(test_engine, pinga_b["id"]).quantidade_estoque == Decimal(
+        "475.000"
+    )
+
+    movimentos_a = list_movimentos(test_engine, pinga_a["id"])
+    movimentos_b = list_movimentos(test_engine, pinga_b["id"])
+    assert len(movimentos_a) == 1
+    assert len(movimentos_b) == 1
+    assert movimentos_a[0].tipo == TipoMovimentoEstoque.SAIDA_VENDA
+    assert movimentos_b[0].tipo == TipoMovimentoEstoque.SAIDA_VENDA
+    assert movimentos_a[0].referencia_id == item["id"]
+    assert movimentos_b[0].referencia_id == item["id"]
+    assert movimentos_a[0].observacao == "Baixa por produto composto: Dose Mista A+B"
+
+
+def test_adiciona_duas_unidades_de_composto_baixa_proporcional(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+    composto = create_produto(
+        client,
+        categoria["id"],
+        nome="Dose Mista A+B",
+        preco_venda=12,
+        controla_estoque=False,
+        tipo_produto="COMPOSTO",
+    )
+    pinga_a = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga A",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+    )
+    pinga_b = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga B",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+    )
+    add_componente(client, composto["id"], pinga_a["id"], quantidade_baixa=50)
+    add_componente(client, composto["id"], pinga_b["id"], quantidade_baixa=50)
+    comanda = client.post("/api/comandas", json={"nomeCliente": "João"}).json()
+
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 2},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["itens"][0]["quantidade"] == 2.0
+    assert response.json()["itens"][0]["quantidadeBaixadaEstoque"] == 200.0
+    assert response.json()["total"] == 24.0
+    assert get_produto(test_engine, pinga_a["id"]).quantidade_estoque == Decimal(
+        "900.000"
+    )
+    assert get_produto(test_engine, pinga_b["id"]).quantidade_estoque == Decimal(
+        "900.000"
+    )
+
+
+def test_incrementa_e_diminui_composto_movimenta_componentes(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+    composto = create_produto(
+        client,
+        categoria["id"],
+        nome="Dose Mista A+B",
+        preco_venda=12,
+        controla_estoque=False,
+        tipo_produto="COMPOSTO",
+    )
+    pinga = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga A",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+    )
+    add_componente(client, composto["id"], pinga["id"], quantidade_baixa=50)
+    comanda = client.post("/api/comandas", json={"nomeCliente": "João"}).json()
+    item = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 2},
+    ).json()["itens"][0]
+
+    incremento = client.patch(
+        f"/api/comandas/{comanda['id']}/itens/{item['id']}/incrementar",
+        json={"quantidade": 1},
+    )
+    assert incremento.status_code == 200
+    assert incremento.json()["itens"][0]["quantidade"] == 3.0
+    assert incremento.json()["itens"][0]["quantidadeBaixadaEstoque"] == 150.0
+    assert get_produto(test_engine, pinga["id"]).quantidade_estoque == Decimal(
+        "850.000"
+    )
+
+    decremento = client.patch(
+        f"/api/comandas/{comanda['id']}/itens/{item['id']}/diminuir",
+        json={"quantidade": 1},
+    )
+    assert decremento.status_code == 200
+    assert decremento.json()["itens"][0]["quantidade"] == 2.0
+    assert decremento.json()["itens"][0]["quantidadeBaixadaEstoque"] == 100.0
+    assert get_produto(test_engine, pinga["id"]).quantidade_estoque == Decimal(
+        "900.000"
+    )
+
+    tipos_movimento = [
+        movimento.tipo for movimento in list_movimentos(test_engine, pinga["id"])
+    ]
+    assert tipos_movimento == [
+        TipoMovimentoEstoque.SAIDA_VENDA,
+        TipoMovimentoEstoque.SAIDA_VENDA,
+        TipoMovimentoEstoque.DEVOLUCAO_CANCELAMENTO,
+    ]
+
+
+def test_remove_item_composto_devolve_componentes(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+    composto = create_produto(
+        client,
+        categoria["id"],
+        nome="Dose Mista A+B",
+        preco_venda=12,
+        controla_estoque=False,
+        tipo_produto="COMPOSTO",
+    )
+    pinga = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga A",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+    )
+    add_componente(client, composto["id"], pinga["id"], quantidade_baixa=50)
+    comanda = client.post("/api/comandas", json={"nomeCliente": "João"}).json()
+    item = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 2},
+    ).json()["itens"][0]
+
+    response = client.delete(f"/api/comandas/{comanda['id']}/itens/{item['id']}")
+
+    assert response.status_code == 200
+    assert response.json()["itens"] == []
+    assert response.json()["total"] == 0.0
+    assert get_produto(test_engine, pinga["id"]).quantidade_estoque == Decimal(
+        "1000.000"
+    )
+    assert list_movimentos(test_engine, pinga["id"])[-1].tipo == (
+        TipoMovimentoEstoque.DEVOLUCAO_CANCELAMENTO
+    )
+
+
+def test_cancela_comanda_com_composto_devolve_componentes(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+    composto = create_produto(
+        client,
+        categoria["id"],
+        nome="Dose Mista A+B",
+        preco_venda=12,
+        controla_estoque=False,
+        tipo_produto="COMPOSTO",
+    )
+    pinga = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga A",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+    )
+    add_componente(client, composto["id"], pinga["id"], quantidade_baixa=50)
+    comanda = client.post("/api/comandas", json={"nomeCliente": "João"}).json()
+    client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 2},
+    )
+
+    response = client.patch(f"/api/comandas/{comanda['id']}/cancelar")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "CANCELADA"
+    assert response.json()["total"] == 24.0
+    assert get_produto(test_engine, pinga["id"]).quantidade_estoque == Decimal(
+        "1000.000"
+    )
+    assert list_movimentos(test_engine, pinga["id"])[-1].origem == "CANCELAMENTO"
+
+
+def test_rejeita_venda_composto_sem_composicao_ou_com_componente_invalido(
+    test_engine,
+):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+    composto = create_produto(
+        client,
+        categoria["id"],
+        nome="Dose Mista A+B",
+        preco_venda=12,
+        controla_estoque=False,
+        tipo_produto="COMPOSTO",
+    )
+    comanda = client.post("/api/comandas", json={"nomeCliente": "João"}).json()
+
+    sem_composicao = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 1},
+    )
+    assert sem_composicao.status_code == 400
+    assert sem_composicao.json()["code"] == "produto_composto_sem_composicao"
+
+    componente = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga A",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+    )
+    add_componente(client, composto["id"], componente["id"], quantidade_baixa=50)
+    set_produto_ativo(test_engine, componente["id"], False)
+
+    componente_inativo = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 1},
+    )
+    assert componente_inativo.status_code == 400
+    assert componente_inativo.json()["code"] == "produto_componente_inativo"
+
+    set_produto_ativo(test_engine, componente["id"], True)
+    set_produto_controla_estoque(test_engine, componente["id"], False)
+
+    sem_estoque = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 1},
+    )
+    assert sem_estoque.status_code == 400
+    assert sem_estoque.json()["code"] == "produto_componente_sem_controle_estoque"
+
+
+def test_falha_em_componente_nao_persiste_venda_parcial(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+    composto = create_produto(
+        client,
+        categoria["id"],
+        nome="Dose Mista A+B",
+        preco_venda=12,
+        controla_estoque=False,
+        tipo_produto="COMPOSTO",
+    )
+    pinga_a = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga A",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+    )
+    pinga_b = create_produto(
+        client,
+        categoria["id"],
+        nome="Pinga B",
+        unidade_estoque="ML",
+        quantidade_estoque=1000,
+    )
+    add_componente(client, composto["id"], pinga_a["id"], quantidade_baixa=50)
+    add_componente(client, composto["id"], pinga_b["id"], quantidade_baixa=50)
+    set_produto_ativo(test_engine, pinga_b["id"], False)
+    comanda = client.post("/api/comandas", json={"nomeCliente": "João"}).json()
+
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": composto["id"], "quantidade": 1},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "produto_componente_inativo"
+    assert get_produto(test_engine, pinga_a["id"]).quantidade_estoque == Decimal(
+        "1000.000"
+    )
+    assert count_movimentos(test_engine, pinga_a["id"]) == 0
+
+    detalhe = client.get(f"/api/comandas/{comanda['id']}")
+    assert detalhe.status_code == 200
+    assert detalhe.json()["itens"] == []
+    assert detalhe.json()["total"] == 0.0

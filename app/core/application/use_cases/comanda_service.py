@@ -6,9 +6,12 @@ from typing import Optional
 
 from core.application.use_cases.cliente_service import ClienteService
 from core.application.use_cases.estoque_service import EstoqueService
-from core.domain.enums import OrigemMovimentoEstoque, StatusComanda
+from core.application.use_cases.produto_composicao_service import (
+    ProdutoComposicaoService,
+)
+from core.domain.enums import OrigemMovimentoEstoque, StatusComanda, TipoProduto
 from core.domain.exceptions import ApplicationError, NotFoundError
-from core.domain.models import Cliente, Comanda, ItemComanda, Produto
+from core.domain.models import Cliente, Comanda, ItemComanda, Produto, ProdutoComposicao
 from core.interfaces.adapters.repositories.i_caixa_repository import ICaixaRepository
 from core.interfaces.adapters.repositories.i_cliente_repository import (
     IClienteRepository,
@@ -27,12 +30,14 @@ class ComandaService:
         comanda_repository: IComandaRepository,
         produto_repository: IProdutoRepository,
         estoque_service: EstoqueService,
+        composicao_service: ProdutoComposicaoService,
         cliente_repository: IClienteRepository,
         caixa_repository: ICaixaRepository,
     ):
         self.comanda_repository = comanda_repository
         self.produto_repository = produto_repository
         self.estoque_service = estoque_service
+        self.composicao_service = composicao_service
         self.cliente_repository = cliente_repository
         self.caixa_repository = caixa_repository
 
@@ -128,6 +133,7 @@ class ComandaService:
         try:
             comanda = self._get_comanda_aberta(comanda_id)
             produto = self._get_produto_ativo(produto_id)
+            self._ensure_produto_vendavel(produto)
             item = self.comanda_repository.get_item_by_comanda_produto(
                 comanda_id=comanda_id,
                 produto_id=produto_id,
@@ -159,6 +165,7 @@ class ComandaService:
             comanda = self._get_comanda_aberta(comanda_id)
             item = self._get_item_da_comanda(comanda_id, item_id)
             produto = self._get_produto_ativo(item.produto_id)
+            self._ensure_produto_vendavel(produto)
             self._aumentar_item(item=item, produto=produto, quantidade=quantidade)
             self._recalcular_total(comanda)
             self.comanda_repository.save(comanda)
@@ -219,14 +226,13 @@ class ComandaService:
             comanda = self._get_comanda_aberta(comanda_id)
             for item in list(comanda.itens):
                 produto = self._get_produto_para_estoque(item.produto_id)
-                if produto.controla_estoque and item.quantidade_baixada_estoque > 0:
-                    self.estoque_service.devolver_por_cancelamento(
-                        produto=produto,
-                        quantidade_devolvida=item.quantidade_baixada_estoque,
-                        referencia_id=item.id,
-                        origem=OrigemMovimentoEstoque.CANCELAMENTO,
-                        observacao="Cancelamento de comanda",
-                    )
+                self._devolver_estoque_item(
+                    item=item,
+                    produto=produto,
+                    quantidade=item.quantidade,
+                    origem=OrigemMovimentoEstoque.CANCELAMENTO,
+                    observacao="Cancelamento de comanda",
+                )
 
             now = datetime.now()
             comanda.status = StatusComanda.CANCELADA
@@ -273,7 +279,13 @@ class ComandaService:
         item.quantidade_baixada_estoque += quantidade_baixada
         self._atualizar_total_item(item)
 
-        if produto.controla_estoque and quantidade_baixada > 0:
+        if produto.tipo_produto == TipoProduto.COMPOSTO:
+            self._baixar_componentes_produto_composto(
+                item=item,
+                produto=produto,
+                quantidade=quantidade,
+            )
+        elif produto.controla_estoque and quantidade_baixada > 0:
             self.estoque_service.baixar_por_venda(
                 produto=produto,
                 quantidade_baixada=quantidade_baixada,
@@ -292,14 +304,13 @@ class ComandaService:
         item.quantidade_baixada_estoque -= quantidade_devolvida
         self._atualizar_total_item(item)
 
-        if produto.controla_estoque and quantidade_devolvida > 0:
-            self.estoque_service.devolver_por_cancelamento(
-                produto=produto,
-                quantidade_devolvida=quantidade_devolvida,
-                referencia_id=item.id,
-                origem=OrigemMovimentoEstoque.COMANDA,
-                observacao="Devolução por redução de item da comanda",
-            )
+        self._devolver_estoque_item(
+            item=item,
+            produto=produto,
+            quantidade=quantidade,
+            origem=OrigemMovimentoEstoque.COMANDA,
+            observacao="Devolução por redução de item da comanda",
+        )
 
     def _remover_item(
         self,
@@ -307,14 +318,13 @@ class ComandaService:
         item: ItemComanda,
         produto: Produto,
     ) -> None:
-        if produto.controla_estoque and item.quantidade_baixada_estoque > 0:
-            self.estoque_service.devolver_por_cancelamento(
-                produto=produto,
-                quantidade_devolvida=item.quantidade_baixada_estoque,
-                referencia_id=item.id,
-                origem=OrigemMovimentoEstoque.COMANDA,
-                observacao="Devolução por remoção de item da comanda",
-            )
+        self._devolver_estoque_item(
+            item=item,
+            produto=produto,
+            quantidade=item.quantidade,
+            origem=OrigemMovimentoEstoque.COMANDA,
+            observacao="Devolução por remoção de item da comanda",
+        )
         item.total_item = Decimal("0.00")
         if item in comanda.itens:
             comanda.itens.remove(item)
@@ -332,14 +342,101 @@ class ComandaService:
         item.total_item = item.quantidade * item.preco_unitario_snapshot
         item.atualizado_em = datetime.now()
 
-    @staticmethod
     def _calcular_quantidade_baixada(
+        self,
         produto: Produto,
         quantidade: Decimal,
     ) -> Decimal:
+        if produto.tipo_produto == TipoProduto.COMPOSTO:
+            composicoes = self.composicao_service.componentes_validos_para_venda(
+                produto
+            )
+            return sum(
+                (
+                    composicao.quantidade_baixa * quantidade
+                    for composicao in composicoes
+                ),
+                Decimal("0"),
+            )
+
         if not produto.controla_estoque:
             return Decimal("0")
         return produto.quantidade_baixa_por_venda * quantidade
+
+    def _baixar_componentes_produto_composto(
+        self,
+        item: ItemComanda,
+        produto: Produto,
+        quantidade: Decimal,
+    ) -> None:
+        composicoes = self.composicao_service.componentes_validos_para_venda(produto)
+        for composicao in composicoes:
+            componente = self._get_componente_carregado(composicao)
+            quantidade_baixada = composicao.quantidade_baixa * quantidade
+            self.estoque_service.baixar_por_venda(
+                produto=componente,
+                quantidade_baixada=quantidade_baixada,
+                referencia_id=item.id,
+                observacao=f"Baixa por produto composto: {produto.nome}",
+            )
+
+    def _devolver_estoque_item(
+        self,
+        item: ItemComanda,
+        produto: Produto,
+        quantidade: Decimal,
+        origem: OrigemMovimentoEstoque,
+        observacao: str,
+    ) -> None:
+        if produto.tipo_produto == TipoProduto.COMPOSTO:
+            self._devolver_componentes_produto_composto(
+                item=item,
+                produto=produto,
+                quantidade=quantidade,
+                origem=origem,
+                observacao=observacao,
+            )
+            return
+
+        quantidade_devolvida = self._calcular_quantidade_baixada(produto, quantidade)
+        if produto.controla_estoque and quantidade_devolvida > 0:
+            self.estoque_service.devolver_por_cancelamento(
+                produto=produto,
+                quantidade_devolvida=quantidade_devolvida,
+                referencia_id=item.id,
+                origem=origem,
+                observacao=observacao,
+            )
+
+    def _devolver_componentes_produto_composto(
+        self,
+        item: ItemComanda,
+        produto: Produto,
+        quantidade: Decimal,
+        origem: OrigemMovimentoEstoque,
+        observacao: str,
+    ) -> None:
+        composicoes = self.composicao_service.componentes_validos_para_venda(produto)
+        for composicao in composicoes:
+            componente = self._get_componente_carregado(composicao)
+            quantidade_devolvida = composicao.quantidade_baixa * quantidade
+            self.estoque_service.devolver_por_cancelamento(
+                produto=componente,
+                quantidade_devolvida=quantidade_devolvida,
+                referencia_id=item.id,
+                origem=origem,
+                observacao=f"{observacao}: {produto.nome}",
+            )
+
+    @staticmethod
+    def _get_componente_carregado(composicao: ProdutoComposicao) -> Produto:
+        if composicao.produto_componente is None:
+            raise ApplicationError(
+                code="produto_componente_nao_encontrado",
+                message="Produto componente não encontrado",
+                status_code=400,
+            )
+        return composicao.produto_componente
 
     def _get_comanda_aberta(self, comanda_id: int) -> Comanda:
         comanda = self.get_by_id(comanda_id)
@@ -360,6 +457,10 @@ class ComandaService:
                 status_code=400,
             )
         return produto
+
+    def _ensure_produto_vendavel(self, produto: Produto) -> None:
+        if produto.tipo_produto == TipoProduto.COMPOSTO:
+            self.composicao_service.componentes_validos_para_venda(produto)
 
     def _get_cliente_ativo(self, cliente_id: int) -> Cliente:
         cliente = self.cliente_repository.get_by_id(cliente_id)

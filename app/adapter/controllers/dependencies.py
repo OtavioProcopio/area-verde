@@ -94,15 +94,21 @@ def build_comanda_service(session: Session) -> ComandaService:
     cliente_repository = ClienteRepository(session)
     caixa_repository = CaixaRepository(session)
     produto_repository = ProdutoRepository(session)
+    composicao_repository = ProdutoComposicaoRepository(session)
     movimento_repository = MovimentoEstoqueRepository(session)
     estoque_service = EstoqueService(
         produto_repository=produto_repository,
         movimento_repository=movimento_repository,
     )
+    composicao_service = ProdutoComposicaoService(
+        produto_repository=produto_repository,
+        composicao_repository=composicao_repository,
+    )
     return ComandaService(
         comanda_repository=comanda_repository,
         produto_repository=produto_repository,
         estoque_service=estoque_service,
+        composicao_service=composicao_service,
         cliente_repository=cliente_repository,
         caixa_repository=caixa_repository,
     )

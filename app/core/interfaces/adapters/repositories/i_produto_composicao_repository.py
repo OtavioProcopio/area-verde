@@ -6,6 +6,10 @@ from core.domain.models import ProdutoComposicao
 class IProdutoComposicaoRepository(Protocol):
     def create(self, composicao: ProdutoComposicao) -> ProdutoComposicao: ...
 
+    def update(self, composicao: ProdutoComposicao) -> ProdutoComposicao: ...
+
+    def delete(self, composicao: ProdutoComposicao) -> None: ...
+
     def get_by_parent_and_component(
         self,
         produto_pai_id: int,
