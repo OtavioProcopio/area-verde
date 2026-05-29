@@ -43,6 +43,7 @@ Modulo principal: Produtos e Categorias / Estoque. Status: Implementado.
 | `categoria_id` | Long | Sim | FK para categoria |
 | `nome` | String | Sim | Nome do produto |
 | `preco_venda` | Decimal | Sim | Preco usado no snapshot do item |
+| `tipo_produto` | Enum | Sim | `SIMPLES` por padrao; `COMPOSTO` para produto com composicao |
 | `controla_estoque` | Boolean | Sim | Define se gera movimentos automaticos |
 | `unidade_estoque` | Enum | Sim | `UNIDADE` ou `ML` |
 | `quantidade_estoque` | Decimal | Sim | Saldo atual |
@@ -52,7 +53,25 @@ Modulo principal: Produtos e Categorias / Estoque. Status: Implementado.
 | `criado_em`, `atualizado_em` | DateTime | Sim | Auditoria simples |
 
 Relacionamentos: `Produto 1 -> 0..* ItemComanda` e
-`Produto 1 -> 0..* MovimentoEstoque`.
+`Produto 1 -> 0..* MovimentoEstoque`. Produto composto tambem pode possuir
+`Produto 1 -> 0..* ProdutoComposicao`.
+
+## ProdutoComposicao
+
+Modulo principal: Produtos Compostos. Status: Parcial. A modelagem existe, mas
+os endpoints e a integracao com comandas/estoque serao implementados nas
+proximas etapas do Modulo 9.
+
+| Campo | Tipo conceitual | Obrigatorio | Observacao |
+|---|---|---|---|
+| `id` | Long | Sim | Identificador |
+| `produto_pai_id` | Long | Sim | FK para produto composto vendavel |
+| `produto_componente_id` | Long | Sim | FK para produto simples consumido do estoque |
+| `quantidade_baixa` | Decimal | Sim | Quantidade consumida do componente por unidade vendida |
+| `criado_em`, `atualizado_em` | DateTime | Sim | Auditoria simples |
+
+Relacionamentos: `Produto COMPOSTO 1 -> 0..* ProdutoComposicao` e
+`ProdutoComposicao 0..* -> 1 Produto` como componente.
 
 ## Cliente
 

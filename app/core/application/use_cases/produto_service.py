@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from core.domain.enums import UnidadeEstoque
+from core.domain.enums import TipoProduto, UnidadeEstoque
 from core.domain.exceptions import ApplicationError, NotFoundError
 from core.domain.models import CategoriaProduto, Produto
 from core.interfaces.adapters.repositories.i_categoria_produto_repository import (
@@ -37,6 +37,7 @@ class ProdutoService:
         categoria_id: int,
         preco_venda: Decimal,
         controla_estoque: bool,
+        tipo_produto: TipoProduto = TipoProduto.SIMPLES,
         unidade_estoque: Optional[UnidadeEstoque] = None,
         quantidade_estoque: Optional[Decimal] = None,
         quantidade_baixa_por_venda: Optional[Decimal] = None,
@@ -56,6 +57,7 @@ class ProdutoService:
             nome=nome.strip(),
             categoria_id=self._get_categoria_id(categoria),
             preco_venda=preco_venda,
+            tipo_produto=tipo_produto,
             controla_estoque=controla_estoque,
             unidade_estoque=estoque.unidade_estoque,
             quantidade_estoque=estoque.quantidade_estoque,
@@ -94,6 +96,7 @@ class ProdutoService:
         categoria_id: int,
         preco_venda: Decimal,
         controla_estoque: bool,
+        tipo_produto: TipoProduto = TipoProduto.SIMPLES,
         unidade_estoque: Optional[UnidadeEstoque] = None,
         quantidade_estoque: Optional[Decimal] = None,
         quantidade_baixa_por_venda: Optional[Decimal] = None,
@@ -113,6 +116,7 @@ class ProdutoService:
         produto.nome = nome.strip()
         produto.categoria_id = self._get_categoria_id(categoria)
         produto.preco_venda = preco_venda
+        produto.tipo_produto = tipo_produto
         produto.controla_estoque = controla_estoque
         produto.unidade_estoque = estoque.unidade_estoque
         produto.quantidade_estoque = estoque.quantidade_estoque

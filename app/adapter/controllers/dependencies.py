@@ -9,6 +9,9 @@ from adapter.repositories.cliente_repository import ClienteRepository
 from adapter.repositories.comanda_repository import ComandaRepository
 from adapter.repositories.movimento_estoque_repository import MovimentoEstoqueRepository
 from adapter.repositories.pagamento_repository import PagamentoRepository
+from adapter.repositories.produto_composicao_repository import (
+    ProdutoComposicaoRepository,
+)
 from adapter.repositories.produto_repository import ProdutoRepository
 from adapter.repositories.relatorio_repository import RelatorioRepository
 from core.application.use_cases.caixa_service import CaixaService
@@ -20,6 +23,9 @@ from core.application.use_cases.comanda_service import ComandaService
 from core.application.use_cases.estoque_service import EstoqueService
 from core.application.use_cases.fiado_service import FiadoService
 from core.application.use_cases.pagamento_service import PagamentoService
+from core.application.use_cases.produto_composicao_service import (
+    ProdutoComposicaoService,
+)
 from core.application.use_cases.produto_service import ProdutoService
 from core.application.use_cases.relatorio_service import RelatorioService
 from infra.config.context import db_session_context
@@ -44,6 +50,15 @@ def build_produto_service(session: Session) -> ProdutoService:
     return ProdutoService(
         produto_repository=produto_repository,
         categoria_repository=categoria_repository,
+    )
+
+
+def build_produto_composicao_service(session: Session) -> ProdutoComposicaoService:
+    produto_repository = ProdutoRepository(session)
+    composicao_repository = ProdutoComposicaoRepository(session)
+    return ProdutoComposicaoService(
+        produto_repository=produto_repository,
+        composicao_repository=composicao_repository,
     )
 
 

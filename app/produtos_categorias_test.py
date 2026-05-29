@@ -1,7 +1,20 @@
+from decimal import Decimal
+
 from dependency_injector import providers
 from fastapi.testclient import TestClient
+from sqlmodel import Session
 
+from adapter.repositories.produto_composicao_repository import (
+    ProdutoComposicaoRepository,
+)
+from adapter.repositories.produto_repository import ProdutoRepository
 from api import create_app
+from core.application.use_cases.produto_composicao_service import (
+    ProdutoComposicaoService,
+)
+from core.domain.enums import TipoProduto
+from core.domain.exceptions import ApplicationError
+from core.domain.models import Produto
 
 
 def build_client(test_engine):
@@ -103,6 +116,7 @@ def test_produto_lifecycle_and_filters(test_engine):
     assert produto["nome"] == "Cerveja lata"
     assert produto["categoria"]["id"] == categoria["id"]
     assert produto["precoVenda"] == 7.0
+    assert produto["tipoProduto"] == "SIMPLES"
     assert produto["controlaEstoque"] is True
     assert produto["unidadeEstoque"] == "UNIDADE"
     assert produto["quantidadeEstoque"] == 24.0
@@ -180,6 +194,41 @@ def test_produto_ml_and_without_stock_control(test_engine):
     assert no_stock["estoqueMinimo"] == 0.0
 
 
+def test_produto_composto_pode_ser_criado(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Drinks")
+
+    response = client.post(
+        "/api/produtos",
+        json={
+            "nome": "Dose Mista A+B",
+            "categoriaId": categoria["id"],
+            "precoVenda": 12.00,
+            "tipoProduto": "COMPOSTO",
+            "controlaEstoque": False,
+        },
+    )
+
+    assert response.status_code == 201
+    produto = response.json()
+    assert produto["nome"] == "Dose Mista A+B"
+    assert produto["tipoProduto"] == "COMPOSTO"
+    assert produto["controlaEstoque"] is False
+
+
+def test_produto_criado_sem_tipo_deve_ser_simples(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+
+    response = client.post(
+        "/api/produtos",
+        json=create_produto_payload(categoria["id"]),
+    )
+
+    assert response.status_code == 201
+    assert response.json()["tipoProduto"] == "SIMPLES"
+
+
 def test_produto_validations(test_engine):
     client = build_client(test_engine)
     categoria = create_categoria(client)
@@ -235,3 +284,168 @@ def test_produto_not_found_and_invalid_categoria(test_engine):
     )
     assert inactive_category_response.status_code == 400
     assert inactive_category_response.json()["code"] == "categoria_inativa"
+
+
+def build_composicao_service(session: Session) -> ProdutoComposicaoService:
+    return ProdutoComposicaoService(
+        produto_repository=ProdutoRepository(session),
+        composicao_repository=ProdutoComposicaoRepository(session),
+    )
+
+
+def create_produto_model(
+    session: Session,
+    categoria_id: int,
+    nome: str,
+    tipo_produto: TipoProduto = TipoProduto.SIMPLES,
+    controla_estoque: bool = True,
+    ativo: bool = True,
+) -> Produto:
+    produto = Produto(
+        nome=nome,
+        categoria_id=categoria_id,
+        preco_venda=Decimal("10.00"),
+        tipo_produto=tipo_produto,
+        controla_estoque=controla_estoque,
+        ativo=ativo,
+    )
+    session.add(produto)
+    session.commit()
+    session.refresh(produto)
+    return produto
+
+
+def test_composicao_produto_composto_pode_ter_componente(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+
+    with Session(test_engine) as session:
+        produto_pai = create_produto_model(
+            session,
+            categoria["id"],
+            "Dose Mista A+B",
+            tipo_produto=TipoProduto.COMPOSTO,
+            controla_estoque=False,
+        )
+        componente = create_produto_model(session, categoria["id"], "Bebida A")
+        service = build_composicao_service(session)
+
+        composicao = service.add_componente(
+            produto_pai_id=produto_pai.id,
+            produto_componente_id=componente.id,
+            quantidade_baixa=Decimal("50.000"),
+        )
+
+        assert composicao.id is not None
+        assert composicao.produto_pai_id == produto_pai.id
+        assert composicao.produto_componente_id == componente.id
+        assert composicao.quantidade_baixa == Decimal("50.000")
+        assert service.list_by_parent(produto_pai.id) == [composicao]
+
+
+def test_composicao_exige_produtos_existentes(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+
+    with Session(test_engine) as session:
+        produto_pai = create_produto_model(
+            session,
+            categoria["id"],
+            "Dose Mista A+B",
+            tipo_produto=TipoProduto.COMPOSTO,
+            controla_estoque=False,
+        )
+        componente = create_produto_model(session, categoria["id"], "Bebida A")
+        service = build_composicao_service(session)
+
+        produto_pai_inexistente = service.add_componente
+        try:
+            produto_pai_inexistente(999, componente.id, Decimal("50.000"))
+        except ApplicationError as error:
+            assert error.code == "produto_pai_nao_encontrado"
+            assert error.status_code == 404
+        else:
+            raise AssertionError("Deveria rejeitar produto pai inexistente")
+
+        try:
+            service.add_componente(produto_pai.id, 999, Decimal("50.000"))
+        except ApplicationError as error:
+            assert error.code == "produto_componente_nao_encontrado"
+            assert error.status_code == 404
+        else:
+            raise AssertionError("Deveria rejeitar componente inexistente")
+
+
+def test_composicao_rejeita_componente_invalido_duplicado_e_quantidade(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client, "Doses")
+
+    with Session(test_engine) as session:
+        produto_pai = create_produto_model(
+            session,
+            categoria["id"],
+            "Dose Mista A+B",
+            tipo_produto=TipoProduto.COMPOSTO,
+            controla_estoque=False,
+        )
+        componente = create_produto_model(session, categoria["id"], "Bebida A")
+        inativo = create_produto_model(session, categoria["id"], "Inativo", ativo=False)
+        sem_estoque = create_produto_model(
+            session,
+            categoria["id"],
+            "Taxa",
+            controla_estoque=False,
+        )
+        composto_componente = create_produto_model(
+            session,
+            categoria["id"],
+            "Outro composto",
+            tipo_produto=TipoProduto.COMPOSTO,
+            controla_estoque=False,
+        )
+        service = build_composicao_service(session)
+
+        casos = [
+            (produto_pai.id, produto_pai.id, "componente_igual_produto_pai"),
+            (produto_pai.id, inativo.id, "produto_componente_inativo"),
+            (
+                produto_pai.id,
+                sem_estoque.id,
+                "produto_componente_sem_controle_estoque",
+            ),
+            (
+                produto_pai.id,
+                composto_componente.id,
+                "componente_composto_nao_permitido",
+            ),
+        ]
+
+        for produto_pai_id, componente_id, code in casos:
+            try:
+                service.add_componente(
+                    produto_pai_id,
+                    componente_id,
+                    Decimal("50.000"),
+                )
+            except ApplicationError as error:
+                assert error.code == code
+            else:
+                raise AssertionError(f"Deveria rejeitar {code}")
+
+        for quantidade in (Decimal("0"), Decimal("-1")):
+            try:
+                service.add_componente(produto_pai.id, componente.id, quantidade)
+            except ApplicationError as error:
+                assert error.code == "quantidade_baixa_invalida"
+            else:
+                raise AssertionError("Deveria rejeitar quantidade invalida")
+
+        service.add_componente(produto_pai.id, componente.id, Decimal("50.000"))
+
+        try:
+            service.add_componente(produto_pai.id, componente.id, Decimal("25.000"))
+        except ApplicationError as error:
+            assert error.code == "produto_componente_duplicado"
+            assert error.status_code == 409
+        else:
+            raise AssertionError("Deveria rejeitar componente duplicado")

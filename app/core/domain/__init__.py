@@ -8,6 +8,7 @@ from core.domain.models import (
     MovimentoEstoque,
     Pagamento,
     Produto,
+    ProdutoComposicao,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "MovimentoEstoque",
     "Pagamento",
     "Produto",
+    "ProdutoComposicao",
 ]

@@ -59,6 +59,7 @@ alembic upgrade head
 | `e6f7a8b9c0d1` | Caixa Diário | Índices de caixa, movimentos de caixa e vínculo de pagamento |
 | `g7h8i9j0k1l2` | Clientes e Fiado | Tabela `cliente`, vínculo opcional em `comanda` e índices |
 | `h8i9j0k1l2m3` | Rastreabilidade de Comanda | `caixa_origem_id`, `pendente_em`, FK e índices para relatórios futuros |
+| `i9j0k1l2m3n4` | Produtos Compostos | `tipo_produto` em `produto` e tabela `produto_composicao` |
 
 ## Campos relevantes do fluxo atual
 
@@ -77,7 +78,8 @@ alembic upgrade head
 |---|---|---|---|
 | `ConfiguracaoSistema` | `configuracao_sistema` | Configuracoes / Acesso | Tabela existe; modulo operacional pendente |
 | `CategoriaProduto` | `categoria_produto` | Produtos e Categorias | Possui produtos |
-| `Produto` | `produto` | Produtos / Estoque | Base de venda e controle de estoque |
+| `Produto` | `produto` | Produtos / Estoque | Base de venda, controle de estoque e tipo simples/composto |
+| `ProdutoComposicao` | `produto_composicao` | Produtos Compostos | Componentes e quantidade de baixa por produto composto |
 | `Cliente` | `cliente` | Clientes / Fiado | Mantem historico e pendencias |
 | `Comanda` | `comanda` | Comandas / Pagamentos / Fiado | Origem operacional do consumo |
 | `ItemComanda` | `item_comanda` | Comandas | Snapshot de produto e preco |
@@ -93,6 +95,8 @@ alembic upgrade head
 | `CategoriaProduto` | `Produto` | Uma categoria possui varios produtos |
 | `Produto` | `ItemComanda` | Um produto pode aparecer em varios itens |
 | `Produto` | `MovimentoEstoque` | Um produto possui movimentos de estoque |
+| `Produto` | `ProdutoComposicao` | Um produto composto possui varios componentes |
+| `ProdutoComposicao` | `Produto` | Cada componente referencia um produto simples de estoque |
 | `Cliente` | `Comanda` | Um cliente pode ter historico de comandas |
 | `Caixa` | `Comanda` | Um caixa pode originar varias comandas |
 | `Comanda` | `ItemComanda` | Uma comanda contem varios itens |

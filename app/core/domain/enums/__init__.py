@@ -4,6 +4,7 @@ from core.domain.enums.status_caixa import StatusCaixa
 from core.domain.enums.status_comanda import StatusComanda
 from core.domain.enums.tipo_movimento_caixa import TipoMovimentoCaixa
 from core.domain.enums.tipo_movimento_estoque import TipoMovimentoEstoque
+from core.domain.enums.tipo_produto import TipoProduto
 from core.domain.enums.unidade_estoque import UnidadeEstoque
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "StatusComanda",
     "TipoMovimentoCaixa",
     "TipoMovimentoEstoque",
+    "TipoProduto",
     "UnidadeEstoque",
 ]

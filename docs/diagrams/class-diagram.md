@@ -28,12 +28,22 @@ classDiagram
         +Long categoriaId
         +String nome
         +BigDecimal precoVenda
+        +TipoProduto tipoProduto
         +Boolean controlaEstoque
         +UnidadeEstoque unidadeEstoque
         +BigDecimal quantidadeEstoque
         +BigDecimal quantidadeBaixaPorVenda
         +BigDecimal estoqueMinimo
         +Boolean ativo
+        +DateTime criadoEm
+        +DateTime atualizadoEm
+    }
+
+    class ProdutoComposicao {
+        +Long id
+        +Long produtoPaiId
+        +Long produtoComponenteId
+        +BigDecimal quantidadeBaixa
         +DateTime criadoEm
         +DateTime atualizadoEm
     }
@@ -132,6 +142,12 @@ classDiagram
         ML
     }
 
+    class TipoProduto {
+        <<enumeration>>
+        SIMPLES
+        COMPOSTO
+    }
+
     class StatusComanda {
         <<enumeration>>
         ABERTA
@@ -184,11 +200,14 @@ classDiagram
     Comanda "1" --> "0..*" ItemComanda : contem
     Produto "1" --> "0..*" ItemComanda : vendido como
     Produto "1" --> "0..*" MovimentoEstoque : movimenta
+    Produto "1" --> "0..*" ProdutoComposicao : composto por
+    ProdutoComposicao "0..*" --> "1" Produto : componente
     Caixa "1" --> "0..*" Pagamento : registra
     Comanda "1" --> "0..*" Pagamento : recebe
     Caixa "1" --> "0..*" MovimentoCaixa : possui
 
     Produto --> UnidadeEstoque : usa
+    Produto --> TipoProduto : possui
     Comanda --> StatusComanda : possui
     Caixa --> StatusCaixa : possui
     Pagamento --> FormaPagamento : usa
