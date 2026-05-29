@@ -12,6 +12,8 @@
 | Item | Tipo | Local | Descricao | Recomendacao |
 |---|---|---|---|---|
 | Parametro `permitir_estoque_negativo` | Decisao futura | `ConfiguracaoSistema` e Estoque/Comandas | A entidade tem o parametro, mas a regra operacional ainda permite estoque negativo no MVP | Decidir no modulo Configuracoes se esse parametro passa a governar vendas |
+| Endpoints de composicao de produtos | Modulo 9.2 pendente | `ProdutoComposicao` | A modelagem existe, mas ainda nao ha rotas para consultar, adicionar, editar ou remover componentes | Implementar somente na issue #18 |
+| Baixa de estoque por produto composto | Modulo 9.3 pendente | Comandas / Estoque | Produto composto ainda nao baixa componentes automaticamente ao ser vendido | Implementar somente na issue #19 |
 | Relatorios avancados | Fora de escopo | `docs/modules/relatorios.md` | O modulo atual cobre consultas basicas, sem exportacao ou dashboard | Reavaliar PDF, Excel, CSV e graficos apos o MVP |
 | Collection Postman | Manutencao continua | `docs/postman/area-verde-collection.json` | A collection acompanha os relatorios basicos atuais, mas deve seguir novos endpoints | Atualizar somente quando novos endpoints reais existirem |
 

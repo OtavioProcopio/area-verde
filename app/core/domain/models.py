@@ -2,9 +2,9 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import ClassVar, List, Optional
 
-from sqlalchemy import Column, DateTime
+from sqlalchemy import CheckConstraint, Column, DateTime
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import Index, Numeric, String, text
+from sqlalchemy import Index, Numeric, String, UniqueConstraint, text
 from sqlmodel import Field, Relationship, SQLModel
 
 from core.domain.enums import (
@@ -14,6 +14,7 @@ from core.domain.enums import (
     StatusComanda,
     TipoMovimentoCaixa,
     TipoMovimentoEstoque,
+    TipoProduto,
     UnidadeEstoque,
 )
 
@@ -71,6 +72,13 @@ class Produto(SQLModel, table=True):
         default=Decimal("0.00"),
         sa_column=Column(MONEY_COLUMN, nullable=False),
     )
+    tipo_produto: TipoProduto = Field(
+        default=TipoProduto.SIMPLES,
+        sa_column=Column(
+            SAEnum(TipoProduto, native_enum=False, length=20),
+            nullable=False,
+        ),
+    )
     controla_estoque: bool = Field(default=True)
     unidade_estoque: UnidadeEstoque = Field(
         default=UnidadeEstoque.UNIDADE,
@@ -99,6 +107,60 @@ class Produto(SQLModel, table=True):
     itens_comanda: List["ItemComanda"] = Relationship(back_populates="produto")
     movimentos_estoque: List["MovimentoEstoque"] = Relationship(
         back_populates="produto"
+    )
+    composicoes: List["ProdutoComposicao"] = Relationship(
+        back_populates="produto_pai",
+        sa_relationship_kwargs={
+            "foreign_keys": "ProdutoComposicao.produto_pai_id",
+        },
+    )
+    componente_em: List["ProdutoComposicao"] = Relationship(
+        back_populates="produto_componente",
+        sa_relationship_kwargs={
+            "foreign_keys": "ProdutoComposicao.produto_componente_id",
+        },
+    )
+
+
+class ProdutoComposicao(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "produto_composicao"
+    __table_args__: ClassVar[tuple] = (
+        UniqueConstraint(
+            "produto_pai_id",
+            "produto_componente_id",
+            name="uq_produto_composicao_pai_componente",
+        ),
+        CheckConstraint(
+            "quantidade_baixa > 0",
+            name="ck_produto_composicao_quantidade_baixa_positiva",
+        ),
+        Index("idx_produto_composicao_produto_pai_id", "produto_pai_id"),
+        Index(
+            "idx_produto_composicao_produto_componente_id",
+            "produto_componente_id",
+        ),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    produto_pai_id: int = Field(foreign_key="produto.id")
+    produto_componente_id: int = Field(foreign_key="produto.id")
+    quantidade_baixa: Decimal = Field(
+        sa_column=Column(QUANTITY_COLUMN, nullable=False),
+    )
+    criado_em: datetime = Field(default_factory=datetime.now)
+    atualizado_em: datetime = Field(default_factory=datetime.now)
+
+    produto_pai: Optional[Produto] = Relationship(
+        back_populates="composicoes",
+        sa_relationship_kwargs={
+            "foreign_keys": "ProdutoComposicao.produto_pai_id",
+        },
+    )
+    produto_componente: Optional[Produto] = Relationship(
+        back_populates="componente_em",
+        sa_relationship_kwargs={
+            "foreign_keys": "ProdutoComposicao.produto_componente_id",
+        },
     )
 
 
