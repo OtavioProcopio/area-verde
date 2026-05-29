@@ -26,12 +26,24 @@ Internamente, as exceptions de domínio carregam:
 
 | Código | Status | Uso |
 |---|---:|---|
+| `dados_invalidos` | 400/409/422 | Entrada inválida ou erro de integridade tratado |
+| `categoria_nao_encontrada` | 404 | Categoria inexistente |
+| `categoria_inativa` | 400 | Categoria inativa nao pode ser usada em produto |
+| `nome_duplicado` | 409 | Conflito de nome ativo em categoria |
 | `produto_nao_encontrado` | 404 | Produto inexistente |
 | `produto_inativo` | 400 | Produto não pode ser usado |
+| `produto_sem_controle_estoque` | 400 | Produto nao aceita movimento de estoque |
+| `preco_invalido` | 400 | Preco de venda invalido |
+| `unidade_estoque_invalida` | 400 | Unidade de estoque invalida para produto com controle |
+| `quantidade_baixa_invalida` | 400 | Baixa por venda invalida |
+| `quantidade_invalida` | 400 | Quantidade menor ou igual a zero |
+| `novo_estoque_invalido` | 400 | Ajuste manual com estoque negativo |
 | `comanda_nao_encontrada` | 404 | Comanda inexistente |
 | `comanda_nao_aberta` | 400 | Operação exige comanda aberta |
 | `comanda_nao_pendente` | 400 | Operação exige comanda pendente |
 | `comanda_sem_consumo` | 400 | Fechamento exige consumo lançado |
+| `item_comanda_nao_encontrado` | 404 | Item de comanda inexistente |
+| `item_nao_pertence_comanda` | 400 | Item informado pertence a outra comanda |
 | `valor_pago_invalido` | 400 | Valor pago diferente do total da comanda |
 | `cliente_nao_encontrado` | 404 | Cliente inexistente |
 | `cliente_inativo` | 400 | Cliente não pode ser usado |
@@ -46,9 +58,13 @@ Internamente, as exceptions de domínio carregam:
 | `caixa_fechado` | 400 | Caixa fechado não aceita movimentação |
 | `existem_comandas_abertas` | 400 | Fechamento de caixa bloqueado por comandas abertas |
 | `sangria_invalida` | 400 | Sangria deixaria dinheiro esperado negativo |
-| `quantidade_invalida` | 400 | Quantidade menor ou igual a zero |
-| `dados_invalidos` | 400/422 | Entrada inválida |
-| `nome_duplicado` | 409 | Conflito de nome ativo |
+| `valor_invalido` | 400 | Valor invalido em movimentacao de caixa |
+
+## Codigos citados em requisitos e status atual
+
+| Codigo | Status documental |
+|---|---|
+| `estoque_invalido` | Verificar antes de usar em nova documentacao; o codigo real atual usa validacoes como `quantidade_invalida`, `novo_estoque_invalido` e `produto_sem_controle_estoque` |
 
 ## Regras
 

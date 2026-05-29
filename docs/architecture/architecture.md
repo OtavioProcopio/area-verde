@@ -15,6 +15,21 @@ persistência via repositories.
 - Dependency Injector: configuração de dependências de infraestrutura.
 - Pytest: suíte de testes automatizados.
 
+## Modulos funcionais atuais
+
+| Modulo | Entrada HTTP | Use case | Repositories principais |
+|---|---|---|---|
+| Produtos e Categorias | `categoria_produto_controller.py`, `produto_controller.py` | `categoria_produto_service.py`, `produto_service.py` | `categoria_produto_repository.py`, `produto_repository.py` |
+| Estoque | `estoque_controller.py` | `estoque_service.py` | `produto_repository.py`, `movimento_estoque_repository.py` |
+| Clientes | `cliente_controller.py` | `cliente_service.py` | `cliente_repository.py`, `comanda_repository.py` |
+| Comandas e Itens | `comanda_controller.py` | `comanda_service.py` | `comanda_repository.py`, `produto_repository.py`, `caixa_repository.py` |
+| Pagamentos e Fechamento | `pagamento_controller.py` | `pagamento_service.py` | `comanda_repository.py`, `pagamento_repository.py`, `caixa_repository.py` |
+| Caixa Diario | `caixa_controller.py` | `caixa_service.py` | `caixa_repository.py`, `comanda_repository.py` |
+| Fiado / Pendencias | `fiado_controller.py` | `fiado_service.py` | `comanda_repository.py`, `cliente_repository.py`, `pagamento_repository.py`, `caixa_repository.py` |
+
+Relatorios, Configuracoes, Acesso/Senha e Frontend ainda nao possuem modulos
+operacionais completos.
+
 ## Estrutura
 
 ```text

@@ -47,7 +47,8 @@ estar aberto para registrar pagamentos.
 - Não é permitido adicionar, incrementar, diminuir ou remover itens em comandas fechadas.
 - O valor pago deve ser exatamente igual ao valor total de consumo da comanda.
 - `FIADO` não fecha comanda como pagamento recebido.
-- Fiado é tratado pelo módulo de Fiado / Pendências.
+- FIADO não é pagamento. Fiado é tratado pelo módulo de Fiado / Pendências,
+  onde a comanda vira `PENDENTE`.
 - Quitação de fiado gera pagamento real no caixa atual.
 - O pagamento exige caixa aberto.
 - Pagamento em DINHEIRO soma o valor em `dinheiro_esperado` do caixa.

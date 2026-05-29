@@ -10,6 +10,14 @@ repositório.
 - [Roadmap do MVP](roadmap.md)
 - [Glossário do domínio](glossary.md)
 
+## Matrizes de cobertura
+
+- [Matriz funcional do MVP](matrix/functional-coverage.md)
+- [Endpoints por módulo](matrix/endpoints-by-module.md)
+- [Entidades por módulo](matrix/entities-by-module.md)
+- [Testes por módulo](matrix/tests-by-module.md)
+- [Pendências, lacunas e inconsistências](matrix/pending-gaps.md)
+
 ## Módulos
 
 - [Produtos e Categorias](modules/produtos-categorias.md)
@@ -51,6 +59,7 @@ repositório.
 - [Índice de diagramas](diagrams/README.md)
 - [Diagrama de classes](diagrams/class-diagram.md)
 - [Diagrama de casos de uso](diagrams/use-case-diagram.md)
+- [Diagramas por módulo](diagrams/README.md#diagramas-por-modulo)
 
 ## Workflows e automações
 
