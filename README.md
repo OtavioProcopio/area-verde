@@ -35,7 +35,7 @@
 | Produto e estoque | [Produtos](docs/modules/produtos-categorias.md) · [Estoque](docs/modules/estoque.md) | Cadastro vendável e controle operacional |
 | Atendimento | [Clientes](docs/modules/clientes.md) · [Comandas](docs/modules/comandas.md) | Cadastro simples, lançamento de consumo e baixa automática |
 | Financeiro | [Pagamentos](docs/modules/pagamentos.md) · [Caixa](docs/modules/caixa.md) · [Fiado](docs/modules/fiado.md) | Fechamento, caixa diário e pendências futuras |
-| Gestão futura | [Relatórios](docs/modules/relatorios.md) · [Configurações](docs/modules/configuracoes.md) | Consolidação e parâmetros do sistema |
+| Gestão | [Relatórios](docs/modules/relatorios.md) · [Configurações](docs/modules/configuracoes.md) | Consolidação e parâmetros do sistema |
 | Engenharia | [Arquitetura](docs/architecture/architecture.md) · [Testes](docs/architecture/tests.md) · [Policies](docs/policies/) | Padrões para humanos e agentes |
 | Operação local | [Make](docs/workflows/makefile.md) · [Postman](docs/postman/README.md) · [Workflows](docs/workflows/README.md) | Automação, testes manuais e rotina de desenvolvimento |
 
@@ -52,12 +52,12 @@
 | Caixa Diário | Abre caixa, registra reforço/sangria, vincula pagamentos e fecha com conferência | [Abrir](docs/modules/caixa.md) |
 | Clientes | Cadastra, lista, edita, ativa e inativa clientes para histórico de pendências | [Abrir](docs/modules/clientes.md) |
 | Fiado / Pendências | Marca comanda como pendente, lista vencidos e quita no caixa aberto | [Abrir](docs/modules/fiado.md) |
+| Relatórios | Consolida diário, caixa, produtos vendidos, fiados, estoque e comandas | [Abrir](docs/modules/relatorios.md) |
 
 ### Pendente
 
 | Módulo | Próximo papel no MVP | Documentação |
 |---|---|---|
-| Relatórios | Consolidar operação e financeiro | [Abrir](docs/modules/relatorios.md) |
 | Configurações | Parametrizar comportamento do sistema | [Abrir](docs/modules/configuracoes.md) |
 | Acesso / Senha | Controle simples de acesso | [Roadmap](docs/roadmap.md) |
 | Frontend | Operação visual do bar | [Roadmap](docs/roadmap.md) |

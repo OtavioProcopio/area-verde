@@ -200,10 +200,11 @@ Erro ao fechar com comanda aberta:
 - `app/caixa_test.py`
 - `app/pagamentos_test.py`
 - `app/fiado_test.py`
+- `app/relatorios_test.py`
 
 ## O que ainda não está incluso
 
-- Relatórios financeiros.
+- Relatórios avançados, exportação e dashboard.
 - Dashboard.
 - Frontend.
 - Autenticação e permissões.
@@ -215,4 +216,4 @@ Erro ao fechar com comanda aberta:
 
 ## Próximo passo relacionado
 
-- Relatórios básicos.
+- Configurações.

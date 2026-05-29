@@ -59,6 +59,8 @@ Internamente, as exceptions de domínio carregam:
 | `existem_comandas_abertas` | 400 | Fechamento de caixa bloqueado por comandas abertas |
 | `sangria_invalida` | 400 | Sangria deixaria dinheiro esperado negativo |
 | `valor_invalido` | 400 | Valor invalido em movimentacao de caixa |
+| `periodo_invalido` | 400 | Data inicial maior que data final em relatórios |
+| `parametro_invalido` | 400 | Tipo, status ou limite inválido em relatórios |
 
 ## Codigos citados em requisitos e status atual
 

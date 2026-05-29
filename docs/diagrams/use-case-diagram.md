@@ -97,10 +97,9 @@ flowchart LR
         UC_DIFERENCA(["Calcular diferenca de caixa"])
     end
 
-    subgraph RELATORIOS["Relatorios - pendente"]
+    subgraph RELATORIOS["Relatorios - implementado"]
         UC_REL_DIA(["Gerar relatorio diario"])
         UC_REL_CAIXA(["Gerar relatorio por caixa"])
-        UC_REL_FORMA(["Gerar relatorio por forma de pagamento"])
         UC_REL_PRODUTOS(["Gerar relatorio de produtos mais vendidos"])
         UC_REL_FIADOS(["Gerar relatorio de fiados"])
         UC_REL_ESTOQUE(["Gerar relatorio de estoque"])
@@ -150,10 +149,10 @@ flowchart LR
     ADMIN --> UC_CAD_CLIENTE
     ADMIN --> UC_REL_DIA
     ADMIN --> UC_REL_CAIXA
-    ADMIN --> UC_REL_FORMA
     ADMIN --> UC_REL_PRODUTOS
     ADMIN --> UC_REL_FIADOS
     ADMIN --> UC_REL_ESTOQUE
+    ADMIN --> UC_REL_STATUS
     ADMIN --> UC_CONF_BAR
     ADMIN --> UC_CONF_FIADO
     ADMIN --> UC_CONF_ESTOQUE
@@ -208,3 +207,4 @@ flowchart LR
 - Casos em subgrafos marcados como pendente/futuro nao possuem endpoints reais
   nesta versao.
 - Fiado esta implementado como pendencia, nao como pagamento recebido.
+- Relatorios basicos estao implementados como consultas sem mutacao de dados.

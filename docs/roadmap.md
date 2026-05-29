@@ -9,14 +9,14 @@
 - Caixa Diário
 - Clientes
 - Fiado / Pendências
+- Relatórios básicos
 
 ## Próximo
 
-- Relatórios básicos
+- Configurações
 
 ## Depois
 
-- Configurações
 - Acesso / Senha
 - Release MVP
 - Frontend operacional
@@ -32,8 +32,8 @@
 | 5 | Caixa Diário | Implementado |
 | 6 | Clientes | Implementado |
 | 7 | Fiado / Pendências | Implementado |
-| 8 | Relatórios básicos | Próximo |
-| 9 | Configurações | Pendente |
+| 8 | Relatórios básicos | Implementado |
+| 9 | Configurações | Próximo |
 | 10 | Acesso / Senha | Pendente |
 | 11 | Release MVP | Futuro |
 | 12 | Frontend operacional | Futuro |

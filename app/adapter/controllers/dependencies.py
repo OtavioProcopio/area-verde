@@ -10,6 +10,7 @@ from adapter.repositories.comanda_repository import ComandaRepository
 from adapter.repositories.movimento_estoque_repository import MovimentoEstoqueRepository
 from adapter.repositories.pagamento_repository import PagamentoRepository
 from adapter.repositories.produto_repository import ProdutoRepository
+from adapter.repositories.relatorio_repository import RelatorioRepository
 from core.application.use_cases.caixa_service import CaixaService
 from core.application.use_cases.categoria_produto_service import (
     CategoriaProdutoService,
@@ -20,6 +21,7 @@ from core.application.use_cases.estoque_service import EstoqueService
 from core.application.use_cases.fiado_service import FiadoService
 from core.application.use_cases.pagamento_service import PagamentoService
 from core.application.use_cases.produto_service import ProdutoService
+from core.application.use_cases.relatorio_service import RelatorioService
 from infra.config.context import db_session_context
 
 
@@ -113,3 +115,8 @@ def build_fiado_service(session: Session) -> FiadoService:
         cliente_repository=cliente_repository,
         caixa_service=caixa_service,
     )
+
+
+def build_relatorio_service(session: Session) -> RelatorioService:
+    relatorio_repository = RelatorioRepository(session)
+    return RelatorioService(relatorio_repository)

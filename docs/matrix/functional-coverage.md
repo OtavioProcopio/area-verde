@@ -41,7 +41,7 @@ implementacao. A matriz foi conferida contra `app/api.py`,
 | Fiado / Pendencias | Marcar comanda como fiado | `POST /api/comandas/{comanda_id}/fiado` | `Comanda`, `Cliente`, `Caixa` | `app/fiado_test.py` | Implementado | Cliente cadastrado e ativo obrigatorio |
 | Fiado / Pendencias | Listar, filtrar, consultar vencidos e pendencia por comanda | `GET /api/fiados*` | `Comanda`, `Cliente` | `app/fiado_test.py` | Implementado | `PENDENTE` representa valor a receber |
 | Fiado / Pendencias | Quitar fiado | `POST /api/fiados/{comanda_id}/quitar` | `Comanda`, `Pagamento`, `Caixa`, `FormaPagamento` | `app/fiado_test.py` | Implementado | Quitacao exige caixa aberto e nao aceita `FIADO` |
-| Relatorios basicos | Relatorio diario, por caixa, forma de pagamento, produtos, fiados, estoque e comandas | A definir | `Comanda`, `ItemComanda`, `Produto`, `Cliente`, `Pagamento`, `Caixa`, `MovimentoCaixa`, `MovimentoEstoque` | A criar | Pendente | Proximo modulo funcional |
+| Relatorios basicos | Relatorio diario, por caixa, produtos mais vendidos, fiados, estoque e comandas | `/api/relatorios*` | `Comanda`, `ItemComanda`, `Produto`, `Cliente`, `Pagamento`, `Caixa`, `MovimentoCaixa`, `MovimentoEstoque` | `app/relatorios_test.py` | Implementado | Consulta consolidada sem alterar dados |
 | Configuracoes | Nome do bar, dias de fiado, estoque negativo e senha simples | A definir | `ConfiguracaoSistema` | A criar | Parcial | Entidade existe, modulo operacional pendente |
 | Acesso / Senha | Acessar sistema com senha simples | A definir | `ConfiguracaoSistema` | A criar | Pendente | Sem endpoints ou use cases |
 | Release MVP | Preparar versao estavel | N/A | N/A | Validacoes de CI | Futuro | Apos modulos essenciais |

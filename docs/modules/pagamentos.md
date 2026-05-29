@@ -122,10 +122,11 @@ estar aberto para registrar pagamentos.
 ## Testes relacionados
 
 - `app/pagamentos_test.py`
+- `app/relatorios_test.py`
 
 ## O que ainda não está incluso
 
-- Relatórios financeiros.
+- Relatórios financeiros avançados.
 - Troco.
 - Integração real com Pix, TEF, cartão ou gateway.
 - Frontend.
@@ -133,4 +134,4 @@ estar aberto para registrar pagamentos.
 
 ## Próximo passo relacionado
 
-- Relatórios básicos.
+- Configurações.

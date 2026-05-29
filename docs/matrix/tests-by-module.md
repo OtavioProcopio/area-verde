@@ -17,7 +17,7 @@ modulo de Relatorios.
 | Caixa Diario | `app/caixa_test.py` | abertura, caixa aberto, listagem, reforco, sangria, fechamento, vinculo de pagamento e regressao de caixa fechado | Nao cobre relatorio de fechamento por caixa |
 | Clientes | `app/clientes_test.py` | cadastro, busca, filtros, edicao, ativacao, inativacao e duplicidade normalizada | Nao cobre importacao ou campos fiscais, fora do MVP |
 | Fiado / Pendencias | `app/fiado_test.py` | cliente em comanda, fiado, vencidos, consulta, quitacao, cliente inativo, caixa aberto e fechamento com pendencias | Nao cobre pagamento parcial, juros ou cobranca automatica |
-| Relatorios basicos | A criar | Nao implementado | Criar testes no modulo 8 |
+| Relatorios basicos | `app/relatorios_test.py` | diario, caixa, produtos mais vendidos, fiados, estoque, comandas, filtros e validacoes | Nao cobre exportacao PDF/Excel ou dashboard visual, fora do escopo |
 | Configuracoes | A criar | Nao implementado como modulo operacional | Criar testes quando houver controller/use case |
 | Acesso / Senha | A criar | Nao implementado | Criar testes quando houver fluxo de acesso |
 | Frontend operacional | A criar | Fora da API atual | Definir estrategia propria quando o frontend existir |

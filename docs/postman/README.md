@@ -21,6 +21,8 @@ A collection cobre:
 - abertura, consulta, reforço, sangria e fechamento de caixa;
 - regressão de fechamento bloqueado com comandas abertas;
 - fechamento de comanda com caixa aberto e consulta de pagamentos.
+- relatórios diário, por caixa, produtos mais vendidos, fiados, estoque e
+  comandas.
 
 ## Fluxo operacional recomendado
 
@@ -39,9 +41,10 @@ A collection cobre:
 11. Se ficou fiado, usar `GET /api/fiados`
 12. Se for quitar, usar `POST /api/fiados/{comanda_id}/quitar`
 13. Fechar caixa com `POST /api/caixas/{caixa_id}/fechar`
+14. Consultar relatórios em `GET /api/relatorios/*`
 
-Nao inclua na collection endpoints de Relatorios, Configuracoes, Acesso ou
-Frontend enquanto esses modulos nao existirem no backend.
+Nao inclua na collection endpoints de Configuracoes, Acesso ou Frontend enquanto
+esses modulos nao existirem no backend.
 
 Por padrão, o ambiente aponta para a API local. Ajuste `baseUrl` conforme o modo
 de execução usado:
