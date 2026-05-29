@@ -302,6 +302,10 @@ class RelatorioService:
             )
             if self._match_cliente(comanda, cliente_id)
         ]
+        quitadas_filtradas = self._comandas_quitadas_por_pagamento(
+            pagamentos=pagamentos_periodo,
+            cliente_id=cliente_id,
+        )
         pendencias_filtradas = [
             comanda
             for comanda in pendentes
@@ -322,7 +326,7 @@ class RelatorioService:
                 if comanda.vencimento_em is not None and comanda.vencimento_em < hoje
             ]
         if status == "quitados":
-            pendencias_filtradas = []
+            pendencias_filtradas = quitadas_filtradas
 
         resumo = self._resumir_fiados(
             comandas=[
@@ -506,8 +510,8 @@ class RelatorioService:
             (
                 comanda.total
                 for comanda in comandas
-                if comanda.status == StatusComanda.PENDENTE
-                and comanda.pendente_em is not None
+                if comanda.pendente_em is not None
+                and comanda.status in {StatusComanda.PENDENTE, StatusComanda.FECHADA}
             ),
             ZERO_MONEY,
         )
@@ -553,6 +557,26 @@ class RelatorioService:
             quantidade_pendencias=len(pendentes_atuais),
             quantidade_vencidas=len(vencidas),
         )
+
+    def _comandas_quitadas_por_pagamento(
+        self,
+        pagamentos: list[Pagamento],
+        cliente_id: Optional[int],
+    ) -> list[Comanda]:
+        quitadas: dict[int, Comanda] = {}
+        for pagamento in pagamentos:
+            comanda = pagamento.comanda
+            if (
+                pagamento.forma_pagamento not in REAL_PAYMENT_FORMS
+                or comanda is None
+                or comanda.id is None
+                or comanda.pendente_em is None
+                or comanda.status != StatusComanda.FECHADA
+                or not self._match_cliente(comanda, cliente_id)
+            ):
+                continue
+            quitadas[comanda.id] = comanda
+        return list(quitadas.values())
 
     @staticmethod
     def _resumir_estoque(produtos: list[Produto]) -> EstoqueResumo:

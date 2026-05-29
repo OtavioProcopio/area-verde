@@ -35,6 +35,8 @@ bar, sem alterar dados e sem criar dashboard visual.
 ### Fiados
 
 - `status`: `pendentes`, `vencidos`, `quitados` ou `todos`. Padrão `todos`.
+  Quando `status=quitados`, a lista `pendencias` retorna comandas que viraram
+  fiado e foram quitadas por pagamento real no período.
 - `clienteId`: opcional.
 - `dataInicio`: opcional.
 - `dataFim`: opcional.
@@ -57,7 +59,8 @@ bar, sem alterar dados e sem criar dashboard visual.
 - Comandas `CANCELADA` não entram em vendas nem em produtos mais vendidos.
 - Total recebido vem de `Pagamento` com `DINHEIRO`, `PIX` ou `CARTAO`.
 - `FIADO` não é pagamento recebido.
-- Fiado gerado usa comanda `PENDENTE` com `pendente_em`.
+- Fiado gerado usa comandas com `pendente_em` e status `PENDENTE` ou `FECHADA`,
+  para manter no relatório fiados quitados no mesmo dia/período.
 - Fiado quitado usa pagamentos reais vinculados a comandas que possuem
   `pendente_em`.
 - Relatório por caixa usa `pagamento.caixa_id` para recebimentos.

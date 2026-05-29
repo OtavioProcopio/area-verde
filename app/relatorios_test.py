@@ -253,6 +253,51 @@ def test_deve_incluir_fiado_quitado_e_contar_comandas_estoque(test_engine):
     assert baixo["id"] is not None
 
 
+def test_deve_contar_fiado_gerado_mesmo_quando_quitado_no_mesmo_dia(test_engine):
+    client = build_client(test_engine)
+    _abrir_caixa(client)
+    cliente = _criar_cliente(client)
+    produto = _criar_produto(client, "Fiado Gerado Quitado")
+    comanda = _criar_comanda(client, "Fiado quitado", produto, quantidade=4)
+    _marcar_fiado(client, comanda, cliente)
+
+    quitacao = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "PIX", "valorPago": comanda["total"]},
+    )
+    response = client.get("/api/relatorios/diario")
+
+    assert quitacao.status_code == 200
+    assert response.status_code == 200
+    body = response.json()
+    assert _money(body["fiados"]["geradosNoDia"]) == Decimal("40.00")
+    assert _money(body["fiados"]["quitadosNoDia"]) == Decimal("40.00")
+    assert _money(body["fiados"]["pendentesAtuais"]) == Decimal("0.00")
+
+
+def test_deve_contar_fiado_gerado_no_relatorio_por_caixa_mesmo_quando_quitado(
+    test_engine,
+):
+    client = build_client(test_engine)
+    caixa = _abrir_caixa(client)
+    cliente = _criar_cliente(client)
+    produto = _criar_produto(client, "Fiado Caixa Quitado")
+    comanda = _criar_comanda(client, "Fiado caixa", produto, quantidade=4)
+    _marcar_fiado(client, comanda, cliente)
+
+    quitacao = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "PIX", "valorPago": comanda["total"]},
+    )
+    response = client.get(f"/api/relatorios/caixas/{caixa['id']}")
+
+    assert quitacao.status_code == 200
+    assert response.status_code == 200
+    body = response.json()
+    assert _money(body["fiados"]["geradosNoDia"]) == Decimal("40.00")
+    assert _money(body["fiados"]["quitadosNoDia"]) == Decimal("40.00")
+
+
 def test_deve_considerar_pendente_em_para_fiado_gerado(test_engine):
     client = build_client(test_engine)
     _abrir_caixa(client)
@@ -379,7 +424,7 @@ def test_deve_retornar_resumo_de_fiados_com_filtros(test_engine):
     assert vencidos.status_code == 200
     assert vencidos.json()["pendencias"][0]["comandaId"] == vencida["id"]
     assert quitados.status_code == 200
-    assert quitados.json()["pendencias"] == []
+    assert quitados.json()["pendencias"][0]["comandaId"] == quitada["id"]
 
 
 def test_deve_retornar_relatorio_estoque_e_filtrar_tipo(test_engine):
