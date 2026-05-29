@@ -125,7 +125,8 @@ Modulo principal: Caixa Diario. Status: Implementado.
 | `dinheiro_esperado` | Decimal | Sim | Dinheiro fisico esperado |
 | `dinheiro_informado` | Decimal | Nao | Valor contado no fechamento |
 | `diferenca` | Decimal | Nao | Informado menos esperado |
-| `aberto_em`, `fechado_em` | DateTime | Parcial | Fechamento e opcional ate fechar |
+| `aberto_em` | DateTime | Sim | Data/hora de abertura |
+| `fechado_em` | DateTime | Nao | Preenchido somente ao fechar |
 | `criado_em`, `atualizado_em` | DateTime | Sim | Auditoria simples |
 
 Relacionamentos: `Caixa 1 -> 0..* MovimentoCaixa`,

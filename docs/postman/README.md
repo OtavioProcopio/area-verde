@@ -33,11 +33,12 @@ A collection cobre:
 7. `POST /api/comandas` com `nomeCliente`
 8. `POST /api/comandas` com `clienteId`
 9. `POST /api/comandas/{comanda_id}/itens`
-10. `POST /api/comandas/{comanda_id}/fechar`
-11. `POST /api/comandas/{comanda_id}/fiado`
-12. `GET /api/fiados`
-13. `POST /api/fiados/{comanda_id}/quitar`
-14. `POST /api/caixas/{caixa_id}/fechar`
+10. Resolver a comanda por um dos caminhos:
+    - `POST /api/comandas/{comanda_id}/fechar`, se o cliente pagou.
+    - `POST /api/comandas/{comanda_id}/fiado`, se ficou pendente.
+11. Se ficou fiado, usar `GET /api/fiados`
+12. Se for quitar, usar `POST /api/fiados/{comanda_id}/quitar`
+13. Fechar caixa com `POST /api/caixas/{caixa_id}/fechar`
 
 Nao inclua na collection endpoints de Relatorios, Configuracoes, Acesso ou
 Frontend enquanto esses modulos nao existirem no backend.
