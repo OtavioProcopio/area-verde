@@ -71,6 +71,12 @@ alembic upgrade head
 - `comanda.vencimento_em`: vencimento da pendência de fiado.
 - `caixa.comandas_origem`: relacionamento operacional das comandas abertas
   durante o caixa.
+- `produto.tipo_produto`: diferencia `SIMPLES` e `COMPOSTO`.
+- `produto_composicao.quantidade_baixa`: quantidade de cada componente baixada
+  por unidade vendida do produto composto.
+- `movimento_estoque.produto_id`: aponta para o produto fisicamente
+  movimentado. Em venda de composto, aponta para o componente, nao para o
+  produto pai.
 
 ## Entidades reais
 

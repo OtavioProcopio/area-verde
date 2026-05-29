@@ -4,8 +4,8 @@
 
 Implementado.
 
-Produtos compostos possuem modelagem e endpoints de composicao implementados.
-A integracao com comandas baixa e devolve estoque dos componentes.
+Produtos compostos possuem modelagem, endpoints de composicao, integracao com
+comandas/estoque e leitura correta em relatorios.
 
 ## Objetivo
 
@@ -72,6 +72,8 @@ vendas e movimentacoes, mas nao sao geridos diretamente por este modulo.
 - Produto pode controlar estoque ou não.
 - Produto inicia com `tipoProduto=SIMPLES` quando o tipo nao e informado.
 - Produto `COMPOSTO` e vendavel e baixa estoque pelos componentes.
+- Produto `COMPOSTO` cobra o preco proprio e aparece como produto vendido nos
+  relatorios de venda.
 - Produto sem controle de estoque persiste valores de estoque zerados.
 - `unidadeEstoque`, `quantidadeBaixaPorVenda` e `estoqueMinimo` definem como o
   produto participa dos fluxos de estoque e comanda.
@@ -139,6 +141,16 @@ Adicionar componente:
 }
 ```
 
+Fluxo recomendado para produto composto:
+
+1. Criar produtos simples componentes com `controlaEstoque=true`.
+2. Criar produto composto com `tipoProduto=COMPOSTO`.
+3. Adicionar componentes em `/api/produtos/{id}/composicao/componentes`.
+4. Vender o produto composto em `/api/comandas/{id}/itens`.
+5. Consultar movimentos dos componentes em `/api/estoque/produtos/{id}/movimentos`.
+6. Consultar venda em `/api/relatorios/produtos-mais-vendidos` e consumo fisico
+   em `/api/relatorios/estoque-consumido`.
+
 Produto sem controle de estoque:
 
 ```json
@@ -183,8 +195,9 @@ Produto sem controle de estoque:
 - Cadastro de fornecedores.
 - Importação de produtos.
 - Exclusão física de produtos.
-- Relatórios por produto.
+- Produto composto dentro de produto composto.
+- Montagem livre de drink na hora.
 
 ## Próximo passo relacionado
 
-- Ajustar relatorios de consumo de estoque no Modulo 9.4.
+- Configurações.

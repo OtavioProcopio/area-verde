@@ -16,6 +16,8 @@ flowchart LR
     Comanda[Comanda ABERTA]
     Item[ItemComanda]
     Produto[Produto]
+    Composicao[ProdutoComposicao]
+    Componente[Produto componente]
     Movimento[MovimentoEstoque]
 
     Criar["POST /api/comandas"]
@@ -32,6 +34,8 @@ flowchart LR
     Vincular --> Cliente
     Vincular --> Comanda
     Produto --> Adicionar
+    Produto --> Composicao
+    Composicao --> Componente
     Adicionar --> Item
     Incrementar --> Item
     Diminuir --> Item
@@ -43,6 +47,7 @@ flowchart LR
     Diminuir --> Movimento
     Remover --> Movimento
     Cancelar --> Movimento
+    Componente --> Movimento
 ```
 
 ## Entidades envolvidas
@@ -52,6 +57,7 @@ flowchart LR
 - `Cliente`
 - `Caixa`
 - `Produto`
+- `ProdutoComposicao`
 - `MovimentoEstoque`
 
 ## Casos de uso envolvidos
@@ -62,3 +68,5 @@ flowchart LR
 - Adicionar, incrementar, diminuir e remover itens.
 - Cancelar comanda.
 - Baixar e devolver estoque automaticamente.
+- Vender produto composto como item da comanda.
+- Baixar e devolver componentes proporcionalmente.

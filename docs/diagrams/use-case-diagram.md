@@ -20,6 +20,8 @@ flowchart LR
         UC_EDIT_CATEGORIA(["Editar categoria"])
         UC_ATIVAR_CATEGORIA(["Ativar/inativar categoria"])
         UC_CAD_PRODUTO(["Cadastrar produto"])
+        UC_CAD_COMPOSTO(["Cadastrar produto composto"])
+        UC_GER_COMPOSICAO(["Gerenciar composicao"])
         UC_LIST_PRODUTO(["Listar/consultar produto"])
         UC_EDIT_PRODUTO(["Editar produto"])
         UC_ATIVAR_PRODUTO(["Ativar/inativar produto"])
@@ -34,7 +36,9 @@ flowchart LR
         UC_AJUSTE(["Ajuste manual"])
         UC_MOV_ESTOQUE(["Consultar movimentos"])
         UC_BAIXA_AUTO(["Baixar estoque automaticamente"])
+        UC_BAIXA_COMPONENTES(["Baixar estoque de componentes"])
         UC_DEVOLVE_AUTO(["Devolver estoque automaticamente"])
+        UC_DEVOLVE_COMPONENTES(["Devolver componentes automaticamente"])
     end
 
     subgraph CLIENTES["Clientes - implementado"]
@@ -54,6 +58,7 @@ flowchart LR
         UC_EXIGE_CAIXA(["Exigir caixa aberto para criar comanda"])
         UC_LIST_COMANDAS(["Listar/consultar comandas"])
         UC_ADD_ITEM(["Adicionar produto a comanda"])
+        UC_VENDER_COMPOSTO(["Vender produto composto"])
         UC_INC_ITEM(["Aumentar quantidade do item"])
         UC_DEC_ITEM(["Diminuir quantidade do item"])
         UC_REM_ITEM(["Remover item"])
@@ -101,6 +106,7 @@ flowchart LR
         UC_REL_DIA(["Gerar relatorio diario"])
         UC_REL_CAIXA(["Gerar relatorio por caixa"])
         UC_REL_PRODUTOS(["Gerar relatorio de produtos mais vendidos"])
+        UC_REL_CONSUMO(["Gerar relatorio de estoque consumido"])
         UC_REL_FIADOS(["Gerar relatorio de fiados"])
         UC_REL_ESTOQUE(["Gerar relatorio de estoque"])
         UC_REL_STATUS(["Gerar relatorio de comandas por status"])
@@ -145,11 +151,14 @@ flowchart LR
 
     ADMIN --> UC_CAD_CATEGORIA
     ADMIN --> UC_CAD_PRODUTO
+    ADMIN --> UC_CAD_COMPOSTO
+    ADMIN --> UC_GER_COMPOSICAO
     ADMIN --> UC_VER_ESTOQUE
     ADMIN --> UC_CAD_CLIENTE
     ADMIN --> UC_REL_DIA
     ADMIN --> UC_REL_CAIXA
     ADMIN --> UC_REL_PRODUTOS
+    ADMIN --> UC_REL_CONSUMO
     ADMIN --> UC_REL_FIADOS
     ADMIN --> UC_REL_ESTOQUE
     ADMIN --> UC_REL_STATUS
@@ -173,14 +182,22 @@ flowchart LR
 
     UC_ADD_ITEM --> UC_RECALCULAR
     UC_ADD_ITEM --> UC_BAIXA_AUTO
+    UC_VENDER_COMPOSTO --> UC_ADD_ITEM
+    UC_VENDER_COMPOSTO --> UC_BAIXA_COMPONENTES
     UC_INC_ITEM --> UC_RECALCULAR
     UC_INC_ITEM --> UC_BAIXA_AUTO
+    UC_INC_ITEM --> UC_BAIXA_COMPONENTES
     UC_DEC_ITEM --> UC_RECALCULAR
     UC_DEC_ITEM --> UC_DEVOLVE_AUTO
+    UC_DEC_ITEM --> UC_DEVOLVE_COMPONENTES
     UC_REM_ITEM --> UC_RECALCULAR
     UC_REM_ITEM --> UC_DEVOLVE_AUTO
+    UC_REM_ITEM --> UC_DEVOLVE_COMPONENTES
     UC_CANCELAR --> UC_DEVOLVE_AUTO
+    UC_CANCELAR --> UC_DEVOLVE_COMPONENTES
+    UC_BAIXA_COMPONENTES --> UC_MOV_ESTOQUE
     UC_BAIXA_AUTO --> UC_MOV_ESTOQUE
+    UC_DEVOLVE_COMPONENTES --> UC_MOV_ESTOQUE
     UC_DEVOLVE_AUTO --> UC_MOV_ESTOQUE
 
     UC_FECHAR_DINHEIRO --> UC_PGTO_CAIXA

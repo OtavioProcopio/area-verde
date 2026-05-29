@@ -55,6 +55,10 @@ produto.
 - Movimentos automáticos por comanda usam origem `COMANDA` ou `CANCELAMENTO`.
 - Produto composto vendido em comanda gera um movimento por componente consumido,
   com observacao referenciando o produto composto vendido.
+- Relatorio de consumo de estoque usa `MovimentoEstoque`: saidas por venda somam
+  consumo e devolucoes por cancelamento/reducao/remocao abatem o total liquido.
+- Produto composto sem controle de estoque nao aparece como consumido; seus
+  componentes controlados aparecem quando foram movimentados.
 
 ## Validações
 
@@ -106,6 +110,19 @@ Ajuste:
 
 - `app/estoque_test.py`
 - `app/relatorios_test.py`
+
+## Produtos compostos
+
+Ao vender um produto composto, o estoque nao movimenta o produto pai. Cada
+componente configurado em `ProdutoComposicao` recebe sua propria baixa:
+
+```text
+quantidade_consumida = quantidade_baixa_do_componente * quantidade_vendida
+```
+
+Diminuir item, remover item ou cancelar comanda gera movimento de devolucao para
+os componentes. Essa rastreabilidade permite separar o que o cliente comprou do
+que saiu fisicamente do estoque.
 
 ## O que ainda não está incluso
 

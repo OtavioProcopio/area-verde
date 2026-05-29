@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from core.domain.enums import StatusComanda
-from core.domain.models import Caixa, Comanda, Pagamento, Produto
+from core.domain.models import Caixa, Comanda, MovimentoEstoque, Pagamento, Produto
 from core.interfaces.adapters.repositories.i_relatorio_repository import (
     IRelatorioRepository,
 )
@@ -89,4 +89,20 @@ class RelatorioRepository(IRelatorioRepository):
             .where(Produto.controla_estoque == True)  # noqa: E712
             .order_by(text("nome ASC"))
         )
+        return list(self.session.exec(statement).all())
+
+    def list_movimentos_estoque(
+        self,
+        inicio: Optional[datetime] = None,
+        fim: Optional[datetime] = None,
+    ) -> list[MovimentoEstoque]:
+        statement = (
+            select(MovimentoEstoque)
+            .options(selectinload(MovimentoEstoque.produto))  # type: ignore[arg-type]
+            .order_by(text("criado_em ASC"), text("id ASC"))
+        )
+        if inicio is not None:
+            statement = statement.where(MovimentoEstoque.criado_em >= inicio)
+        if fim is not None:
+            statement = statement.where(MovimentoEstoque.criado_em <= fim)
         return list(self.session.exec(statement).all())

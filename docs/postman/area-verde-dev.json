@@ -23,6 +23,31 @@
       "enabled": true
     },
     {
+      "key": "categoriaId",
+      "value": "1",
+      "enabled": true
+    },
+    {
+      "key": "produtoId",
+      "value": "1",
+      "enabled": true
+    },
+    {
+      "key": "produtoComponenteId",
+      "value": "2",
+      "enabled": true
+    },
+    {
+      "key": "produtoCompostoId",
+      "value": "3",
+      "enabled": true
+    },
+    {
+      "key": "itemId",
+      "value": "1",
+      "enabled": true
+    },
+    {
       "key": "dataRelatorio",
       "value": "2026-05-28",
       "enabled": true

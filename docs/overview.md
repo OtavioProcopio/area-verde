@@ -3,8 +3,8 @@
 ## O que é
 
 O Area Verde API é uma API para o MVP de controle operacional de um bar. O
-sistema organiza o cadastro de produtos, controle de estoque, clientes,
-comandas, pagamentos, fiado, caixa diário e relatórios básicos.
+sistema organiza o cadastro de produtos simples e compostos, controle de
+estoque, clientes, comandas, pagamentos, fiado, caixa diário e relatórios.
 
 ## Problema que resolve
 
@@ -17,24 +17,27 @@ consumo, ajustes e divergências.
 ## Fluxo operacional
 
 O fluxo operacional começa no cadastro de categorias e produtos. Produtos podem
-controlar estoque por unidade ou por medida fracionada, como ml. Depois, o
-estoque recebe entradas ou ajustes manuais. Na operação de atendimento, o caixa
-do turno é aberto antes de qualquer nova comanda. A comanda é aberta por
-nome/apelido ou cliente cadastrado, recebe itens e depois é resolvida como paga,
-pendente/fiado ou cancelada. O caixa só fecha quando não restarem comandas
-abertas.
+ser simples ou compostos. Produto simples baixa o próprio estoque; produto
+composto é vendido como um item, cobra o próprio preço e baixa os componentes
+configurados na composição. Depois, o estoque recebe entradas ou ajustes
+manuais. Na operação de atendimento, o caixa do turno é aberto antes de qualquer
+nova comanda. A comanda é aberta por nome/apelido ou cliente cadastrado, recebe
+itens e depois é resolvida como paga, pendente/fiado ou cancelada. O caixa só
+fecha quando não restarem comandas abertas.
 
 ## Fluxo atual implementado
 
 ```text
-Produto -> Estoque -> Caixa -> Cliente -> Comanda -> Item -> Pagamento/Fiado
+Produto/Composicao -> Estoque -> Caixa -> Cliente -> Comanda -> Item -> Pagamento/Fiado
 ```
 
-- Produto define preço, categoria e regra de baixa.
+- Produto define preço, categoria, tipo e regra de baixa.
+- Produto composto possui composição com componentes de estoque.
 - Estoque registra entradas, ajustes e histórico.
 - Comanda agrupa itens consumidos por cliente/apelido.
 - Item mantém snapshot de nome e preço do produto.
-- Movimentação de estoque registra baixa ou devolução.
+- Movimentação de estoque registra baixa ou devolução do produto simples ou dos
+  componentes de um produto composto.
 - Caixa registra abertura, reforços, sangrias, pagamentos e fechamento.
 - Pagamento registra forma, valor, observação e caixa vinculado.
 - Fechamento altera a comanda para `FECHADA` e preenche `fechada_em`.
@@ -44,7 +47,8 @@ Produto -> Estoque -> Caixa -> Cliente -> Comanda -> Item -> Pagamento/Fiado
   `pendente_em` e vencimento.
 - Quitação de fiado registra pagamento real no caixa aberto do dia.
 - Caixa não fecha com comandas `ABERTA`; pode fechar com `PENDENTE`.
-- Relatórios consolidam vendas, recebimentos, fiados, estoque, comandas e caixa.
+- Relatórios consolidam vendas, recebimentos, fiados, estoque, consumo fisico
+  de estoque, comandas e caixa.
 
 ## Fluxo futuro
 
@@ -52,8 +56,8 @@ Produto -> Estoque -> Caixa -> Cliente -> Comanda -> Item -> Pagamento/Fiado
 Configurações
 ```
 
-Após relatórios básicos, o próximo passo é parametrizar comportamentos
-operacionais do sistema.
+Após produtos compostos e relatórios consolidados, o próximo passo é
+parametrizar comportamentos operacionais do sistema.
 
 ## Ordem do MVP
 
@@ -67,16 +71,17 @@ Implementado:
 6. Clientes
 7. Fiado / Pendências
 8. Relatórios básicos
+9. Produtos compostos / composição de produtos
 
 Próximo:
 
-9. Configurações
+10. Configurações
 
 Depois:
 
-10. Acesso / Senha
-11. Release MVP
-12. Frontend operacional
+11. Acesso / Senha
+12. Release MVP
+13. Frontend operacional
 
 ## Documentos de referencia
 

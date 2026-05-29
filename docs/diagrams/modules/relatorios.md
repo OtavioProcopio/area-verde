@@ -21,12 +21,14 @@ flowchart LR
     Pagamento[Pagamento]
     Caixa[Caixa]
     MovimentoCaixa[MovimentoCaixa]
+    MovimentoEstoque[MovimentoEstoque]
 
     Diario["GET /api/relatorios/diario"]
     PorCaixa["GET /api/relatorios/caixas/{caixa_id}"]
     MaisVendidos["GET /api/relatorios/produtos-mais-vendidos"]
     Fiados["GET /api/relatorios/fiados"]
     Estoque["GET /api/relatorios/estoque"]
+    Consumo["GET /api/relatorios/estoque-consumido"]
     Status["GET /api/relatorios/comandas"]
 
     Diario --> Controller
@@ -34,6 +36,7 @@ flowchart LR
     MaisVendidos --> Controller
     Fiados --> Controller
     Estoque --> Controller
+    Consumo --> Controller
     Status --> Controller
 
     Controller --> Service
@@ -45,6 +48,10 @@ flowchart LR
     Repo --> Pagamento
     Repo --> Caixa
     Repo --> MovimentoCaixa
+    Repo --> MovimentoEstoque
+
+    MaisVendidos --> Item
+    Consumo --> MovimentoEstoque
 ```
 
 ## Entidades envolvidas
@@ -56,6 +63,7 @@ flowchart LR
 - `Pagamento`
 - `Caixa`
 - `MovimentoCaixa`
+- `MovimentoEstoque`
 
 ## Endpoints envolvidos
 
@@ -64,6 +72,7 @@ flowchart LR
 - `GET /api/relatorios/produtos-mais-vendidos`
 - `GET /api/relatorios/fiados`
 - `GET /api/relatorios/estoque`
+- `GET /api/relatorios/estoque-consumido`
 - `GET /api/relatorios/comandas`
 
 ## Casos de uso implementados
@@ -73,4 +82,12 @@ flowchart LR
 - Gerar relatorio de produtos mais vendidos.
 - Gerar relatorio de fiados.
 - Gerar relatorio de estoque.
+- Gerar relatorio de estoque consumido.
 - Gerar relatorio de comandas por status.
+
+## Regra central
+
+- Produtos mais vendidos usam `ItemComanda`, mostrando o produto vendido ao
+  cliente.
+- Estoque consumido usa `MovimentoEstoque`, mostrando o produto fisicamente
+  movimentado no estoque.

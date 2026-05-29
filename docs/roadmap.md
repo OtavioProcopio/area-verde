@@ -10,6 +10,7 @@
 - Clientes
 - Fiado / Pendências
 - Relatórios básicos
+- Produtos compostos / composição de produtos
 
 ## Próximo
 
@@ -33,10 +34,11 @@
 | 6 | Clientes | Implementado |
 | 7 | Fiado / Pendências | Implementado |
 | 8 | Relatórios básicos | Implementado |
-| 9 | Configurações | Próximo |
-| 10 | Acesso / Senha | Pendente |
-| 11 | Release MVP | Futuro |
-| 12 | Frontend operacional | Futuro |
+| 9 | Produtos compostos / composição de produtos | Implementado |
+| 10 | Configurações | Próximo |
+| 11 | Acesso / Senha | Pendente |
+| 12 | Release MVP | Futuro |
+| 13 | Frontend operacional | Futuro |
 
 ## Fora do escopo imediato
 

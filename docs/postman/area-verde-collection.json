@@ -172,6 +172,96 @@
             "url": "{{baseUrl}}/api/produtos/{{produtoId}}/inativar"
           },
           "response": []
+        },
+        {
+          "name": "POST /api/produtos componente ML",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Pinga A\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 10.0,\n  \"tipoProduto\": \"SIMPLES\",\n  \"controlaEstoque\": true,\n  \"unidadeEstoque\": \"ML\",\n  \"quantidadeEstoque\": 1000,\n  \"quantidadeBaixaPorVenda\": 50,\n  \"estoqueMinimo\": 100\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/produtos composto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Dose Mista A+B\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 18.0,\n  \"tipoProduto\": \"COMPOSTO\",\n  \"controlaEstoque\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/produtos/:id/composicao",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoCompostoId}}/composicao"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/produtos/:id/composicao/componentes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"produtoComponenteId\": {{produtoComponenteId}},\n  \"quantidadeBaixa\": 50\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos/{{produtoCompostoId}}/composicao/componentes"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/produtos/:id/composicao/componentes/:componenteId",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidadeBaixa\": 75\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos/{{produtoCompostoId}}/composicao/componentes/{{produtoComponenteId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/produtos/:id/composicao/componentes/:componenteId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoCompostoId}}/composicao/componentes/{{produtoComponenteId}}"
+          },
+          "response": []
         }
       ]
     },
@@ -448,6 +538,25 @@
               "raw": "{\n  \"produtoId\": {{produtoId}},\n  \"quantidade\": 2\n}"
             },
             "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/comandas/:id/itens produto composto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"produtoId\": {{produtoCompostoId}},\n  \"quantidade\": 2\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens",
+            "description": "Lanca o produto composto como item vendido e baixa os componentes configurados."
           },
           "response": []
         },
@@ -847,18 +956,28 @@
           },
           "response": []
         },
-        {
-          "name": "GET /api/relatorios/estoque",
-          "request": {
-            "method": "GET",
-            "header": [],
+                {
+                    "name": "GET /api/relatorios/estoque",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
             "url": "{{baseUrl}}/api/relatorios/estoque?tipo=todos",
             "description": "Lista produtos controlados com estoque baixo ou negativo."
-          },
-          "response": []
-        },
-        {
-          "name": "GET /api/relatorios/comandas",
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /api/relatorios/estoque-consumido",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{baseUrl}}/api/relatorios/estoque-consumido?dataInicio={{dataInicioRelatorio}}&dataFim={{dataFimRelatorio}}",
+                        "description": "Lista consumo liquido por produto movimentado no estoque. Produtos compostos aparecem como venda; componentes aparecem aqui como consumo."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /api/relatorios/comandas",
           "request": {
             "method": "GET",
             "header": [],
@@ -882,6 +1001,14 @@
     {
       "key": "produtoId",
       "value": "1"
+    },
+    {
+      "key": "produtoComponenteId",
+      "value": "2"
+    },
+    {
+      "key": "produtoCompostoId",
+      "value": "3"
     },
     {
       "key": "comandaId",

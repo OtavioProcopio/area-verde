@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  API para MVP de controle operacional de bar: produtos, estoque, comandas,
-  pagamentos, fiado, caixa e relatórios.
+  API para MVP de controle operacional de bar: produtos simples e compostos,
+  estoque, comandas, pagamentos, fiado, caixa e relatórios.
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@
 
 | Área | Atalho | Para quê serve |
 |---|---|---|
-| Produto e estoque | [Produtos](docs/modules/produtos-categorias.md) · [Estoque](docs/modules/estoque.md) | Cadastro vendável e controle operacional |
+| Produto e estoque | [Produtos](docs/modules/produtos-categorias.md) · [Estoque](docs/modules/estoque.md) | Cadastro vendável, composição e controle operacional |
 | Atendimento | [Clientes](docs/modules/clientes.md) · [Comandas](docs/modules/comandas.md) | Cadastro simples, lançamento de consumo e baixa automática |
 | Financeiro | [Pagamentos](docs/modules/pagamentos.md) · [Caixa](docs/modules/caixa.md) · [Fiado](docs/modules/fiado.md) | Fechamento, caixa diário e pendências futuras |
 | Gestão | [Relatórios](docs/modules/relatorios.md) · [Configurações](docs/modules/configuracoes.md) | Consolidação e parâmetros do sistema |
@@ -45,14 +45,14 @@
 
 | Módulo | O que já faz | Documentação |
 |---|---|---|
-| Produtos e Categorias | Cadastra, lista, edita, ativa e inativa categorias e produtos | [Abrir](docs/modules/produtos-categorias.md) |
-| Estoque | Consulta estoque, registra entrada/ajuste e lista movimentos | [Abrir](docs/modules/estoque.md) |
-| Comandas e Itens | Abre comanda, lança itens, recalcula total e movimenta estoque | [Abrir](docs/modules/comandas.md) |
+| Produtos e Categorias | Cadastra categorias, produtos simples, produtos compostos e composição | [Abrir](docs/modules/produtos-categorias.md) |
+| Estoque | Consulta estoque, registra entrada/ajuste, lista movimentos e consumo por componente | [Abrir](docs/modules/estoque.md) |
+| Comandas e Itens | Abre comanda, lança itens simples/compostos, recalcula total e movimenta estoque | [Abrir](docs/modules/comandas.md) |
 | Pagamentos e Fechamento | Fecha comanda aberta, registra pagamento e bloqueia alterações posteriores | [Abrir](docs/modules/pagamentos.md) |
 | Caixa Diário | Abre caixa, registra reforço/sangria, vincula pagamentos e fecha com conferência | [Abrir](docs/modules/caixa.md) |
 | Clientes | Cadastra, lista, edita, ativa e inativa clientes para histórico de pendências | [Abrir](docs/modules/clientes.md) |
 | Fiado / Pendências | Marca comanda como pendente, lista vencidos e quita no caixa aberto | [Abrir](docs/modules/fiado.md) |
-| Relatórios | Consolida diário, caixa, produtos vendidos, fiados, estoque e comandas | [Abrir](docs/modules/relatorios.md) |
+| Relatórios | Consolida diário, caixa, produtos vendidos, consumo de estoque, fiados, estoque e comandas | [Abrir](docs/modules/relatorios.md) |
 
 ### Pendente
 

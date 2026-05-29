@@ -85,6 +85,8 @@ consumo fica para pagamento futuro.
 - Cada componente de produto composto gera movimento de estoque próprio.
 - Produto composto sem composição não pode ser vendido.
 - Diminuir, remover ou cancelar devolve estoque proporcional.
+- Produtos mais vendidos usam o `ItemComanda`; por isso exibem o produto
+  composto vendido, e nao seus componentes.
 - Venda pode deixar estoque negativo no MVP para não travar atendimento.
 - Comanda cancelada permanece no histórico com seus itens e movimentos.
 - Comanda fechada pelo módulo de pagamentos não pode receber novas alterações.
@@ -253,6 +255,17 @@ Cada baixa registra movimento:
 
 Produtos sem controle de estoque não geram movimento.
 
+Para produto composto, a mesma rota de item vende o produto pai, mas a baixa
+fisica usa a composicao:
+
+```text
+quantidade_baixada_componente = quantidade_baixa * quantidade_vendida
+```
+
+Exemplo: vender 2 unidades de `Dose Mista A+B` com 50 ml de `A` e 25 ml de `B`
+gera um item da comanda para `Dose Mista A+B`, cobra o preco do composto e cria
+movimentos separados de 100 ml para `A` e 50 ml para `B`.
+
 ## Estoque negativo
 
 No MVP, a venda não é bloqueada quando o estoque fica negativo. A operação é
@@ -267,6 +280,8 @@ Cada devolução registra movimento:
 
 - `tipo = DEVOLUCAO_CANCELAMENTO`
 - `origem = COMANDA`
+
+Para item composto, a devolucao tambem e proporcional por componente.
 
 ## Cancelamento
 

@@ -4,10 +4,10 @@ from typing import Any
 
 from dependency_injector import providers
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from api import create_app
-from core.domain.models import Comanda, Produto
+from core.domain.models import Comanda, MovimentoEstoque, Produto
 
 
 def build_client(test_engine):
@@ -56,6 +56,9 @@ def _criar_produto(
     controla_estoque: bool = False,
     quantidade_estoque: int = 0,
     estoque_minimo: int = 0,
+    tipo_produto: str = "SIMPLES",
+    unidade_estoque: str = "UNIDADE",
+    quantidade_baixa_por_venda: int = 1,
 ) -> dict:
     categoria = client.post(
         "/api/categorias",
@@ -68,11 +71,31 @@ def _criar_produto(
             "categoriaId": categoria.json()["id"],
             "nome": nome,
             "precoVenda": preco,
+            "tipoProduto": tipo_produto,
             "controlaEstoque": controla_estoque,
             "quantidadeEstoque": quantidade_estoque,
-            "quantidadeBaixaPorVenda": 1 if controla_estoque else None,
+            "quantidadeBaixaPorVenda": (
+                quantidade_baixa_por_venda if controla_estoque else None
+            ),
             "estoqueMinimo": estoque_minimo,
-            "unidadeEstoque": "UNIDADE" if controla_estoque else None,
+            "unidadeEstoque": unidade_estoque if controla_estoque else None,
+        },
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
+def _adicionar_componente(
+    client: TestClient,
+    produto_pai_id: int,
+    produto_componente_id: int,
+    quantidade_baixa: int = 50,
+) -> dict:
+    response = client.post(
+        f"/api/produtos/{produto_pai_id}/composicao/componentes",
+        json={
+            "produtoComponenteId": produto_componente_id,
+            "quantidadeBaixa": quantidade_baixa,
         },
     )
     assert response.status_code == 201
@@ -144,6 +167,17 @@ def _set_estoque(test_engine, produto_id: int, quantidade: str, minimo: str) -> 
         produto.quantidade_estoque = Decimal(quantidade)
         produto.estoque_minimo = Decimal(minimo)
         session.add(produto)
+        session.commit()
+
+
+def _set_movimentos_dates(test_engine, produto_id: int, criado_em: datetime) -> None:
+    with Session(test_engine) as session:
+        movimentos = session.exec(
+            select(MovimentoEstoque).where(MovimentoEstoque.produto_id == produto_id)
+        )
+        for movimento in movimentos:
+            movimento.criado_em = criado_em
+            session.add(movimento)
         session.commit()
 
 
@@ -373,6 +407,85 @@ def test_deve_listar_produtos_mais_vendidos_e_ignorar_status_invalidos(test_engi
     assert aberta["id"] is not None
 
 
+def test_produto_composto_aparece_como_vendido_sem_componentes(test_engine):
+    client = build_client(test_engine)
+    _abrir_caixa(client)
+    componente_a = _criar_produto(
+        client,
+        "Pinga A Relatorio",
+        controla_estoque=True,
+        quantidade_estoque=1000,
+        unidade_estoque="ML",
+        quantidade_baixa_por_venda=50,
+    )
+    componente_b = _criar_produto(
+        client,
+        "Pinga B Relatorio",
+        controla_estoque=True,
+        quantidade_estoque=1000,
+        unidade_estoque="ML",
+        quantidade_baixa_por_venda=50,
+    )
+    composto = _criar_produto(
+        client,
+        "Dose Mista Relatorio",
+        preco=18,
+        tipo_produto="COMPOSTO",
+        controla_estoque=False,
+    )
+    simples = _criar_produto(client, "Agua Relatorio", preco=5)
+    _adicionar_componente(client, composto["id"], componente_a["id"], 50)
+    _adicionar_componente(client, composto["id"], componente_b["id"], 25)
+    comanda_composta = _criar_comanda(client, "Composto", composto, quantidade=2)
+    comanda_simples = _criar_comanda(client, "Simples", simples, quantidade=1)
+    _fechar_comanda(client, comanda_composta)
+    _fechar_comanda(client, comanda_simples)
+
+    response = client.get("/api/relatorios/produtos-mais-vendidos")
+
+    assert response.status_code == 200
+    ids = {item["produtoId"] for item in response.json()}
+    composto_item = next(
+        item for item in response.json() if item["produtoId"] == composto["id"]
+    )
+    simples_item = next(
+        item for item in response.json() if item["produtoId"] == simples["id"]
+    )
+    assert _money(composto_item["quantidadeVendida"]) == Decimal("2.000")
+    assert _money(composto_item["valorTotal"]) == Decimal("36.00")
+    assert _money(simples_item["quantidadeVendida"]) == Decimal("1.000")
+    assert componente_a["id"] not in ids
+    assert componente_b["id"] not in ids
+
+
+def test_comanda_cancelada_com_composto_nao_entra_em_produtos_mais_vendidos(
+    test_engine,
+):
+    client = build_client(test_engine)
+    _abrir_caixa(client)
+    componente = _criar_produto(
+        client,
+        "Pinga Cancelada",
+        controla_estoque=True,
+        quantidade_estoque=1000,
+        unidade_estoque="ML",
+    )
+    composto = _criar_produto(
+        client,
+        "Dose Cancelada",
+        tipo_produto="COMPOSTO",
+        controla_estoque=False,
+    )
+    _adicionar_componente(client, composto["id"], componente["id"], 50)
+    comanda = _criar_comanda(client, "Cancelada composto", composto, quantidade=1)
+    client.patch(f"/api/comandas/{comanda['id']}/cancelar")
+
+    response = client.get("/api/relatorios/produtos-mais-vendidos")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
 def test_deve_rejeitar_limite_invalido_e_periodo_invalido(test_engine):
     client = build_client(test_engine)
 
@@ -458,6 +571,151 @@ def test_deve_retornar_relatorio_estoque_e_filtrar_tipo(test_engine):
     assert apenas_negativo.json()["baixo"] == []
     assert invalido.status_code == 400
     assert invalido.json()["code"] == "parametro_invalido"
+
+
+def test_relatorio_estoque_considera_componentes_controlados(test_engine):
+    client = build_client(test_engine)
+    componente_baixo = _criar_produto(
+        client,
+        "Componente Baixo",
+        controla_estoque=True,
+        quantidade_estoque=2,
+        estoque_minimo=5,
+        unidade_estoque="ML",
+    )
+    componente_negativo = _criar_produto(
+        client,
+        "Componente Negativo",
+        controla_estoque=True,
+        quantidade_estoque=0,
+        estoque_minimo=0,
+        unidade_estoque="ML",
+    )
+    composto = _criar_produto(
+        client,
+        "Composto Sem Controle",
+        tipo_produto="COMPOSTO",
+        controla_estoque=False,
+    )
+    _set_estoque(test_engine, componente_negativo["id"], "-1.000", "0.000")
+
+    response = client.get("/api/relatorios/estoque")
+
+    assert response.status_code == 200
+    body = response.json()
+    ids_baixo = {item["produtoId"] for item in body["baixo"]}
+    ids_negativo = {item["produtoId"] for item in body["negativo"]}
+    assert body["resumo"]["produtosControlados"] == 2
+    assert componente_baixo["id"] in ids_baixo
+    assert componente_negativo["id"] in ids_negativo
+    assert composto["id"] not in ids_baixo
+    assert composto["id"] not in ids_negativo
+
+
+def test_deve_retornar_estoque_consumido_vazio_e_rejeitar_periodo_invalido(
+    test_engine,
+):
+    client = build_client(test_engine)
+
+    vazio = client.get("/api/relatorios/estoque-consumido")
+    invalido = client.get(
+        "/api/relatorios/estoque-consumido?dataInicio=2026-05-29&dataFim=2026-05-28"
+    )
+
+    assert vazio.status_code == 200
+    assert vazio.json() == []
+    assert invalido.status_code == 400
+    assert invalido.json()["code"] == "periodo_invalido"
+
+
+def test_estoque_consumido_consolida_simples_e_componentes_de_composto(test_engine):
+    client = build_client(test_engine)
+    _abrir_caixa(client)
+    simples = _criar_produto(
+        client,
+        "Cerveja Consumo",
+        controla_estoque=True,
+        quantidade_estoque=20,
+        quantidade_baixa_por_venda=1,
+    )
+    componente_a = _criar_produto(
+        client,
+        "Pinga A Consumo",
+        controla_estoque=True,
+        quantidade_estoque=1000,
+        unidade_estoque="ML",
+    )
+    componente_b = _criar_produto(
+        client,
+        "Pinga B Consumo",
+        controla_estoque=True,
+        quantidade_estoque=1000,
+        unidade_estoque="ML",
+    )
+    composto = _criar_produto(
+        client,
+        "Dose Mista Consumo",
+        tipo_produto="COMPOSTO",
+        controla_estoque=False,
+    )
+    sem_controle = _criar_produto(client, "Servico Consumo", controla_estoque=False)
+    _adicionar_componente(client, composto["id"], componente_a["id"], 50)
+    _adicionar_componente(client, composto["id"], componente_b["id"], 25)
+    _criar_comanda(client, "Simples consumo", simples, quantidade=3)
+    _criar_comanda(client, "Composto consumo", composto, quantidade=2)
+    _criar_comanda(client, "Servico consumo", sem_controle, quantidade=4)
+
+    response = client.get("/api/relatorios/estoque-consumido")
+
+    assert response.status_code == 200
+    body = {item["produtoId"]: item for item in response.json()}
+    assert body[simples["id"]]["quantidadeConsumida"] == "3.000"
+    assert body[simples["id"]]["unidadeEstoque"] == "UNIDADE"
+    assert body[componente_a["id"]]["quantidadeConsumida"] == "100.000"
+    assert body[componente_a["id"]]["unidadeEstoque"] == "ML"
+    assert body[componente_b["id"]]["quantidadeConsumida"] == "50.000"
+    assert composto["id"] not in body
+    assert sem_controle["id"] not in body
+
+
+def test_estoque_consumido_desconta_cancelamento_e_filtra_periodo(test_engine):
+    client = build_client(test_engine)
+    _abrir_caixa(client)
+    antigo = _criar_produto(
+        client,
+        "Cerveja Antiga",
+        controla_estoque=True,
+        quantidade_estoque=20,
+    )
+    componente = _criar_produto(
+        client,
+        "Pinga Liquida",
+        controla_estoque=True,
+        quantidade_estoque=1000,
+        unidade_estoque="ML",
+    )
+    composto = _criar_produto(
+        client,
+        "Dose Liquida",
+        tipo_produto="COMPOSTO",
+        controla_estoque=False,
+    )
+    _adicionar_componente(client, composto["id"], componente["id"], 50)
+    _criar_comanda(client, "Antiga", antigo, quantidade=2)
+    _set_movimentos_dates(test_engine, antigo["id"], datetime.now() - timedelta(days=3))
+    _criar_comanda(client, "Liquida", composto, quantidade=2)
+    cancelada = _criar_comanda(client, "Cancelada consumo", composto, quantidade=1)
+    client.patch(f"/api/comandas/{cancelada['id']}/cancelar")
+
+    hoje = date.today()
+    response = client.get(
+        f"/api/relatorios/estoque-consumido?dataInicio={hoje}&dataFim={hoje}"
+    )
+
+    assert response.status_code == 200
+    body = {item["produtoId"]: item for item in response.json()}
+    assert antigo["id"] not in body
+    assert body[componente["id"]]["quantidadeConsumida"] == "100.000"
 
 
 def test_deve_retornar_comandas_por_status_e_filtrar(test_engine):

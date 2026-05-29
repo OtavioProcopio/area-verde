@@ -18,6 +18,7 @@ bar, sem alterar dados e sem criar dashboard visual.
 | `GET` | `/api/relatorios/produtos-mais-vendidos` | Lista produtos mais vendidos no período |
 | `GET` | `/api/relatorios/fiados` | Resume pendências, vencidos e quitados no período |
 | `GET` | `/api/relatorios/estoque` | Lista produtos controlados com estoque baixo ou negativo |
+| `GET` | `/api/relatorios/estoque-consumido` | Lista consumo liquido de estoque por produto movimentado |
 | `GET` | `/api/relatorios/comandas` | Resume comandas por status e período |
 
 ## Query params
@@ -45,6 +46,11 @@ bar, sem alterar dados e sem criar dashboard visual.
 
 - `tipo`: `baixo`, `negativo` ou `todos`. Padrão `todos`.
 
+### Estoque consumido
+
+- `dataInicio`: opcional.
+- `dataFim`: opcional.
+
 ### Comandas
 
 - `dataInicio`: opcional.
@@ -69,6 +75,13 @@ bar, sem alterar dados e sem criar dashboard visual.
 - Estoque baixo considera produto controlado com quantidade entre zero e o
   estoque mínimo.
 - Estoque negativo considera produto controlado com quantidade menor que zero.
+- Produtos mais vendidos usam `ItemComanda` e respondem o que o cliente comprou.
+- Estoque consumido usa `MovimentoEstoque` e responde o que saiu fisicamente do
+  estoque.
+- Produto composto aparece como vendido em produtos mais vendidos.
+- Componentes de produto composto aparecem como consumidos quando possuem
+  movimentos de estoque.
+- Devolucoes por diminuicao, remocao ou cancelamento abatem o consumo liquido.
 
 ## Validações
 
@@ -86,8 +99,22 @@ GET /api/relatorios/caixas/1
 GET /api/relatorios/produtos-mais-vendidos?dataInicio=2026-05-01&dataFim=2026-05-28&limite=10
 GET /api/relatorios/fiados?status=vencidos
 GET /api/relatorios/estoque?tipo=baixo
+GET /api/relatorios/estoque-consumido?dataInicio=2026-05-01&dataFim=2026-05-28
 GET /api/relatorios/comandas?status=FECHADA
 ```
+
+## Venda x consumo de estoque
+
+Os relatórios separam duas perguntas diferentes:
+
+| Pergunta | Fonte | Exemplo com produto composto |
+|---|---|---|
+| O que o cliente comprou? | `ItemComanda` | `Dose Mista A+B` aparece como vendido |
+| O que saiu fisicamente do estoque? | `MovimentoEstoque` | `Pinga A` e `Pinga B` aparecem como consumidos |
+
+Assim, um produto composto vendido na comanda nao duplica os componentes em
+produtos mais vendidos. Os componentes aparecem somente nos relatorios baseados
+em movimentos de estoque.
 
 ## Exemplo de response - diário
 

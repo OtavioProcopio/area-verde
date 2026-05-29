@@ -3,7 +3,7 @@ from datetime import date, datetime
 from typing import Optional
 
 from core.domain.enums import StatusComanda
-from core.domain.models import Caixa, Comanda, Pagamento, Produto
+from core.domain.models import Caixa, Comanda, MovimentoEstoque, Pagamento, Produto
 
 
 class IRelatorioRepository(ABC):
@@ -36,4 +36,12 @@ class IRelatorioRepository(ABC):
 
     @abstractmethod
     def list_produtos_controlados(self) -> list[Produto]:
+        pass
+
+    @abstractmethod
+    def list_movimentos_estoque(
+        self,
+        inicio: Optional[datetime] = None,
+        fim: Optional[datetime] = None,
+    ) -> list[MovimentoEstoque]:
         pass
