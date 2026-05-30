@@ -108,6 +108,7 @@ Mapear as rotas reais registradas em `app/api.py` e nos controllers em
 | `GET` | `/api/relatorios/produtos-mais-vendidos` | `relatorio_controller.py` | Listar produtos mais vendidos | Implementado |
 | `GET` | `/api/relatorios/fiados` | `relatorio_controller.py` | Consultar relatorio de fiados | Implementado |
 | `GET` | `/api/relatorios/estoque` | `relatorio_controller.py` | Consultar relatorio de estoque | Implementado |
+| `GET` | `/api/relatorios/estoque-consumido` | `relatorio_controller.py` | Consultar consumo liquido de estoque por produto | Implementado |
 | `GET` | `/api/relatorios/comandas` | `relatorio_controller.py` | Consultar comandas por status | Implementado |
 
 ## Modulos sem endpoints implementados

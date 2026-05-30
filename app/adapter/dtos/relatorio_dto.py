@@ -8,6 +8,7 @@ from core.application.use_cases.relatorio_service import (
     CaixaRelatorio,
     ComandaPorStatus,
     ComandasResumo,
+    EstoqueConsumidoItem,
     EstoqueResumo,
     FiadosResumo,
     ItemEstoqueRelatorio,
@@ -267,6 +268,24 @@ class ItemEstoqueRelatorioResponse(BaseModel):
             nome=item.nome,
             quantidadeEstoque=item.quantidade_estoque,
             estoqueMinimo=item.estoque_minimo,
+            unidadeEstoque=item.unidade_estoque,
+        )
+
+
+class EstoqueConsumidoResponse(BaseModel):
+    produto_id: int = Field(alias="produtoId")
+    nome: str
+    quantidade_consumida: Decimal = Field(alias="quantidadeConsumida")
+    unidade_estoque: UnidadeEstoque = Field(alias="unidadeEstoque")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    @classmethod
+    def from_result(cls, item: EstoqueConsumidoItem) -> "EstoqueConsumidoResponse":
+        return cls(
+            produtoId=item.produto_id,
+            nome=item.nome,
+            quantidadeConsumida=item.quantidade_consumida,
             unidadeEstoque=item.unidade_estoque,
         )
 

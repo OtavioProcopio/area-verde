@@ -58,9 +58,8 @@ Relacionamentos: `Produto 1 -> 0..* ItemComanda` e
 
 ## ProdutoComposicao
 
-Modulo principal: Produtos Compostos. Status: Parcial. A modelagem existe, mas
-os endpoints e a integracao com comandas/estoque serao implementados nas
-proximas etapas do Modulo 9.
+Modulo principal: Produtos Compostos. Status: Implementado. A modelagem,
+endpoints e integracao com comandas, estoque e relatorios estao operacionais.
 
 | Campo | Tipo conceitual | Obrigatorio | Observacao |
 |---|---|---|---|
@@ -71,7 +70,8 @@ proximas etapas do Modulo 9.
 | `criado_em`, `atualizado_em` | DateTime | Sim | Auditoria simples |
 
 Relacionamentos: `Produto COMPOSTO 1 -> 0..* ProdutoComposicao` e
-`ProdutoComposicao 0..* -> 1 Produto` como componente.
+`ProdutoComposicao 0..* -> 1 Produto` como componente. O produto pai e vendido
+em `ItemComanda`; o componente e movimentado em `MovimentoEstoque`.
 
 ## Cliente
 
@@ -204,4 +204,5 @@ Modulo de consulta. Status: Implementado.
 
 Nao cria tabelas nem migrations. Consolida dados existentes de `Comanda`,
 `ItemComanda`, `Produto`, `Cliente`, `Pagamento`, `Caixa`, `MovimentoCaixa` e
-`MovimentoEstoque`.
+`MovimentoEstoque`. Produtos mais vendidos usam `ItemComanda`; consumo de
+estoque usa `MovimentoEstoque`.

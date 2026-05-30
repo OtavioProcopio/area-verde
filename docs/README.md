@@ -23,6 +23,7 @@ repositório.
 - [Produtos e Categorias](modules/produtos-categorias.md)
 - [Estoque](modules/estoque.md)
 - [Comandas e Itens](modules/comandas.md)
+- [Produtos compostos](modules/produtos-categorias.md#casos-de-uso-atendidos)
 - [Pagamentos e Fechamento](modules/pagamentos.md)
 - [Clientes](modules/clientes.md)
 - [Fiado / Pendências](modules/fiado.md)

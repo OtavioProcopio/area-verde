@@ -8,15 +8,17 @@ from core.domain.enums import (
     StatusCaixa,
     StatusComanda,
     TipoMovimentoCaixa,
+    TipoMovimentoEstoque,
     UnidadeEstoque,
 )
 from core.domain.exceptions import ApplicationError, NotFoundError
-from core.domain.models import Caixa, Comanda, Pagamento, Produto
+from core.domain.models import Caixa, Comanda, MovimentoEstoque, Pagamento, Produto
 from core.interfaces.adapters.repositories.i_relatorio_repository import (
     IRelatorioRepository,
 )
 
 ZERO_MONEY = Decimal("0.00")
+ZERO_QUANTITY = Decimal("0.000")
 REAL_PAYMENT_FORMS = {
     FormaPagamento.DINHEIRO,
     FormaPagamento.PIX,
@@ -110,6 +112,14 @@ class ItemEstoqueRelatorio:
     nome: str
     quantidade_estoque: Decimal
     estoque_minimo: Decimal
+    unidade_estoque: UnidadeEstoque
+
+
+@dataclass(frozen=True)
+class EstoqueConsumidoItem:
+    produto_id: int
+    nome: str
+    quantidade_consumida: Decimal
     unidade_estoque: UnidadeEstoque
 
 
@@ -371,6 +381,17 @@ class RelatorioService:
             ),
         )
 
+    def estoque_consumido(
+        self,
+        data_inicio: Optional[date] = None,
+        data_fim: Optional[date] = None,
+    ) -> list[EstoqueConsumidoItem]:
+        self._ensure_periodo_valido(data_inicio, data_fim)
+        inicio = datetime.combine(data_inicio, time.min) if data_inicio else None
+        fim = datetime.combine(data_fim, time.max) if data_fim else None
+        movimentos = self.relatorio_repository.list_movimentos_estoque(inicio, fim)
+        return self._estoque_consumido(movimentos)
+
     def relatorio_comandas(
         self,
         data_inicio: Optional[date] = None,
@@ -609,6 +630,59 @@ class RelatorioService:
             quantidade_estoque=produto.quantidade_estoque,
             estoque_minimo=produto.estoque_minimo,
             unidade_estoque=produto.unidade_estoque,
+        )
+
+    @staticmethod
+    def _estoque_consumido(
+        movimentos: list[MovimentoEstoque],
+    ) -> list[EstoqueConsumidoItem]:
+        agregados: dict[int, EstoqueConsumidoItem] = {}
+        for movimento in movimentos:
+            produto = movimento.produto
+            if (
+                produto is None
+                or produto.id is None
+                or not produto.controla_estoque
+                or movimento.tipo
+                not in {
+                    TipoMovimentoEstoque.SAIDA_VENDA,
+                    TipoMovimentoEstoque.DEVOLUCAO_CANCELAMENTO,
+                }
+            ):
+                continue
+
+            sinal = (
+                Decimal("-1.000")
+                if movimento.tipo == TipoMovimentoEstoque.DEVOLUCAO_CANCELAMENTO
+                else Decimal("1.000")
+            )
+            atual = agregados.get(produto.id)
+            quantidade = (movimento.quantidade * sinal).quantize(ZERO_QUANTITY)
+            if atual is None:
+                agregados[produto.id] = EstoqueConsumidoItem(
+                    produto_id=produto.id,
+                    nome=produto.nome,
+                    quantidade_consumida=quantidade,
+                    unidade_estoque=produto.unidade_estoque,
+                )
+                continue
+
+            agregados[produto.id] = EstoqueConsumidoItem(
+                produto_id=atual.produto_id,
+                nome=atual.nome,
+                quantidade_consumida=(atual.quantidade_consumida + quantidade).quantize(
+                    ZERO_QUANTITY
+                ),
+                unidade_estoque=atual.unidade_estoque,
+            )
+
+        consumidos = [
+            item for item in agregados.values() if item.quantidade_consumida > 0
+        ]
+        return sorted(
+            consumidos,
+            key=lambda item: (item.quantidade_consumida, item.nome),
+            reverse=True,
         )
 
     @staticmethod

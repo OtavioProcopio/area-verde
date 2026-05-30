@@ -12,7 +12,6 @@
 | Item | Tipo | Local | Descricao | Recomendacao |
 |---|---|---|---|---|
 | Parametro `permitir_estoque_negativo` | Decisao futura | `ConfiguracaoSistema` e Estoque/Comandas | A entidade tem o parametro, mas a regra operacional ainda permite estoque negativo no MVP | Decidir no modulo Configuracoes se esse parametro passa a governar vendas |
-| Relatorio de consumo por componente | Modulo 9.4 pendente | Relatorios / Estoque | Produto composto ja baixa componentes, mas ainda nao ha relatorio especifico de consumo por insumo | Implementar somente na issue #20 |
 | Relatorios avancados | Fora de escopo | `docs/modules/relatorios.md` | O modulo atual cobre consultas basicas, sem exportacao ou dashboard | Reavaliar PDF, Excel, CSV e graficos apos o MVP |
 | Collection Postman | Manutencao continua | `docs/postman/area-verde-collection.json` | A collection acompanha os relatorios basicos atuais, mas deve seguir novos endpoints | Atualizar somente quando novos endpoints reais existirem |
 
@@ -31,3 +30,5 @@
 | Diagrama de classes sem `Cliente` | Desatualizado apos o modulo Clientes | `Cliente` e relacionamentos foram adicionados |
 | Campos atuais de `Comanda` incompletos | Faltavam `caixaOrigemId`, `clienteId`, `nomeClienteSnapshot` e `pendenteEm` | Campos incluidos no diagrama global |
 | Caso de uso antigo "Bloquear FIADO no MVP" | Texto conflitava com modulo Fiado implementado | Substituido por "FIADO vira pendencia" e "Bloquear FIADO como pagamento recebido" |
+| Relatorio de consumo por componente | Nao existia endpoint dedicado | Implementado em `GET /api/relatorios/estoque-consumido`, baseado em `MovimentoEstoque` |
+| Modulo 9 - Produtos compostos | Issues #17 a #21 pendentes | Consolidado com modelagem, endpoints, comanda/estoque, relatorios, docs e Postman |

@@ -9,6 +9,7 @@ from adapter.controllers.dependencies import (
     get_current_session,
 )
 from adapter.dtos.relatorio_dto import (
+    EstoqueConsumidoResponse,
     ProdutoMaisVendidoResponse,
     RelatorioCaixaResponse,
     RelatorioComandasResponse,
@@ -106,6 +107,24 @@ def relatorio_estoque(
     service: RelatorioService = Depends(get_service),
 ) -> RelatorioEstoqueResponse:
     return RelatorioEstoqueResponse.from_result(service.relatorio_estoque(tipo=tipo))
+
+
+@router.get(
+    "/estoque-consumido",
+    response_model=list[EstoqueConsumidoResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Lista consumo de estoque por produto",
+)
+def estoque_consumido(
+    data_inicio: Optional[date] = Query(default=None, alias="dataInicio"),
+    data_fim: Optional[date] = Query(default=None, alias="dataFim"),
+    service: RelatorioService = Depends(get_service),
+) -> list[EstoqueConsumidoResponse]:
+    consumidos = service.estoque_consumido(
+        data_inicio=data_inicio,
+        data_fim=data_fim,
+    )
+    return [EstoqueConsumidoResponse.from_result(item) for item in consumidos]
 
 
 @router.get(
