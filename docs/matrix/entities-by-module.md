@@ -7,15 +7,14 @@ principais, relacionamentos e status operacional.
 
 ## ConfiguracaoSistema
 
-Modulo principal: Configuracoes / Acesso. Status: Parcial. A tabela existe, mas
-nao ha modulo operacional com endpoints.
+Modulo principal: Configuracoes / Acesso. Status: Implementado.
 
 | Campo | Tipo conceitual | Obrigatorio | Observacao |
 |---|---|---|---|
 | `id` | Long | Sim | Identificador |
-| `senha_acesso_hash` | String | Sim | Base futura para senha simples |
-| `dias_para_alerta_fiado` | Integer | Sim | Parametro futuro de alerta/vencimento |
-| `permitir_estoque_negativo` | Boolean | Sim | Parametro futuro; hoje a venda pode negativar estoque no MVP |
+| `senha_acesso_hash` | String | Sim | Hash da senha operacional; nunca exposto em response |
+| `dias_para_alerta_fiado` | Integer | Sim | Prazo padrao do fiado quando `vencimentoEm` nao e informado |
+| `permitir_estoque_negativo` | Boolean | Sim | Governa baixa por venda que deixaria saldo negativo |
 | `nome_bar` | String | Sim | Nome exibivel do bar |
 | `observacao` | String | Nao | Observacao administrativa |
 | `criado_em`, `atualizado_em` | DateTime | Sim | Auditoria simples |

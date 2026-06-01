@@ -19,6 +19,6 @@ modulo de Relatorios.
 | Clientes | `app/clientes_test.py` | cadastro, busca, filtros, edicao, ativacao, inativacao e duplicidade normalizada | Nao cobre importacao ou campos fiscais, fora do MVP |
 | Fiado / Pendencias | `app/fiado_test.py` | cliente em comanda, fiado, vencidos, consulta, quitacao, cliente inativo, caixa aberto e fechamento com pendencias | Nao cobre pagamento parcial, juros ou cobranca automatica |
 | Relatorios basicos | `app/relatorios_test.py` | diario, caixa, produtos mais vendidos, consumo de estoque, fiados, estoque, comandas, filtros e validacoes | Nao cobre exportacao PDF/Excel ou dashboard visual, fora do escopo |
-| Configuracoes | A criar | Nao implementado como modulo operacional | Criar testes quando houver controller/use case |
-| Acesso / Senha | A criar | Nao implementado | Criar testes quando houver fluxo de acesso |
+| Configuracoes | `app/configuracoes_test.py` | consulta, criacao padrao, update, patch, CORS e regra de estoque negativo | Nao cobre interface visual do frontend |
+| Acesso / Senha | `app/configuracoes_test.py` | definir senha, alterar senha, validar senha e erros esperados | Nao cobre sessao/token, fora do MVP |
 | Frontend operacional | A criar | Fora da API atual | Definir estrategia propria quando o frontend existir |

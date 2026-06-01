@@ -82,7 +82,7 @@ alembic upgrade head
 
 | Entidade | Tabela | Modulo principal | Observacao |
 |---|---|---|---|
-| `ConfiguracaoSistema` | `configuracao_sistema` | Configuracoes / Acesso | Tabela existe; modulo operacional pendente |
+| `ConfiguracaoSistema` | `configuracao_sistema` | Configuracoes / Acesso | Parametros operacionais e hash da senha unica do MVP |
 | `CategoriaProduto` | `categoria_produto` | Produtos e Categorias | Possui produtos |
 | `Produto` | `produto` | Produtos / Estoque | Base de venda, controle de estoque e tipo simples/composto |
 | `ProdutoComposicao` | `produto_composicao` | Produtos Compostos | Componentes e quantidade de baixa por produto composto |

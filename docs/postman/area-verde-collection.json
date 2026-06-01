@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "area-verde-api-collection",
     "name": "Area Verde API",
-    "description": "Collection da API do Area Verde para validar o fluxo do MVP: produtos, estoque, clientes, comandas, fiado, caixa diário, pagamentos e relatórios básicos.",
+    "description": "Collection da API do Area Verde para validar o fluxo do MVP: configuracoes, acesso, produtos, estoque, clientes, comandas, fiado, caixa diario, pagamentos e relatorios basicos.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -16,6 +16,112 @@
             "header": [],
             "url": "{{baseUrl}}/health",
             "description": "Verificacao de saude da API."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Configuracoes e Acesso",
+      "item": [
+        {
+          "name": "GET /api/configuracoes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/configuracoes",
+            "description": "Consulta a configuracao operacional atual e cria o registro padrao se ainda nao existir."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/configuracoes",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeBar\": \"Area Verde Matriz\",\n  \"diasParaAlertaFiado\": 10,\n  \"permitirEstoqueNegativo\": false,\n  \"observacao\": \"Configuracao principal\"\n}"
+            },
+            "url": "{{baseUrl}}/api/configuracoes"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/configuracoes",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permitirEstoqueNegativo\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/configuracoes"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/acesso/senha",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"novaSenha\": \"{{novaSenha}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/acesso/senha",
+            "description": "Define a senha inicial. Para trocar senha existente, inclua senhaAtual no payload."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/acesso/senha troca",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senhaAtual\": \"{{senhaAtual}}\",\n  \"novaSenha\": \"{{novaSenha}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/acesso/senha"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/acesso/validar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senha\": \"{{novaSenha}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/acesso/validar"
           },
           "response": []
         }
@@ -993,6 +1099,14 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:8001"
+    },
+    {
+      "key": "senhaAtual",
+      "value": "1234"
+    },
+    {
+      "key": "novaSenha",
+      "value": "5678"
     },
     {
       "key": "categoriaId",

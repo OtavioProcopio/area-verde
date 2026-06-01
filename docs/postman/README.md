@@ -8,6 +8,7 @@ Arquivos para importar e testar a API pelo Postman.
 A collection cobre:
 
 - health check;
+- configuracoes operacionais e acesso por senha;
 - abertura de caixa antes da operação;
 - categorias, produtos simples, produtos compostos e composicao;
 - consultas e movimentos de estoque;
@@ -28,29 +29,30 @@ A collection cobre:
 ## Fluxo operacional recomendado
 
 1. `GET /health`
-2. `POST /api/caixas/abrir`
-3. `POST /api/categorias`
-4. `POST /api/produtos`
-5. Criar produtos simples componentes com controle de estoque.
-6. Criar produto composto com `tipoProduto=COMPOSTO`.
-7. Configurar composicao em `/api/produtos/{produto_id}/composicao/componentes`.
-8. `POST /api/estoque/produtos/{produto_id}/entrada` ou `/ajuste`
-9. `POST /api/clientes`
-10. `POST /api/comandas` com `nomeCliente`
-11. `POST /api/comandas` com `clienteId`
-12. `POST /api/comandas/{comanda_id}/itens`
-13. Consultar movimentos em `/api/estoque/produtos/{produto_id}/movimentos`
-14. Resolver a comanda por um dos caminhos:
+2. `GET /api/configuracoes`
+3. `PUT /api/configuracoes` ou `PATCH /api/configuracoes`
+4. `PUT /api/acesso/senha`
+5. `POST /api/acesso/validar`
+6. `POST /api/caixas/abrir`
+7. `POST /api/categorias`
+8. `POST /api/produtos`
+9. Criar produtos simples componentes com controle de estoque.
+10. Criar produto composto com `tipoProduto=COMPOSTO`.
+11. Configurar composicao em `/api/produtos/{produto_id}/composicao/componentes`.
+12. `POST /api/estoque/produtos/{produto_id}/entrada` ou `/ajuste`
+13. `POST /api/clientes`
+14. `POST /api/comandas` com `nomeCliente`
+15. `POST /api/comandas` com `clienteId`
+16. `POST /api/comandas/{comanda_id}/itens`
+17. Consultar movimentos em `/api/estoque/produtos/{produto_id}/movimentos`
+18. Resolver a comanda por um dos caminhos:
     - `POST /api/comandas/{comanda_id}/fechar`, se o cliente pagou.
     - `POST /api/comandas/{comanda_id}/fiado`, se ficou pendente.
-15. Se ficou fiado, usar `GET /api/fiados`
-16. Se for quitar, usar `POST /api/fiados/{comanda_id}/quitar`
-17. Fechar caixa com `POST /api/caixas/{caixa_id}/fechar`
-18. Consultar venda em `/api/relatorios/produtos-mais-vendidos`
-19. Consultar consumo fisico em `/api/relatorios/estoque-consumido`
-
-Nao inclua na collection endpoints de Configuracoes, Acesso ou Frontend enquanto
-esses modulos nao existirem no backend.
+19. Se ficou fiado, usar `GET /api/fiados`
+20. Se for quitar, usar `POST /api/fiados/{comanda_id}/quitar`
+21. Fechar caixa com `POST /api/caixas/{caixa_id}/fechar`
+22. Consultar venda em `/api/relatorios/produtos-mais-vendidos`
+23. Consultar consumo fisico em `/api/relatorios/estoque-consumido`
 
 Por padrão, o ambiente aponta para a API local. Ajuste `baseUrl` conforme o modo
 de execução usado:

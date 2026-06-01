@@ -53,13 +53,14 @@
 | Clientes | Cadastra, lista, edita, ativa e inativa clientes para histórico de pendências | [Abrir](docs/modules/clientes.md) |
 | Fiado / Pendências | Marca comanda como pendente, lista vencidos e quita no caixa aberto | [Abrir](docs/modules/fiado.md) |
 | Relatórios | Consolida diário, caixa, produtos vendidos, consumo de estoque, fiados, estoque e comandas | [Abrir](docs/modules/relatorios.md) |
+| Configurações | Mantém parâmetros operacionais, prazo padrão do fiado e regra de estoque negativo | [Abrir](docs/modules/configuracoes.md) |
+| Acesso / Senha | Valida senha simples do MVP e permite definir/alterar hash operacional | [Abrir](docs/modules/acesso.md) |
 
 ### Pendente
 
 | Módulo | Próximo papel no MVP | Documentação |
 |---|---|---|
-| Configurações | Parametrizar comportamento do sistema | [Abrir](docs/modules/configuracoes.md) |
-| Acesso / Senha | Controle simples de acesso | [Roadmap](docs/roadmap.md) |
+| Release MVP | Consolidar validações finais e documentação de entrega | [Roadmap](docs/roadmap.md) |
 | Frontend | Operação visual do bar | [Roadmap](docs/roadmap.md) |
 
 ## Stack

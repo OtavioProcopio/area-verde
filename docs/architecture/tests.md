@@ -25,6 +25,8 @@ Os testes ficam em `app/` com sufixo `_test.py`.
 | Clientes | `clientes_test.py` | Cadastro, filtros, ativacao, inativacao e duplicidade |
 | Fiado / Pendencias | `fiado_test.py` | Pendencias, vencidos, quitacao e cliente inativo |
 | Relatorios basicos | `relatorios_test.py` | Diario, caixa, produtos vendidos, consumo de estoque, fiados, estoque, comandas e validacoes |
+| Configuracoes | `configuracoes_test.py` | Configuracao padrao, update, patch, CORS e regra de estoque negativo |
+| Acesso / Senha | `configuracoes_test.py` | Definicao, troca, validacao e protecao do hash |
 
 Matriz detalhada: [Testes por Modulo](../matrix/tests-by-module.md).
 

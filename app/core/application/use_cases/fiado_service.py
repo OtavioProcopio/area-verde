@@ -5,6 +5,9 @@ from typing import Optional
 
 from core.application.use_cases.caixa_service import CaixaService
 from core.application.use_cases.cliente_service import ClienteService
+from core.application.use_cases.configuracao_service import (
+    DEFAULT_DIAS_PARA_ALERTA_FIADO,
+)
 from core.domain.enums import FormaPagamento, StatusComanda
 from core.domain.exceptions import ApplicationError, NotFoundError
 from core.domain.models import Cliente, Comanda, Pagamento
@@ -13,6 +16,9 @@ from core.interfaces.adapters.repositories.i_cliente_repository import (
 )
 from core.interfaces.adapters.repositories.i_comanda_repository import (
     IComandaRepository,
+)
+from core.interfaces.adapters.repositories.i_configuracao_sistema_repository import (
+    IConfiguracaoSistemaRepository,
 )
 from core.interfaces.adapters.repositories.i_pagamento_repository import (
     IPagamentoRepository,
@@ -32,11 +38,13 @@ class FiadoService:
         comanda_repository: IComandaRepository,
         cliente_repository: IClienteRepository,
         caixa_service: CaixaService,
+        configuracao_repository: IConfiguracaoSistemaRepository,
     ):
         self.pagamento_repository = pagamento_repository
         self.comanda_repository = comanda_repository
         self.cliente_repository = cliente_repository
         self.caixa_service = caixa_service
+        self.configuracao_repository = configuracao_repository
 
     def marcar_fiado(
         self,
@@ -192,11 +200,10 @@ class FiadoService:
             raise NotFoundError("cliente_nao_encontrado", "Cliente não encontrado")
         return cliente
 
-    @staticmethod
-    def _resolve_vencimento(vencimento_em: Optional[date]) -> date:
+    def _resolve_vencimento(self, vencimento_em: Optional[date]) -> date:
         hoje = date.today()
         if vencimento_em is None:
-            return hoje + timedelta(days=7)
+            return hoje + timedelta(days=self._dias_padrao_fiado())
         if vencimento_em < hoje:
             raise ApplicationError(
                 "vencimento_invalido",
@@ -204,6 +211,12 @@ class FiadoService:
                 400,
             )
         return vencimento_em
+
+    def _dias_padrao_fiado(self) -> int:
+        configuracao = self.configuracao_repository.get_atual()
+        if configuracao is None:
+            return DEFAULT_DIAS_PARA_ALERTA_FIADO
+        return configuracao.dias_para_alerta_fiado
 
     @staticmethod
     def _ensure_aberta(comanda: Comanda) -> None:

@@ -7,6 +7,9 @@ from typing import List, Optional
 from core.domain.enums import OrigemMovimentoEstoque, TipoMovimentoEstoque
 from core.domain.exceptions import ApplicationError, NotFoundError
 from core.domain.models import MovimentoEstoque, Produto
+from core.interfaces.adapters.repositories.i_configuracao_sistema_repository import (
+    IConfiguracaoSistemaRepository,
+)
 from core.interfaces.adapters.repositories.i_movimento_estoque_repository import (
     IMovimentoEstoqueRepository,
 )
@@ -20,9 +23,11 @@ class EstoqueService:
         self,
         produto_repository: IProdutoRepository,
         movimento_repository: IMovimentoEstoqueRepository,
+        configuracao_repository: IConfiguracaoSistemaRepository,
     ):
         self.produto_repository = produto_repository
         self.movimento_repository = movimento_repository
+        self.configuracao_repository = configuracao_repository
 
     def list(
         self,
@@ -132,6 +137,12 @@ class EstoqueService:
 
         estoque_antes = produto.quantidade_estoque
         estoque_depois = estoque_antes - quantidade_baixada
+        if estoque_depois < Decimal("0") and not self._permite_estoque_negativo():
+            raise ApplicationError(
+                code="estoque_insuficiente",
+                message="Estoque insuficiente para a operação",
+                status_code=400,
+            )
 
         return self._registrar_movimento(
             produto=produto,
@@ -256,3 +267,9 @@ class EstoqueService:
                 status_code=400,
             )
         return produto.id
+
+    def _permite_estoque_negativo(self) -> bool:
+        configuracao = self.configuracao_repository.get_atual()
+        if configuracao is None:
+            return True
+        return configuracao.permitir_estoque_negativo

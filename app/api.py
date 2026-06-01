@@ -3,16 +3,19 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
+from adapter.controllers.acesso_controller import router as acesso_router
 from adapter.controllers.caixa_controller import router as caixa_router
 from adapter.controllers.categoria_produto_controller import (
     router as categoria_produto_router,
 )
 from adapter.controllers.cliente_controller import router as cliente_router
 from adapter.controllers.comanda_controller import router as comanda_router
+from adapter.controllers.configuracao_controller import router as configuracao_router
 from adapter.controllers.estoque_controller import router as estoque_router
 from adapter.controllers.fiado_controller import router as fiado_router
 from adapter.controllers.pagamento_controller import router as pagamento_router
@@ -38,6 +41,14 @@ def create_app() -> FastAPI:
         title="Area Verde API",
         description="API para apoiar a operacao do bar Area Verde",
         version="0.1.0",
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_allow_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     app.container = container  # type: ignore[attr-defined]
@@ -109,6 +120,8 @@ def create_app() -> FastAPI:
     app.include_router(produto_router)
     app.include_router(produto_composicao_router)
     app.include_router(estoque_router)
+    app.include_router(configuracao_router)
+    app.include_router(acesso_router)
     app.include_router(cliente_router)
     app.include_router(comanda_router)
     app.include_router(fiado_router)

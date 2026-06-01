@@ -30,6 +30,7 @@ repositório.
 - [Caixa Diário](modules/caixa.md)
 - [Relatórios](modules/relatorios.md)
 - [Configurações](modules/configuracoes.md)
+- [Acesso / Senha](modules/acesso.md)
 
 ## Arquitetura
 

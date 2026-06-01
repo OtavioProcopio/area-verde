@@ -87,7 +87,9 @@ consumo fica para pagamento futuro.
 - Diminuir, remover ou cancelar devolve estoque proporcional.
 - Produtos mais vendidos usam o `ItemComanda`; por isso exibem o produto
   composto vendido, e nao seus componentes.
-- Venda pode deixar estoque negativo no MVP para não travar atendimento.
+- Venda respeita a configuração `permitir_estoque_negativo`.
+- Se a configuração estiver desligada, a venda é bloqueada com
+  `estoque_insuficiente`.
 - Comanda cancelada permanece no histórico com seus itens e movimentos.
 - Comanda fechada pelo módulo de pagamentos não pode receber novas alterações.
 
@@ -104,6 +106,7 @@ consumo fica para pagamento futuro.
 - Produto deve estar ativo. Erro: `produto_inativo`.
 - Produto composto sem componentes retorna `produto_composto_sem_composicao`.
 - Componente inativo ou sem controle de estoque bloqueia a venda do composto.
+- Estoque insuficiente com bloqueio configurado retorna `estoque_insuficiente`.
 - Comanda deve estar aberta. Erro: `comanda_nao_aberta`.
 - Item deve pertencer à comanda informada.
 

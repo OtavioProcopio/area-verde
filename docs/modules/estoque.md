@@ -68,6 +68,8 @@ produto.
   `produto_sem_controle_estoque`.
 - Entrada exige `quantidade > 0`. Erro: `quantidade_invalida`.
 - Ajuste rejeita `novoEstoque < 0`. Erro: `novo_estoque_invalido`.
+- Se `permitir_estoque_negativo=false`, a baixa automática por venda que deixaria
+  saldo negativo é bloqueada com `estoque_insuficiente`.
 
 ## Exemplos de request
 
@@ -128,8 +130,8 @@ que saiu fisicamente do estoque.
 
 - Inventário completo.
 - Transferência entre depósitos.
-- Bloqueio global de venda por estoque negativo.
+- Ajuste manual para estoque negativo.
 
 ## Próximo passo relacionado
 
-- Configurações para bloquear ou permitir estoque negativo.
+- Release MVP.

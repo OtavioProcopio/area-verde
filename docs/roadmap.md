@@ -11,15 +11,15 @@
 - Fiado / Pendências
 - Relatórios básicos
 - Produtos compostos / composição de produtos
+- Configurações
+- Acesso / Senha
 
 ## Próximo
 
-- Configurações
+- Release MVP
 
 ## Depois
 
-- Acesso / Senha
-- Release MVP
 - Frontend operacional
 
 ## Ordem consolidada
@@ -35,9 +35,9 @@
 | 7 | Fiado / Pendências | Implementado |
 | 8 | Relatórios básicos | Implementado |
 | 9 | Produtos compostos / composição de produtos | Implementado |
-| 10 | Configurações | Próximo |
-| 11 | Acesso / Senha | Pendente |
-| 12 | Release MVP | Futuro |
+| 10 | Configurações | Implementado |
+| 11 | Acesso / Senha | Implementado |
+| 12 | Release MVP | Próximo |
 | 13 | Frontend operacional | Futuro |
 
 ## Fora do escopo imediato

@@ -7,6 +7,9 @@ from adapter.repositories.categoria_produto_repository import (
 )
 from adapter.repositories.cliente_repository import ClienteRepository
 from adapter.repositories.comanda_repository import ComandaRepository
+from adapter.repositories.configuracao_sistema_repository import (
+    ConfiguracaoSistemaRepository,
+)
 from adapter.repositories.movimento_estoque_repository import MovimentoEstoqueRepository
 from adapter.repositories.pagamento_repository import PagamentoRepository
 from adapter.repositories.produto_composicao_repository import (
@@ -14,12 +17,14 @@ from adapter.repositories.produto_composicao_repository import (
 )
 from adapter.repositories.produto_repository import ProdutoRepository
 from adapter.repositories.relatorio_repository import RelatorioRepository
+from core.application.use_cases.acesso_service import AcessoService
 from core.application.use_cases.caixa_service import CaixaService
 from core.application.use_cases.categoria_produto_service import (
     CategoriaProdutoService,
 )
 from core.application.use_cases.cliente_service import ClienteService
 from core.application.use_cases.comanda_service import ComandaService
+from core.application.use_cases.configuracao_service import ConfiguracaoService
 from core.application.use_cases.estoque_service import EstoqueService
 from core.application.use_cases.fiado_service import FiadoService
 from core.application.use_cases.pagamento_service import PagamentoService
@@ -65,9 +70,11 @@ def build_produto_composicao_service(session: Session) -> ProdutoComposicaoServi
 def build_estoque_service(session: Session) -> EstoqueService:
     produto_repository = ProdutoRepository(session)
     movimento_repository = MovimentoEstoqueRepository(session)
+    configuracao_repository = ConfiguracaoSistemaRepository(session)
     return EstoqueService(
         produto_repository=produto_repository,
         movimento_repository=movimento_repository,
+        configuracao_repository=configuracao_repository,
     )
 
 
@@ -96,9 +103,11 @@ def build_comanda_service(session: Session) -> ComandaService:
     produto_repository = ProdutoRepository(session)
     composicao_repository = ProdutoComposicaoRepository(session)
     movimento_repository = MovimentoEstoqueRepository(session)
+    configuracao_repository = ConfiguracaoSistemaRepository(session)
     estoque_service = EstoqueService(
         produto_repository=produto_repository,
         movimento_repository=movimento_repository,
+        configuracao_repository=configuracao_repository,
     )
     composicao_service = ProdutoComposicaoService(
         produto_repository=produto_repository,
@@ -129,15 +138,27 @@ def build_fiado_service(session: Session) -> FiadoService:
     pagamento_repository = PagamentoRepository(session)
     comanda_repository = ComandaRepository(session)
     cliente_repository = ClienteRepository(session)
+    configuracao_repository = ConfiguracaoSistemaRepository(session)
     caixa_service = build_caixa_service(session)
     return FiadoService(
         pagamento_repository=pagamento_repository,
         comanda_repository=comanda_repository,
         cliente_repository=cliente_repository,
         caixa_service=caixa_service,
+        configuracao_repository=configuracao_repository,
     )
 
 
 def build_relatorio_service(session: Session) -> RelatorioService:
     relatorio_repository = RelatorioRepository(session)
     return RelatorioService(relatorio_repository)
+
+
+def build_configuracao_service(session: Session) -> ConfiguracaoService:
+    configuracao_repository = ConfiguracaoSistemaRepository(session)
+    return ConfiguracaoService(configuracao_repository)
+
+
+def build_acesso_service(session: Session) -> AcessoService:
+    configuracao_repository = ConfiguracaoSistemaRepository(session)
+    return AcessoService(configuracao_repository)
