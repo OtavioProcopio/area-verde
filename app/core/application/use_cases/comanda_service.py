@@ -291,6 +291,7 @@ class ComandaService:
                 quantidade_baixada=quantidade_baixada,
                 referencia_id=item.id,
                 observacao="Baixa por comanda",
+                commit=False,
             )
 
     def _diminuir_item(
@@ -378,6 +379,7 @@ class ComandaService:
                 quantidade_baixada=quantidade_baixada,
                 referencia_id=item.id,
                 observacao=f"Baixa por produto composto: {produto.nome}",
+                commit=False,
             )
 
     def _devolver_estoque_item(
@@ -406,6 +408,7 @@ class ComandaService:
                 referencia_id=item.id,
                 origem=origem,
                 observacao=observacao,
+                commit=False,
             )
 
     def _devolver_componentes_produto_composto(
@@ -426,6 +429,7 @@ class ComandaService:
                 referencia_id=item.id,
                 origem=origem,
                 observacao=f"{observacao}: {produto.nome}",
+                commit=False,
             )
 
     @staticmethod

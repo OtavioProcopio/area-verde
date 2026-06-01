@@ -43,6 +43,21 @@ Mapear as rotas reais registradas em `app/api.py` e nos controllers em
 | `POST` | `/api/estoque/produtos/{produto_id}/entrada` | `estoque_controller.py` | Registrar entrada manual | Implementado |
 | `POST` | `/api/estoque/produtos/{produto_id}/ajuste` | `estoque_controller.py` | Registrar ajuste manual | Implementado |
 
+## Configuracoes
+
+| Metodo | Endpoint | Controller | Caso de uso | Status |
+|---|---|---|---|---|
+| `GET` | `/api/configuracoes` | `configuracao_controller.py` | Consultar configuracao atual | Implementado |
+| `PUT` | `/api/configuracoes` | `configuracao_controller.py` | Atualizar configuracao completa | Implementado |
+| `PATCH` | `/api/configuracoes` | `configuracao_controller.py` | Atualizar configuracao parcial | Implementado |
+
+## Acesso / Senha
+
+| Metodo | Endpoint | Controller | Caso de uso | Status |
+|---|---|---|---|---|
+| `POST` | `/api/acesso/validar` | `acesso_controller.py` | Validar senha operacional | Implementado |
+| `PUT` | `/api/acesso/senha` | `acesso_controller.py` | Definir ou alterar senha operacional | Implementado |
+
 ## Clientes
 
 | Metodo | Endpoint | Controller | Caso de uso | Status |
@@ -115,7 +130,5 @@ Mapear as rotas reais registradas em `app/api.py` e nos controllers em
 
 | Modulo | Status | Observacao |
 |---|---|---|
-| Configuracoes | Pendente | Existe entidade `ConfiguracaoSistema`, mas nao ha controller/rotas |
-| Acesso / Senha simples | Pendente | Sem controller/rotas |
 | Frontend operacional | Futuro | Fora da API atual |
 | Release MVP | Futuro | Nao e endpoint |

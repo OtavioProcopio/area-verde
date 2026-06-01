@@ -53,11 +53,11 @@ Produto/Composicao -> Estoque -> Caixa -> Cliente -> Comanda -> Item -> Pagament
 ## Fluxo futuro
 
 ```text
-Configurações
+Release MVP -> Frontend operacional
 ```
 
-Após produtos compostos e relatórios consolidados, o próximo passo é
-parametrizar comportamentos operacionais do sistema.
+Após a implementação de configurações e acesso simples, o próximo passo é
+consolidar a release MVP e seguir para o frontend operacional.
 
 ## Ordem do MVP
 
@@ -75,12 +75,10 @@ Implementado:
 
 Próximo:
 
-10. Configurações
+12. Release MVP
 
 Depois:
 
-11. Acesso / Senha
-12. Release MVP
 13. Frontend operacional
 
 ## Documentos de referencia

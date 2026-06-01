@@ -8,6 +8,16 @@
       "enabled": true
     },
     {
+      "key": "senhaAtual",
+      "value": "1234",
+      "enabled": true
+    },
+    {
+      "key": "novaSenha",
+      "value": "5678",
+      "enabled": true
+    },
+    {
       "key": "clienteId",
       "value": "1",
       "enabled": true

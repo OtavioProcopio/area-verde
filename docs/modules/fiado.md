@@ -21,7 +21,7 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 - Marcar comanda aberta como fiado.
 - Exigir cliente cadastrado e ativo para fiado.
 - Exigir caixa aberto para marcar fiado.
-- Definir `vencimento_em` manual ou padrão de 7 dias.
+- Definir `vencimento_em` manual ou pelo padrão configurado do sistema.
 - Registrar `pendente_em`.
 - Preservar `caixa_origem_id` da comanda.
 - Listar pendências.
@@ -126,7 +126,8 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 - Comanda deve ter itens e total maior que zero.
 - Cliente cadastrado e ativo é obrigatório.
 - Se a comanda já tiver cliente, `clienteId` pode ser omitido no request.
-- Se `vencimentoEm` não for enviado, o padrão é hoje + 7 dias.
+- Se `vencimentoEm` não for enviado, o padrão é hoje + `dias_para_alerta_fiado`
+  da configuração atual. Sem configuração persistida, o fallback é 7 dias.
 - Vencimento anterior à data atual é bloqueado.
 - `pendente_em` recebe a data e hora em que a comanda virou `PENDENTE`.
 - `caixa_origem_id` identifica o caixa em que a comanda foi aberta.
@@ -172,4 +173,4 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 
 ## Próximo passo relacionado
 
-- Configurações de dias de vencimento e alerta.
+- Frontend operacional.
