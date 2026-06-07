@@ -68,6 +68,7 @@ repositório.
 - [Índice de workflows](workflows/README.md)
 - [Workflow de desenvolvimento](workflows/development-workflow.md)
 - [Comandos Make e automações locais](workflows/makefile.md)
+- [Deploy local integrado com Docker Compose](workflows/local-compose-deploy.md)
 - [CI/CD](workflows/ci-cd.md)
 - [Git Flow - referência detalhada](workflows/git-flow-reference.md)
 
