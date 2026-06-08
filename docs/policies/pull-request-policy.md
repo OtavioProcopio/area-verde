@@ -7,7 +7,7 @@
 - PR deve listar validações executadas.
 - PR deve ser pequena e focada.
 - PR deve passar no CI.
-- PR para `develop` deve vir de `feature/*`, `bugfix/*` ou `docs/*`.
+- PR para `develop` deve vir de `feature/*`, `bugfix/*`, `docs/*` ou `chore/*`.
 - PR para `main` deve vir de `release/*` ou `hotfix/*`.
 - Se a PR foi aberta com base errada, não corrigir via merge. Fechar ou retargetar a PR antes da revisão.
 
@@ -18,6 +18,7 @@
 | `feature/*` | `develop` |
 | `bugfix/*` | `develop` |
 | `docs/*` | `develop` |
+| `chore/*` | `develop` |
 | `release/*` | `main` |
 | `hotfix/*` | `main` |
 

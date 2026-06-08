@@ -14,9 +14,9 @@ Arquivo:
 Gatilhos:
 
 - Pull Request para `develop` e `main`.
-- Push para `develop` e `main`.
+- Push para `develop`, `main`, `feature/**`, `bugfix/**`, `docs/**` e `chore/**`.
 
-Validações:
+Validações (job `validate`):
 
 - instala dependências Python;
 - compila `api.py`;
@@ -30,6 +30,14 @@ Validações:
 
 PRs para `main` têm regra extra: a branch origem deve ser `release/vMAJOR.MINOR.PATCH`
 ou `hotfix/*`.
+
+### Abertura automática de PR (job `open-pr`)
+
+Quando um push acontece em uma branch `feature/*`, `bugfix/*`, `docs/*` ou `chore/*` e o
+job `validate` passa, o job `open-pr` abre automaticamente uma Pull Request
+dessa branch para `develop`, seguindo a [Git Flow Policy](../policies/git-flow-policy.md).
+Se já existir uma PR aberta com o mesmo `head` e `base`, nada é criado
+novamente — o job apenas confirma que a PR já existe.
 
 ## CD preparatório
 

@@ -10,6 +10,7 @@
 - `feature/*`: novas funcionalidades.
 - `bugfix/*`: correções comuns.
 - `docs/*`: documentação.
+- `chore/*`: manutenção (dependências, configs, automações, sem mudança de comportamento).
 - `release/*`: preparação para `main`.
 - `hotfix/*`: correções urgentes em `main`.
 
@@ -21,6 +22,8 @@
 - `bugfix/*` sempre abre PR para `develop`.
 - `docs/*` sempre nasce de `develop`.
 - `docs/*` sempre abre PR para `develop`.
+- `chore/*` sempre nasce de `develop`.
+- `chore/*` sempre abre PR para `develop`.
 - `develop` não deve ir direto para `main`.
 - `main` só recebe PR de `release/*` ou `hotfix/*`.
 - Não trabalhar direto em `main`.
@@ -47,6 +50,7 @@ feature/nome-da-feature -> develop
 - `feature/* -> main`
 - `docs/* -> main`
 - `bugfix/* -> main`
+- `chore/* -> main`
 - `develop -> main` diretamente.
 - `main -> feature/*`
 - `branch antiga -> feature nova`
