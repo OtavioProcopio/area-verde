@@ -105,6 +105,24 @@ API via Docker Compose:
 http://localhost:58001
 ```
 
+### Rodar stack integrado com frontend + API + PostgreSQL
+
+```bash
+cd area-verde-api
+docker compose -f docker-compose.local.yml up --build -d
+```
+
+Ambiente integrado:
+
+```text
+Frontend: http://localhost:3000
+API: http://localhost:8001
+PostgreSQL: localhost:5432
+```
+
+Documentação operacional:
+[`docs/workflows/local-compose-deploy.md`](docs/workflows/local-compose-deploy.md)
+
 ### Validar
 
 ```bash
