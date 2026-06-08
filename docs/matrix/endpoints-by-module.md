@@ -22,6 +22,7 @@ Mapear as rotas reais registradas em `app/api.py` e nos controllers em
 | `PATCH` | `/api/categorias/{categoria_id}/ativar` | `categoria_produto_controller.py` | Ativar categoria | Implementado |
 | `PATCH` | `/api/categorias/{categoria_id}/inativar` | `categoria_produto_controller.py` | Inativar categoria | Implementado |
 | `POST` | `/api/produtos` | `produto_controller.py` | Cadastrar produto | Implementado |
+| `POST` | `/api/produtos/compostos` | `produto_composicao_controller.py` | Cadastrar produto composto com composicao (transacional) | Implementado |
 | `GET` | `/api/produtos` | `produto_controller.py` | Listar produtos | Implementado |
 | `GET` | `/api/produtos/{produto_id}` | `produto_controller.py` | Consultar produto | Implementado |
 | `PUT` | `/api/produtos/{produto_id}` | `produto_controller.py` | Editar produto | Implementado |

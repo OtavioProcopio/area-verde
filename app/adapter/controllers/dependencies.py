@@ -64,6 +64,7 @@ def build_produto_composicao_service(session: Session) -> ProdutoComposicaoServi
     return ProdutoComposicaoService(
         produto_repository=produto_repository,
         composicao_repository=composicao_repository,
+        produto_service=build_produto_service(session),
     )
 
 
@@ -112,6 +113,7 @@ def build_comanda_service(session: Session) -> ComandaService:
     composicao_service = ProdutoComposicaoService(
         produto_repository=produto_repository,
         composicao_repository=composicao_repository,
+        produto_service=build_produto_service(session),
     )
     return ComandaService(
         comanda_repository=comanda_repository,

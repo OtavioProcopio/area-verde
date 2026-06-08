@@ -316,6 +316,24 @@
           "response": []
         },
         {
+          "name": "POST /api/produtos/compostos transacional",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Dose Mista\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 12.0,\n  \"controlaEstoque\": false,\n  \"componentes\": [\n    {\n      \"produtoComponenteId\": {{produtoComponenteId}},\n      \"quantidadeBaixa\": 50\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos/compostos"
+          },
+          "response": []
+        },
+        {
           "name": "GET /api/produtos/:id/composicao",
           "request": {
             "method": "GET",

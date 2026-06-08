@@ -20,6 +20,7 @@ Manter o cadastro base de categorias e produtos vendidos pelo bar. Este módulo
 - Editar categoria.
 - Ativar e inativar categoria.
 - Criar produto.
+- Criar produto composto com sua composição em uma única operação transacional.
 - Listar produtos com filtros.
 - Consultar produto por ID.
 - Editar produto.
@@ -53,6 +54,7 @@ vendas e movimentacoes, mas nao sao geridos diretamente por este modulo.
 | `PATCH` | `/api/categorias/{id}/ativar` | Ativa categoria |
 | `PATCH` | `/api/categorias/{id}/inativar` | Inativa categoria |
 | `POST` | `/api/produtos` | Cria produto |
+| `POST` | `/api/produtos/compostos` | Cria produto composto com composição (transacional) |
 | `GET` | `/api/produtos` | Lista produtos |
 | `GET` | `/api/produtos/{id}` | Consulta produto |
 | `PUT` | `/api/produtos/{id}` | Edita produto |
@@ -82,6 +84,12 @@ vendas e movimentacoes, mas nao sao geridos diretamente por este modulo.
 - Componentes de produto composto devem estar ativos, controlar estoque e ter
   quantidade de baixa maior que zero.
 - Produto composto sem composicao nao pode ser vendido em comanda.
+- Produto composto deve ser criado com ao menos um componente atraves de
+  `POST /api/produtos/compostos`. A criacao do produto e dos vinculos de
+  composicao acontece em uma unica transacao: se qualquer validacao ou etapa
+  falhar, nada e persistido (nem o produto, nem os componentes).
+- Componente duplicado na composicao do produto composto e bloqueado, tanto na
+  criacao transacional quanto na adicao posterior de componentes.
 
 ## Validações
 
@@ -93,6 +101,13 @@ vendas e movimentacoes, mas nao sao geridos diretamente por este modulo.
 - Se `controlaEstoque=true`, `unidadeEstoque` é obrigatória.
 - Se `controlaEstoque=true`, `quantidadeBaixaPorVenda` deve ser maior que zero.
 - Estoque atual e estoque mínimo não podem ser negativos.
+- Em `POST /api/produtos/compostos`, `componentes` é obrigatório e não pode ser
+  vazio.
+- Em `POST /api/produtos/compostos`, não pode haver `produtoComponenteId`
+  duplicado na lista de componentes.
+- Em `POST /api/produtos/compostos`, cada `quantidadeBaixa` deve ser maior que
+  zero e cada `produtoComponenteId` deve referenciar um produto existente,
+  ativo, que controle estoque e que não seja composto.
 
 ## Exemplos de request
 
@@ -141,15 +156,44 @@ Adicionar componente:
 }
 ```
 
+Criar produto composto com composição (transacional):
+
+```json
+{
+  "nome": "Dose Mista",
+  "categoriaId": 2,
+  "precoVenda": 12.00,
+  "controlaEstoque": false,
+  "componentes": [
+    {
+      "produtoComponenteId": 10,
+      "quantidadeBaixa": 50
+    },
+    {
+      "produtoComponenteId": 11,
+      "quantidadeBaixa": 25
+    }
+  ]
+}
+```
+
 Fluxo recomendado para produto composto:
 
 1. Criar produtos simples componentes com `controlaEstoque=true`.
-2. Criar produto composto com `tipoProduto=COMPOSTO`.
-3. Adicionar componentes em `/api/produtos/{id}/composicao/componentes`.
+2. Criar o produto composto junto com sua composição em
+   `POST /api/produtos/compostos`. A operação é atômica: produto e componentes
+   são criados juntos ou nada é persistido.
+3. Editar a composição depois de criada (adicionar, editar ou remover
+   componentes pontuais) em `/api/produtos/{id}/composicao/componentes`.
 4. Vender o produto composto em `/api/comandas/{id}/itens`.
 5. Consultar movimentos dos componentes em `/api/estoque/produtos/{id}/movimentos`.
 6. Consultar venda em `/api/relatorios/produtos-mais-vendidos` e consumo fisico
    em `/api/relatorios/estoque-consumido`.
+
+> `POST /api/produtos` continua aceitando `tipoProduto=COMPOSTO` para fluxos
+> legados/operacionais (ex.: edição de produtos já existentes), mas o caminho
+> recomendado e seguro contra estados intermediários inválidos é o endpoint
+> transacional `POST /api/produtos/compostos`.
 
 Produto sem controle de estoque:
 
@@ -182,6 +226,47 @@ Produto sem controle de estoque:
   "ativo": true,
   "criadoEm": "2026-05-26T10:30:00",
   "atualizadoEm": "2026-05-26T10:30:00"
+}
+```
+
+Resposta de `POST /api/produtos/compostos`:
+
+```json
+{
+  "produto": {
+    "id": 7,
+    "nome": "Dose Mista",
+    "categoria": {
+      "id": 2,
+      "nome": "Drinks"
+    },
+    "precoVenda": 12.0,
+    "tipoProduto": "COMPOSTO",
+    "controlaEstoque": false,
+    "unidadeEstoque": "UNIDADE",
+    "quantidadeEstoque": 0.0,
+    "quantidadeBaixaPorVenda": 0.0,
+    "estoqueMinimo": 0.0,
+    "ativo": true,
+    "criadoEm": "2026-05-26T10:30:00",
+    "atualizadoEm": "2026-05-26T10:30:00"
+  },
+  "componentes": [
+    {
+      "id": 1,
+      "produtoComponenteId": 10,
+      "nomeProdutoComponente": "Pinga A",
+      "unidadeEstoque": "ML",
+      "quantidadeBaixa": "50.000"
+    },
+    {
+      "id": 2,
+      "produtoComponenteId": 11,
+      "nomeProdutoComponente": "Pinga B",
+      "unidadeEstoque": "ML",
+      "quantidadeBaixa": "25.000"
+    }
+  ]
 }
 ```
 

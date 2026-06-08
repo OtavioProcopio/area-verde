@@ -26,6 +26,20 @@ class ProdutoRepository:
         self.session.add(produto)
         return produto
 
+    def add(self, produto: Produto) -> Produto:
+        self.session.add(produto)
+        self.session.flush()
+        return produto
+
+    def commit(self) -> None:
+        self.session.commit()
+
+    def rollback(self) -> None:
+        self.session.rollback()
+
+    def refresh(self, produto: Produto) -> None:
+        self.session.refresh(produto)
+
     def get_by_id(self, produto_id: int) -> Optional[Produto]:
         return self.session.get(Produto, produto_id)
 

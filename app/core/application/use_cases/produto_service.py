@@ -31,7 +31,7 @@ class ProdutoService:
         self.produto_repository = produto_repository
         self.categoria_repository = categoria_repository
 
-    def create(
+    def build(
         self,
         nome: str,
         categoria_id: int,
@@ -53,7 +53,7 @@ class ProdutoService:
         )
         self._ensure_preco_valido(preco_venda)
 
-        produto = Produto(
+        return Produto(
             nome=nome.strip(),
             categoria_id=self._get_categoria_id(categoria),
             preco_venda=preco_venda,
@@ -64,6 +64,30 @@ class ProdutoService:
             quantidade_baixa_por_venda=estoque.quantidade_baixa_por_venda,
             estoque_minimo=estoque.estoque_minimo,
             ativo=True,
+        )
+
+    def create(
+        self,
+        nome: str,
+        categoria_id: int,
+        preco_venda: Decimal,
+        controla_estoque: bool,
+        tipo_produto: TipoProduto = TipoProduto.SIMPLES,
+        unidade_estoque: Optional[UnidadeEstoque] = None,
+        quantidade_estoque: Optional[Decimal] = None,
+        quantidade_baixa_por_venda: Optional[Decimal] = None,
+        estoque_minimo: Optional[Decimal] = None,
+    ) -> Produto:
+        produto = self.build(
+            nome=nome,
+            categoria_id=categoria_id,
+            preco_venda=preco_venda,
+            controla_estoque=controla_estoque,
+            tipo_produto=tipo_produto,
+            unidade_estoque=unidade_estoque,
+            quantidade_estoque=quantidade_estoque,
+            quantidade_baixa_por_venda=quantidade_baixa_por_venda,
+            estoque_minimo=estoque_minimo,
         )
 
         return self.produto_repository.create(produto)

@@ -10,8 +10,11 @@ from adapter.dtos.produto_composicao_dto import (
     ProdutoComposicaoCreateRequest,
     ProdutoComposicaoResponse,
     ProdutoComposicaoUpdateRequest,
+    ProdutoCompostoCreateRequest,
+    ProdutoCompostoResponse,
 )
 from core.application.use_cases.produto_composicao_service import (
+    ComponenteCompostoInput,
     ProdutoComposicaoService,
 )
 from core.application.use_cases.produto_service import ProdutoService
@@ -29,6 +32,35 @@ def get_produto_service(
     session: Session = Depends(get_current_session),
 ) -> ProdutoService:
     return build_produto_service(session)
+
+
+@router.post(
+    "/compostos",
+    response_model=ProdutoCompostoResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_produto_composto(
+    request: ProdutoCompostoCreateRequest,
+    service: ProdutoComposicaoService = Depends(get_service),
+) -> ProdutoCompostoResponse:
+    produto, composicoes = service.create_composto(
+        nome=request.nome,
+        categoria_id=request.categoria_id,
+        preco_venda=request.preco_venda,
+        controla_estoque=request.controla_estoque,
+        unidade_estoque=request.unidade_estoque,
+        quantidade_estoque=request.quantidade_estoque,
+        quantidade_baixa_por_venda=request.quantidade_baixa_por_venda,
+        estoque_minimo=request.estoque_minimo,
+        componentes=[
+            ComponenteCompostoInput(
+                produto_componente_id=item.produto_componente_id,
+                quantidade_baixa=item.quantidade_baixa,
+            )
+            for item in request.componentes
+        ],
+    )
+    return ProdutoCompostoResponse.from_models(produto, composicoes)
 
 
 @router.get("/{produto_id}/composicao", response_model=ProdutoComposicaoResponse)
