@@ -195,3 +195,177 @@ def test_rejeita_componente_invalido_duplicado_e_quantidade(test_engine):
     duplicado = add_componente(client, composto["id"], componente["id"])
     assert duplicado.status_code == 409
     assert duplicado.json()["code"] == "produto_componente_duplicado"
+
+
+def create_produto_composto(
+    client: TestClient,
+    categoria_id: int,
+    nome: str,
+    componentes: list[dict],
+    controla_estoque: bool = False,
+):
+    payload = {
+        "nome": nome,
+        "categoriaId": categoria_id,
+        "precoVenda": 12,
+        "controlaEstoque": controla_estoque,
+        "componentes": componentes,
+    }
+    if controla_estoque:
+        payload |= {
+            "unidadeEstoque": "ML",
+            "quantidadeEstoque": 1000,
+            "quantidadeBaixaPorVenda": 50,
+            "estoqueMinimo": 100,
+        }
+
+    return client.post("/api/produtos/compostos", json=payload)
+
+
+def test_cria_produto_composto_com_composicao_de_forma_transacional(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+    pinga_a = create_produto(client, categoria["id"], "Pinga A")
+    pinga_b = create_produto(client, categoria["id"], "Pinga B")
+
+    response = create_produto_composto(
+        client,
+        categoria["id"],
+        "Dose Mista A+B",
+        componentes=[
+            {"produtoComponenteId": pinga_a["id"], "quantidadeBaixa": 50},
+            {"produtoComponenteId": pinga_b["id"], "quantidadeBaixa": 25},
+        ],
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["produto"]["nome"] == "Dose Mista A+B"
+    assert body["produto"]["tipoProduto"] == "COMPOSTO"
+    assert len(body["componentes"]) == 2
+
+    produto_id = body["produto"]["id"]
+    composicao_response = client.get(f"/api/produtos/{produto_id}/composicao")
+    assert composicao_response.status_code == 200
+    assert len(composicao_response.json()["componentes"]) == 2
+
+
+def test_rejeita_produto_composto_sem_componentes(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+
+    response = create_produto_composto(
+        client,
+        categoria["id"],
+        "Dose vazia",
+        componentes=[],
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "produto_composto_sem_componentes"
+
+    listagem = client.get("/api/produtos", params={"nome": "Dose vazia"})
+    assert listagem.json() == []
+
+
+def test_rejeita_produto_composto_com_componente_duplicado(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+    pinga_a = create_produto(client, categoria["id"], "Pinga A")
+
+    response = create_produto_composto(
+        client,
+        categoria["id"],
+        "Dose duplicada",
+        componentes=[
+            {"produtoComponenteId": pinga_a["id"], "quantidadeBaixa": 50},
+            {"produtoComponenteId": pinga_a["id"], "quantidadeBaixa": 25},
+        ],
+    )
+
+    assert response.status_code == 409
+    assert response.json()["code"] == "produto_componente_duplicado"
+
+    listagem = client.get("/api/produtos", params={"nome": "Dose duplicada"})
+    assert listagem.json() == []
+
+
+def test_rejeita_produto_composto_com_quantidade_baixa_invalida(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+    pinga_a = create_produto(client, categoria["id"], "Pinga A")
+
+    for quantidade in (0, -1):
+        response = create_produto_composto(
+            client,
+            categoria["id"],
+            "Dose quantidade invalida",
+            componentes=[
+                {"produtoComponenteId": pinga_a["id"], "quantidadeBaixa": quantidade},
+            ],
+        )
+        assert response.status_code == 400
+        assert response.json()["code"] == "quantidade_baixa_invalida"
+
+    listagem = client.get("/api/produtos", params={"nome": "Dose quantidade invalida"})
+    assert listagem.json() == []
+
+
+def test_rejeita_produto_composto_com_componente_invalido_e_nao_persiste_nada(
+    test_engine,
+):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+    inativo = create_produto(client, categoria["id"], "Inativo")
+    sem_estoque = create_produto(
+        client, categoria["id"], "Taxa", controla_estoque=False
+    )
+    composto_existente = create_produto(
+        client,
+        categoria["id"],
+        "Outro composto",
+        tipo_produto="COMPOSTO",
+        controla_estoque=False,
+    )
+    client.patch(f"/api/produtos/{inativo['id']}/inativar")
+
+    casos = [
+        (inativo["id"], "produto_componente_inativo"),
+        (sem_estoque["id"], "produto_componente_sem_controle_estoque"),
+        (composto_existente["id"], "componente_composto_nao_permitido"),
+        (999, "produto_componente_nao_encontrado"),
+    ]
+
+    for indice, (componente_id, code) in enumerate(casos):
+        nome = f"Dose invalida {indice}"
+        response = create_produto_composto(
+            client,
+            categoria["id"],
+            nome,
+            componentes=[{"produtoComponenteId": componente_id, "quantidadeBaixa": 50}],
+        )
+        status_esperado = 404 if code == "produto_componente_nao_encontrado" else 400
+        assert response.status_code == status_esperado
+        assert response.json()["code"] == code
+
+        listagem = client.get("/api/produtos", params={"nome": nome})
+        assert listagem.json() == []
+
+
+def test_rejeita_produto_composto_com_categoria_invalida(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+    pinga_a = create_produto(client, categoria["id"], "Pinga A")
+
+    response = create_produto_composto(
+        client,
+        999,
+        "Dose categoria invalida",
+        componentes=[{"produtoComponenteId": pinga_a["id"], "quantidadeBaixa": 50}],
+    )
+
+    assert response.status_code == 404
+    assert response.json()["code"] == "categoria_nao_encontrada"
+
+    listagem = client.get("/api/produtos", params={"nome": "Dose categoria invalida"})
+    assert listagem.json() == []

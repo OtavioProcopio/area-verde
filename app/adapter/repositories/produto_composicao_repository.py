@@ -15,6 +15,14 @@ class ProdutoComposicaoRepository:
         self.session.refresh(composicao)
         return composicao
 
+    def add(self, composicao: ProdutoComposicao) -> ProdutoComposicao:
+        self.session.add(composicao)
+        self.session.flush()
+        return composicao
+
+    def refresh(self, composicao: ProdutoComposicao) -> None:
+        self.session.refresh(composicao)
+
     def update(self, composicao: ProdutoComposicao) -> ProdutoComposicao:
         self.session.add(composicao)
         self.session.commit()

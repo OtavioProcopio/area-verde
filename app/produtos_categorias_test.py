@@ -4,6 +4,9 @@ from dependency_injector import providers
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
+from adapter.repositories.categoria_produto_repository import (
+    CategoriaProdutoRepository,
+)
 from adapter.repositories.produto_composicao_repository import (
     ProdutoComposicaoRepository,
 )
@@ -12,6 +15,7 @@ from api import create_app
 from core.application.use_cases.produto_composicao_service import (
     ProdutoComposicaoService,
 )
+from core.application.use_cases.produto_service import ProdutoService
 from core.domain.enums import TipoProduto
 from core.domain.exceptions import ApplicationError
 from core.domain.models import Produto
@@ -287,9 +291,14 @@ def test_produto_not_found_and_invalid_categoria(test_engine):
 
 
 def build_composicao_service(session: Session) -> ProdutoComposicaoService:
+    produto_repository = ProdutoRepository(session)
     return ProdutoComposicaoService(
-        produto_repository=ProdutoRepository(session),
+        produto_repository=produto_repository,
         composicao_repository=ProdutoComposicaoRepository(session),
+        produto_service=ProdutoService(
+            produto_repository=produto_repository,
+            categoria_repository=CategoriaProdutoRepository(session),
+        ),
     )
 
 

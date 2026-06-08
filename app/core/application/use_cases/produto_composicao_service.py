@@ -1,7 +1,10 @@
+from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from typing import Optional, Sequence
 
-from core.domain.enums import TipoProduto
+from core.application.use_cases.produto_service import ProdutoService
+from core.domain.enums import TipoProduto, UnidadeEstoque
 from core.domain.exceptions import ApplicationError, ConflictError, NotFoundError
 from core.domain.models import Produto, ProdutoComposicao
 from core.interfaces.adapters.repositories.i_produto_composicao_repository import (
@@ -12,14 +15,98 @@ from core.interfaces.adapters.repositories.i_produto_repository import (
 )
 
 
+@dataclass(frozen=True)
+class ComponenteCompostoInput:
+    produto_componente_id: int
+    quantidade_baixa: Decimal
+
+
 class ProdutoComposicaoService:
     def __init__(
         self,
         produto_repository: IProdutoRepository,
         composicao_repository: IProdutoComposicaoRepository,
+        produto_service: ProdutoService,
     ):
         self.produto_repository = produto_repository
         self.composicao_repository = composicao_repository
+        self.produto_service = produto_service
+
+    def create_composto(
+        self,
+        nome: str,
+        categoria_id: int,
+        preco_venda: Decimal,
+        controla_estoque: bool,
+        componentes: Sequence[ComponenteCompostoInput],
+        unidade_estoque: Optional[UnidadeEstoque] = None,
+        quantidade_estoque: Optional[Decimal] = None,
+        quantidade_baixa_por_venda: Optional[Decimal] = None,
+        estoque_minimo: Optional[Decimal] = None,
+    ) -> tuple[Produto, list[ProdutoComposicao]]:
+        self._ensure_componentes_payload_valido(componentes)
+
+        produto = self.produto_service.build(
+            nome=nome,
+            categoria_id=categoria_id,
+            preco_venda=preco_venda,
+            controla_estoque=controla_estoque,
+            tipo_produto=TipoProduto.COMPOSTO,
+            unidade_estoque=unidade_estoque,
+            quantidade_estoque=quantidade_estoque,
+            quantidade_baixa_por_venda=quantidade_baixa_por_venda,
+            estoque_minimo=estoque_minimo,
+        )
+
+        for item in componentes:
+            self._ensure_quantidade_positiva(item.quantidade_baixa)
+            componente = self._get_produto(
+                item.produto_componente_id,
+                "produto_componente_nao_encontrado",
+            )
+            self._ensure_componente_valido(produto_pai=produto, componente=componente)
+
+        try:
+            self.produto_repository.add(produto)
+            produto_pai_id = self._get_produto_id(produto)
+
+            composicoes = []
+            for item in componentes:
+                composicao = ProdutoComposicao(
+                    produto_pai_id=produto_pai_id,
+                    produto_componente_id=item.produto_componente_id,
+                    quantidade_baixa=item.quantidade_baixa,
+                )
+                self.composicao_repository.add(composicao)
+                composicoes.append(composicao)
+
+            self.produto_repository.commit()
+            self.produto_repository.refresh(produto)
+            for composicao in composicoes:
+                self.composicao_repository.refresh(composicao)
+        except Exception:
+            self.produto_repository.rollback()
+            raise
+
+        return produto, composicoes
+
+    @staticmethod
+    def _ensure_componentes_payload_valido(
+        componentes: Sequence[ComponenteCompostoInput],
+    ) -> None:
+        if not componentes:
+            raise ApplicationError(
+                code="produto_composto_sem_componentes",
+                message="Produto composto deve possuir ao menos um componente",
+                status_code=400,
+            )
+
+        ids = [item.produto_componente_id for item in componentes]
+        if len(ids) != len(set(ids)):
+            raise ConflictError(
+                code="produto_componente_duplicado",
+                message="Componente duplicado na composição",
+            )
 
     def add_componente(
         self,
