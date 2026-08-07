@@ -271,6 +271,31 @@ def test_deve_listar_pendencias_vencidas_e_consultar_por_comanda(test_engine):
     assert historico.json()["totalPendente"] == "20.00"
 
 
+def test_deve_listar_historico_de_quitados_separado_dos_em_aberto(test_engine):
+    client = build_client(test_engine)
+    abrir_caixa(client)
+    cliente = criar_cliente(client)
+
+    comanda_aberta = criar_comanda_com_consumo(client)
+    marcar_fiado(client, comanda_aberta["id"], cliente["id"])
+
+    comanda_quitada = criar_comanda_com_consumo(client)
+    marcar_fiado(client, comanda_quitada["id"], cliente["id"])
+    client.post(
+        f"/api/fiados/{comanda_quitada['id']}/quitar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": comanda_quitada["total"]},
+    )
+
+    abertos = client.get("/api/fiados")
+    quitados = client.get("/api/fiados", params={"quitados": True})
+
+    assert abertos.status_code == 200
+    assert [item["comandaId"] for item in abertos.json()] == [comanda_aberta["id"]]
+    assert quitados.status_code == 200
+    assert [item["comandaId"] for item in quitados.json()] == [comanda_quitada["id"]]
+    assert quitados.json()[0]["status"] == "FECHADA"
+
+
 def test_deve_quitar_pendencia_com_dinheiro_e_somar_no_caixa(test_engine):
     client = build_client(test_engine)
     caixa = abrir_caixa(client)

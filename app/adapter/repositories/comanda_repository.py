@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, time
 from typing import Any, List, Optional, cast
 
-from sqlalchemy import func, or_, text
+from sqlalchemy import and_, func, or_, text
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
@@ -94,10 +94,20 @@ class ComandaRepository:
         data_inicio: Optional[date] = None,
         data_fim: Optional[date] = None,
         nome: Optional[str] = None,
+        quitados: Optional[bool] = None,
     ) -> List[Comanda]:
+        pendente_em_column = cast(Any, Comanda.pendente_em)
+        if quitados:
+            status_filter = and_(
+                cast(Any, Comanda.status == StatusComanda.FECHADA),
+                pendente_em_column.is_not(None),
+            )
+        else:
+            status_filter = cast(Any, Comanda.status == StatusComanda.PENDENTE)
+
         statement = (
             select(Comanda)
-            .where(Comanda.status == StatusComanda.PENDENTE)
+            .where(status_filter)
             .options(selectinload(Comanda.itens))  # type: ignore[arg-type]
             .options(selectinload(Comanda.pagamentos))  # type: ignore[arg-type]
             .options(selectinload(Comanda.cliente))  # type: ignore[arg-type]

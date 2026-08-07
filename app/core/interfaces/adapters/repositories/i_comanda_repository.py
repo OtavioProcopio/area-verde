@@ -40,6 +40,7 @@ class IComandaRepository(Protocol):
         data_inicio: Optional[date] = None,
         data_fim: Optional[date] = None,
         nome: Optional[str] = None,
+        quitados: Optional[bool] = None,
     ) -> List[Comanda]: ...
 
     def commit(self) -> None: ...
