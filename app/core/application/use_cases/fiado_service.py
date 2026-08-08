@@ -99,6 +99,7 @@ class FiadoService:
         data_inicio: Optional[date] = None,
         data_fim: Optional[date] = None,
         nome: Optional[str] = None,
+        quitados: Optional[bool] = None,
     ) -> list[Comanda]:
         return self.comanda_repository.list_pendencias(
             cliente_id=cliente_id,
@@ -106,6 +107,7 @@ class FiadoService:
             data_inicio=data_inicio,
             data_fim=data_fim,
             nome=nome,
+            quitados=quitados,
         )
 
     def listar_vencidas(self) -> list[Comanda]:

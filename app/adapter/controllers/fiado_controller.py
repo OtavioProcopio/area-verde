@@ -47,6 +47,12 @@ def listar_fiados(
     data_inicio: Optional[date] = Query(default=None, alias="dataInicio"),
     data_fim: Optional[date] = Query(default=None, alias="dataFim"),
     nome: Optional[str] = Query(default=None),
+    quitados: Optional[bool] = Query(
+        default=None,
+        description="Quando true, retorna o historico de comandas ja "
+        "quitadas (status FECHADA que passaram por fiado) em vez das "
+        "pendencias em aberto.",
+    ),
     service: FiadoService = Depends(get_service),
 ) -> list[PendenciaResumoResponse]:
     pendencias = service.listar_pendencias(
@@ -55,6 +61,7 @@ def listar_fiados(
         data_inicio=data_inicio,
         data_fim=data_fim,
         nome=nome,
+        quitados=quitados,
     )
     return [PendenciaResumoResponse.from_model(comanda) for comanda in pendencias]
 
