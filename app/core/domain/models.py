@@ -2,9 +2,9 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import ClassVar, List, Optional
 
-from sqlalchemy import Column, DateTime
+from sqlalchemy import CheckConstraint, Column, DateTime
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import Numeric, String
+from sqlalchemy import Index, Numeric, String, UniqueConstraint, text
 from sqlmodel import Field, Relationship, SQLModel
 
 from core.domain.enums import (
@@ -14,6 +14,7 @@ from core.domain.enums import (
     StatusComanda,
     TipoMovimentoCaixa,
     TipoMovimentoEstoque,
+    TipoProduto,
     UnidadeEstoque,
 )
 
@@ -36,9 +37,19 @@ class ConfiguracaoSistema(SQLModel, table=True):
 
 class CategoriaProduto(SQLModel, table=True):
     __tablename__: ClassVar[str] = "categoria_produto"
+    __table_args__: ClassVar[tuple] = (
+        Index(
+            "idx_categorias_produto_nome_ativo_unique",
+            text("lower(nome)"),
+            unique=True,
+            postgresql_where=text("ativo = true"),
+            sqlite_where=text("ativo = 1"),
+        ),
+        Index("idx_categorias_produto_nome", "nome"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    nome: str = Field(sa_column=Column(String(120), nullable=False, unique=True))
+    nome: str = Field(sa_column=Column(String(120), nullable=False))
     ativo: bool = Field(default=True)
     criado_em: datetime = Field(default_factory=datetime.now)
     atualizado_em: datetime = Field(default_factory=datetime.now)
@@ -48,15 +59,25 @@ class CategoriaProduto(SQLModel, table=True):
 
 class Produto(SQLModel, table=True):
     __tablename__: ClassVar[str] = "produto"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_produtos_categoria_id", "categoria_id"),
+        Index("idx_produtos_nome", "nome"),
+        Index("idx_produtos_ativo", "ativo"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    categoria_id: Optional[int] = Field(
-        default=None, foreign_key="categoria_produto.id"
-    )
+    categoria_id: int = Field(foreign_key="categoria_produto.id")
     nome: str = Field(sa_column=Column(String(160), nullable=False))
     preco_venda: Decimal = Field(
         default=Decimal("0.00"),
         sa_column=Column(MONEY_COLUMN, nullable=False),
+    )
+    tipo_produto: TipoProduto = Field(
+        default=TipoProduto.SIMPLES,
+        sa_column=Column(
+            SAEnum(TipoProduto, native_enum=False, length=20),
+            nullable=False,
+        ),
     )
     controla_estoque: bool = Field(default=True)
     unidade_estoque: UnidadeEstoque = Field(
@@ -87,13 +108,98 @@ class Produto(SQLModel, table=True):
     movimentos_estoque: List["MovimentoEstoque"] = Relationship(
         back_populates="produto"
     )
+    composicoes: List["ProdutoComposicao"] = Relationship(
+        back_populates="produto_pai",
+        sa_relationship_kwargs={
+            "foreign_keys": "ProdutoComposicao.produto_pai_id",
+        },
+    )
+    componente_em: List["ProdutoComposicao"] = Relationship(
+        back_populates="produto_componente",
+        sa_relationship_kwargs={
+            "foreign_keys": "ProdutoComposicao.produto_componente_id",
+        },
+    )
+
+
+class ProdutoComposicao(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "produto_composicao"
+    __table_args__: ClassVar[tuple] = (
+        UniqueConstraint(
+            "produto_pai_id",
+            "produto_componente_id",
+            name="uq_produto_composicao_pai_componente",
+        ),
+        CheckConstraint(
+            "quantidade_baixa > 0",
+            name="ck_produto_composicao_quantidade_baixa_positiva",
+        ),
+        Index("idx_produto_composicao_produto_pai_id", "produto_pai_id"),
+        Index(
+            "idx_produto_composicao_produto_componente_id",
+            "produto_componente_id",
+        ),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    produto_pai_id: int = Field(foreign_key="produto.id")
+    produto_componente_id: int = Field(foreign_key="produto.id")
+    quantidade_baixa: Decimal = Field(
+        sa_column=Column(QUANTITY_COLUMN, nullable=False),
+    )
+    criado_em: datetime = Field(default_factory=datetime.now)
+    atualizado_em: datetime = Field(default_factory=datetime.now)
+
+    produto_pai: Optional[Produto] = Relationship(
+        back_populates="composicoes",
+        sa_relationship_kwargs={
+            "foreign_keys": "ProdutoComposicao.produto_pai_id",
+        },
+    )
+    produto_componente: Optional[Produto] = Relationship(
+        back_populates="componente_em",
+        sa_relationship_kwargs={
+            "foreign_keys": "ProdutoComposicao.produto_componente_id",
+        },
+    )
+
+
+class Cliente(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "cliente"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_cliente_nome", "nome"),
+        Index("idx_cliente_apelido", "apelido"),
+        Index("idx_cliente_telefone", "telefone"),
+        Index("idx_cliente_ativo", "ativo"),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nome: str = Field(sa_column=Column(String(160), nullable=False))
+    apelido: Optional[str] = Field(default=None, sa_column=Column(String(160)))
+    telefone: Optional[str] = Field(default=None, sa_column=Column(String(40)))
+    observacao: Optional[str] = Field(default=None, sa_column=Column(String(500)))
+    ativo: bool = Field(default=True)
+    criado_em: datetime = Field(default_factory=datetime.now)
+    atualizado_em: datetime = Field(default_factory=datetime.now)
+
+    comandas: List["Comanda"] = Relationship(back_populates="cliente")
 
 
 class Comanda(SQLModel, table=True):
     __tablename__: ClassVar[str] = "comanda"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_comanda_cliente_id", "cliente_id"),
+        Index("idx_comanda_caixa_origem_id", "caixa_origem_id"),
+        Index("idx_comanda_pendente_em", "pendente_em"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    caixa_origem_id: Optional[int] = Field(default=None, foreign_key="caixa.id")
+    cliente_id: Optional[int] = Field(default=None, foreign_key="cliente.id")
     nome_cliente: str = Field(sa_column=Column(String(160), nullable=False))
+    nome_cliente_snapshot: Optional[str] = Field(
+        default=None, sa_column=Column(String(160))
+    )
     status: StatusComanda = Field(
         default=StatusComanda.ABERTA,
         sa_column=Column(
@@ -109,6 +215,12 @@ class Comanda(SQLModel, table=True):
     fechada_em: Optional[datetime] = Field(
         default=None, sa_column=Column(DateTime, nullable=True)
     )
+    cancelada_em: Optional[datetime] = Field(
+        default=None, sa_column=Column(DateTime, nullable=True)
+    )
+    pendente_em: Optional[datetime] = Field(
+        default=None, sa_column=Column(DateTime, nullable=True)
+    )
     vencimento_em: Optional[date] = None
     observacao: Optional[str] = Field(default=None, sa_column=Column(String(500)))
     criado_em: datetime = Field(default_factory=datetime.now)
@@ -116,6 +228,8 @@ class Comanda(SQLModel, table=True):
 
     itens: List["ItemComanda"] = Relationship(back_populates="comanda")
     pagamentos: List["Pagamento"] = Relationship(back_populates="comanda")
+    cliente: Optional[Cliente] = Relationship(back_populates="comandas")
+    caixa_origem: Optional["Caixa"] = Relationship(back_populates="comandas_origem")
 
 
 class ItemComanda(SQLModel, table=True):
@@ -142,6 +256,7 @@ class ItemComanda(SQLModel, table=True):
         sa_column=Column(MONEY_COLUMN, nullable=False),
     )
     criado_em: datetime = Field(default_factory=datetime.now)
+    atualizado_em: datetime = Field(default_factory=datetime.now)
 
     comanda: Optional[Comanda] = Relationship(back_populates="itens")
     produto: Optional[Produto] = Relationship(back_populates="itens_comanda")
@@ -149,6 +264,10 @@ class ItemComanda(SQLModel, table=True):
 
 class Caixa(SQLModel, table=True):
     __tablename__: ClassVar[str] = "caixa"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_caixa_status", "status"),
+        Index("idx_caixa_data", "data"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
     data: date = Field(default_factory=date.today)
@@ -184,13 +303,20 @@ class Caixa(SQLModel, table=True):
 
     pagamentos: List["Pagamento"] = Relationship(back_populates="caixa")
     movimentos: List["MovimentoCaixa"] = Relationship(back_populates="caixa")
+    comandas_origem: List["Comanda"] = Relationship(back_populates="caixa_origem")
 
 
 class Pagamento(SQLModel, table=True):
     __tablename__: ClassVar[str] = "pagamento"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_pagamento_caixa_id", "caixa_id"),
+        Index("idx_pagamento_comanda_id", "comanda_id"),
+        Index("idx_pagamento_forma_pagamento", "forma_pagamento"),
+        Index("idx_pagamento_criado_em", "criado_em"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    caixa_id: int = Field(foreign_key="caixa.id")
+    caixa_id: Optional[int] = Field(default=None, foreign_key="caixa.id")
     comanda_id: int = Field(foreign_key="comanda.id")
     forma_pagamento: FormaPagamento = Field(
         sa_column=Column(
@@ -202,6 +328,7 @@ class Pagamento(SQLModel, table=True):
         default=Decimal("0.00"),
         sa_column=Column(MONEY_COLUMN, nullable=False),
     )
+    observacao: Optional[str] = Field(default=None, sa_column=Column(String(500)))
     criado_em: datetime = Field(default_factory=datetime.now)
 
     caixa: Optional[Caixa] = Relationship(back_populates="pagamentos")
@@ -210,6 +337,11 @@ class Pagamento(SQLModel, table=True):
 
 class MovimentoCaixa(SQLModel, table=True):
     __tablename__: ClassVar[str] = "movimento_caixa"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_movimento_caixa_caixa_id", "caixa_id"),
+        Index("idx_movimento_caixa_tipo", "tipo"),
+        Index("idx_movimento_caixa_criado_em", "criado_em"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
     caixa_id: int = Field(foreign_key="caixa.id")

@@ -1,0 +1,1170 @@
+{
+  "info": {
+    "_postman_id": "area-verde-api-collection",
+    "name": "Area Verde API",
+    "description": "Collection da API do Area Verde para validar o fluxo do MVP: configuracoes, acesso, produtos, estoque, clientes, comandas, fiado, caixa diario, pagamentos e relatorios basicos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Verificacao de saude da API."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Configuracoes e Acesso",
+      "item": [
+        {
+          "name": "GET /api/configuracoes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/configuracoes",
+            "description": "Consulta a configuracao operacional atual e cria o registro padrao se ainda nao existir."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/configuracoes",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeBar\": \"Area Verde Matriz\",\n  \"diasParaAlertaFiado\": 10,\n  \"permitirEstoqueNegativo\": false,\n  \"observacao\": \"Configuracao principal\"\n}"
+            },
+            "url": "{{baseUrl}}/api/configuracoes"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/configuracoes",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permitirEstoqueNegativo\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/configuracoes"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/acesso/senha",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"novaSenha\": \"{{novaSenha}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/acesso/senha",
+            "description": "Define a senha inicial. Para trocar senha existente, inclua senhaAtual no payload."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/acesso/senha troca",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senhaAtual\": \"{{senhaAtual}}\",\n  \"novaSenha\": \"{{novaSenha}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/acesso/senha"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/acesso/validar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senha\": \"{{novaSenha}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/acesso/validar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categorias",
+      "item": [
+        {
+          "name": "POST /api/categorias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Bebidas\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categorias"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/categorias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/categorias/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/{{categoriaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/categorias/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Bebidas geladas\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categorias/{{categoriaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/categorias/:id/ativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/{{categoriaId}}/ativar"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/categorias/:id/inativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/{{categoriaId}}/inativar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        {
+          "name": "POST /api/produtos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Agua\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 5.0,\n  \"controlaEstoque\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/produtos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/produtos/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/produtos/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Agua mineral\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 6.0,\n  \"controlaEstoque\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos/{{produtoId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/produtos/:id/ativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoId}}/ativar"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/produtos/:id/inativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoId}}/inativar"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/produtos componente ML",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Pinga A\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 10.0,\n  \"tipoProduto\": \"SIMPLES\",\n  \"controlaEstoque\": true,\n  \"unidadeEstoque\": \"ML\",\n  \"quantidadeEstoque\": 1000,\n  \"quantidadeBaixaPorVenda\": 50,\n  \"estoqueMinimo\": 100\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/produtos composto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Dose Mista A+B\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 18.0,\n  \"tipoProduto\": \"COMPOSTO\",\n  \"controlaEstoque\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/produtos/compostos transacional",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Dose Mista\",\n  \"categoriaId\": {{categoriaId}},\n  \"precoVenda\": 12.0,\n  \"controlaEstoque\": false,\n  \"componentes\": [\n    {\n      \"produtoComponenteId\": {{produtoComponenteId}},\n      \"quantidadeBaixa\": 50\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos/compostos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/produtos/:id/composicao",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoCompostoId}}/composicao"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/produtos/:id/composicao/componentes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"produtoComponenteId\": {{produtoComponenteId}},\n  \"quantidadeBaixa\": 50\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos/{{produtoCompostoId}}/composicao/componentes"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/produtos/:id/composicao/componentes/:componenteId",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidadeBaixa\": 75\n}"
+            },
+            "url": "{{baseUrl}}/api/produtos/{{produtoCompostoId}}/composicao/componentes/{{produtoComponenteId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/produtos/:id/composicao/componentes/:componenteId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/produtos/{{produtoCompostoId}}/composicao/componentes/{{produtoComponenteId}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Estoque",
+      "item": [
+        {
+          "name": "GET /api/estoque",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/estoque"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/estoque/baixo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/estoque/baixo"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/estoque/negativo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/estoque/negativo"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/estoque/produtos/:id/movimentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/estoque/produtos/{{produtoId}}/movimentos"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/estoque/produtos/:id/entrada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade\": 12,\n  \"observacao\": \"Compra do dia\"\n}"
+            },
+            "url": "{{baseUrl}}/api/estoque/produtos/{{produtoId}}/entrada"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/estoque/produtos/:id/ajuste",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"novoEstoque\": 10,\n  \"observacao\": \"Conferencia manual\"\n}"
+            },
+            "url": "{{baseUrl}}/api/estoque/produtos/{{produtoId}}/ajuste"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Clientes",
+      "item": [
+        {
+          "name": "POST /api/clientes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João da Oficina\",\n  \"apelido\": \"João\",\n  \"telefone\": \"16999999999\",\n  \"observacao\": \"Cliente costuma pagar no fim da semana\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/clientes?nome=joao",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes?nome=joao"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/clientes/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/clientes/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João da Oficina\",\n  \"apelido\": \"João\",\n  \"telefone\": \"16999999999\",\n  \"observacao\": \"Atualizado no balcão\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/clientes/:id/inativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}/inativar"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/clientes/:id/ativar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}/ativar"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/clientes/:id/pendencias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}/pendencias"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/clientes duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \" joão da oficina \",\n  \"telefone\": \"(16) 99999-9999\"\n}"
+            },
+            "description": "Deve retornar cliente_duplicado quando já existir cliente ativo com nome ou telefone normalizado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comandas",
+      "item": [
+        {
+          "name": "POST /api/comandas rápida",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeCliente\": \"João mesa 2\"\n}"
+            },
+            "description": "Exige caixa aberto."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/comandas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeCliente\": \"Cliente Teste\",\n  \"observacao\": \"Mesa 1\"\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/comandas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/comandas/abertas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas/abertas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/comandas/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/comandas/:id/itens",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"produtoId\": {{produtoId}},\n  \"quantidade\": 2\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/comandas/:id/itens produto composto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"produtoId\": {{produtoCompostoId}},\n  \"quantidade\": 2\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens",
+            "description": "Lanca o produto composto como item vendido e baixa os componentes configurados."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/comandas/:id/itens/:itemId/incrementar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens/{{itemId}}/incrementar"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/comandas/:id/itens/:itemId/diminuir",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens/{{itemId}}/diminuir"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/comandas/:id/itens/:itemId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/itens/{{itemId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/comandas/:id/cancelar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Lancamento errado\"\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/cancelar"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/comandas com cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"observacao\": \"Cliente cadastrado\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/comandas/:id/cliente",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/cliente",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/comandas com nome e cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeCliente\": \"João balcão\",\n  \"clienteId\": \"{{clienteId}}\"\n}"
+            },
+            "description": "Preserva nome operacional e vínculo com cliente cadastrado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Fiado",
+      "item": [
+        {
+          "name": "POST /api/comandas/:id/fiado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/fiado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"vencimentoEm\": \"2026-06-03\",\n  \"observacao\": \"Cliente pagará na próxima semana\"\n}"
+            },
+            "description": "Exige caixa aberto, comanda aberta com consumo e cliente cadastrado ativo. Preenche pendenteEm e preserva caixaOrigemId."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/fiados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/fiados"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/fiados?vencidos=true",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/fiados?vencidos=true"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/fiados/vencidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/fiados/vencidos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/fiados/:comanda_id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/fiados/{{comandaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/fiados/:comanda_id/quitar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/fiados/{{comandaId}}/quitar",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formaPagamento\": \"DINHEIRO\",\n  \"valorPago\": 80.0,\n  \"observacao\": \"Quitado no balcão\"\n}"
+            },
+            "description": "Quita pendência no caixa aberto atual. Funciona mesmo se o cliente foi inativado depois de gerar o fiado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Caixas",
+      "item": [
+        {
+          "name": "POST /api/caixas/abrir",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valorInicial\": 100.0,\n  \"observacao\": \"Abertura do turno\"\n}"
+            },
+            "url": "{{baseUrl}}/api/caixas/abrir"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/caixas/aberto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/caixas/aberto"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/caixas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/caixas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/caixas/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/caixas/:id/reforcos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": 50.0,\n  \"observacao\": \"Troco adicional\"\n}"
+            },
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}/reforcos"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/caixas/:id/sangrias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": 30.0,\n  \"observacao\": \"Retirada parcial\"\n}"
+            },
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}/sangrias"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/caixas/:id/fechar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dinheiroInformado\": 120.0,\n  \"observacao\": \"Fechamento do turno\"\n}"
+            },
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}/fechar"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/caixas/:id/fechar com comanda aberta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/caixas/{{caixaId}}/fechar",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dinheiroInformado\": 100.0,\n  \"observacao\": \"Regressão: deve bloquear se houver comanda aberta\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pagamentos",
+      "item": [
+        {
+          "name": "POST /api/comandas/:id/fechar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formaPagamento\": \"PIX\",\n  \"valorPago\": 10.0,\n  \"observacao\": \"Pix confirmado\"\n}"
+            },
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/fechar"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/comandas/:id/pagamentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/comandas/{{comandaId}}/pagamentos"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Relatórios",
+      "item": [
+        {
+          "name": "GET /api/relatorios/diario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/diario?data={{dataRelatorio}}",
+            "description": "Consolida caixa, vendas, pagamentos, comandas, fiados e estoque do dia."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/relatorios/caixas/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/caixas/{{caixaId}}",
+            "description": "Consolida recebimentos, movimentos, comandas e produtos de um caixa."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/relatorios/produtos-mais-vendidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/produtos-mais-vendidos?dataInicio={{dataInicioRelatorio}}&dataFim={{dataFimRelatorio}}&limite=10",
+            "description": "Lista produtos mais vendidos no periodo."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/relatorios/fiados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/fiados?status=todos&clienteId={{clienteId}}&dataInicio={{dataInicioRelatorio}}&dataFim={{dataFimRelatorio}}",
+            "description": "Resume pendencias, vencidos e quitados no periodo."
+          },
+          "response": []
+        },
+                {
+                    "name": "GET /api/relatorios/estoque",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+            "url": "{{baseUrl}}/api/relatorios/estoque?tipo=todos",
+            "description": "Lista produtos controlados com estoque baixo ou negativo."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /api/relatorios/estoque-consumido",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{baseUrl}}/api/relatorios/estoque-consumido?dataInicio={{dataInicioRelatorio}}&dataFim={{dataFimRelatorio}}",
+                        "description": "Lista consumo liquido por produto movimentado no estoque. Produtos compostos aparecem como venda; componentes aparecem aqui como consumo."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /api/relatorios/comandas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/comandas?dataInicio={{dataInicioRelatorio}}&dataFim={{dataFimRelatorio}}",
+            "description": "Resume comandas por status e periodo."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8001"
+    },
+    {
+      "key": "senhaAtual",
+      "value": "1234"
+    },
+    {
+      "key": "novaSenha",
+      "value": "5678"
+    },
+    {
+      "key": "categoriaId",
+      "value": "1"
+    },
+    {
+      "key": "produtoId",
+      "value": "1"
+    },
+    {
+      "key": "produtoComponenteId",
+      "value": "2"
+    },
+    {
+      "key": "produtoCompostoId",
+      "value": "3"
+    },
+    {
+      "key": "comandaId",
+      "value": "1"
+    },
+    {
+      "key": "caixaId",
+      "value": "1"
+    },
+    {
+      "key": "itemId",
+      "value": "1"
+    },
+    {
+      "key": "dataRelatorio",
+      "value": "2026-05-28"
+    },
+    {
+      "key": "dataInicioRelatorio",
+      "value": "2026-05-01"
+    },
+    {
+      "key": "dataFimRelatorio",
+      "value": "2026-05-28"
+    }
+  ]
+}

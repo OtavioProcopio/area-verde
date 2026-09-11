@@ -44,6 +44,7 @@ pytestdebug.log
 .env.*
 !.env.example
 !app/.env.example
+!.env.prod.example
 .venv
 env/
 venv/

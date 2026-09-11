@@ -9,6 +9,10 @@ on:
     branches:
       - develop
       - main
+      - "feature/**"
+      - "bugfix/**"
+      - "docs/**"
+      - "chore/**"
 
 env:
   PYTHON_VERSION: "3.11"
@@ -83,3 +87,47 @@ jobs:
 
       - name: Docker build
         run: docker build -t area-verde-api-test .
+
+  open-pr:
+    name: Open PR to develop
+    runs-on: ubuntu-latest
+    needs: validate
+    if: >
+      github.event_name == 'push' &&
+      (startsWith(github.ref, 'refs/heads/feature/') ||
+       startsWith(github.ref, 'refs/heads/bugfix/') ||
+       startsWith(github.ref, 'refs/heads/docs/') ||
+       startsWith(github.ref, 'refs/heads/chore/'))
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure PR to develop exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="${{ github.ref_name }}"
+
+          existing=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --base develop \
+            --head "$branch" \
+            --state open \
+            --json number --jq 'length')
+
+          if [ "$existing" -gt 0 ]; then
+            echo "PR de '$branch' para 'develop' já existe."
+            exit 0
+          fi
+
+          gh pr create \
+            --repo "${{ github.repository }}" \
+            --base develop \
+            --head "$branch" \
+            --title "$branch" \
+            --body "PR aberta automaticamente pelo CI a partir da branch \`$branch\`."

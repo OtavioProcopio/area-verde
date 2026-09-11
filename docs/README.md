@@ -1,96 +1,79 @@
-# Area Verde API Documentation
+# Documentação - Area Verde API
 
-Esta pasta contém a documentação inicial do sistema Area Verde, incluindo os
-diagramas de domínio, a collection Postman e o ambiente de desenvolvimento.
+Este diretório é o portal de documentação técnica do Area Verde API. Use este
+índice para navegar por visão geral, módulos, arquitetura e policies do
+repositório.
 
-## Objetivo
+## Visão geral
 
-O Area Verde API apoiará a operação diária do bar, com foco inicial em comandas,
-produtos, estoque, pagamentos, fiado e caixa. Esta primeira versão entrega o
-bootstrap técnico, o modelo de dados inicial e a documentação-base para guiar as
-próximas implementações.
+- [Visão geral do sistema](overview.md)
+- [Roadmap do MVP](roadmap.md)
+- [Glossário do domínio](glossary.md)
 
-## Arquivos
+## Matrizes de cobertura
 
-- `class_diagram.md` - Diagrama Mermaid com classes, enums e relacionamentos.
-- `use_case_diagram.md` - Diagrama Mermaid com atores, módulos e casos de uso.
-- `area_verde_collection.json` - Collection Postman inicial.
-- `area_verde_dev.json` - Ambiente Postman de desenvolvimento.
-- `git-flow.md` - Regras de branches, releases, hotfixes e proteção manual.
-- `development-workflow.md` - Rotina de desenvolvimento e validações locais.
-- `ci-cd.md` - Workflows de integração e entrega contínua.
+- [Matriz funcional do MVP](matrix/functional-coverage.md)
+- [Endpoints por módulo](matrix/endpoints-by-module.md)
+- [Entidades por módulo](matrix/entities-by-module.md)
+- [Testes por módulo](matrix/tests-by-module.md)
+- [Pendências, lacunas e inconsistências](matrix/pending-gaps.md)
 
-## Como usar no Postman
+## Módulos
 
-1. Importe a collection `area_verde_collection.json`.
-2. Importe o ambiente `area_verde_dev.json`.
-3. Selecione o ambiente `Area Verde API - Dev`.
-4. Execute a request `GET /health`.
+- [Produtos e Categorias](modules/produtos-categorias.md)
+- [Estoque](modules/estoque.md)
+- [Comandas e Itens](modules/comandas.md)
+- [Produtos compostos](modules/produtos-categorias.md#casos-de-uso-atendidos)
+- [Pagamentos e Fechamento](modules/pagamentos.md)
+- [Clientes](modules/clientes.md)
+- [Fiado / Pendências](modules/fiado.md)
+- [Caixa Diário](modules/caixa.md)
+- [Relatórios](modules/relatorios.md)
+- [Configurações](modules/configuracoes.md)
+- [Acesso / Senha](modules/acesso.md)
 
-Por padrão, o ambiente aponta para `http://localhost:8001`, usado pelo comando
-`make run`. Ao usar Docker Compose, altere `baseUrl` para
-`http://localhost:58001`.
+## Arquitetura
 
-## Endpoint disponível
+- [Arquitetura do projeto](architecture/architecture.md)
+- [Camadas e responsabilidades](architecture/layers.md)
+- [Banco de dados e migrations](architecture/database.md)
+- [Padrão de erros](architecture/errors.md)
+- [Testes](architecture/tests.md)
 
-### Health
+## Policies
 
-- `GET /health` - Verificação de saúde da API.
+- [Preflight obrigatório](policies/preflight-policy.md)
+- [Git Flow](policies/git-flow-policy.md)
+- [Branches](policies/branch-policy.md)
+- [Commits](policies/commit-policy.md)
+- [Pull Requests](policies/pull-request-policy.md)
+- [Arquitetura](policies/architecture-policy.md)
+- [Testes](policies/testing-policy.md)
+- [Migrations](policies/migration-policy.md)
+- [Documentação](policies/documentation-policy.md)
+- [Review](policies/review-policy.md)
+- [DevContainer](policies/devcontainer-policy.md)
+- [Agentes de código](policies/agent-policy.md)
+- [Segurança e secrets](policies/security-policy.md)
 
-## Endpoints planejados
+## Diagramas
 
-Os endpoints abaixo ainda não foram implementados nesta etapa. Eles estão
-registrados como norte inicial do MVP operacional.
+- [Índice de diagramas](diagrams/README.md)
+- [Diagrama de classes](diagrams/class-diagram.md)
+- [Diagrama de casos de uso](diagrams/use-case-diagram.md)
+- [Diagramas por módulo](diagrams/README.md#diagramas-por-modulo)
 
-### Produtos
+## Workflows e automações
 
-- Criar, editar, inativar e consultar categorias.
-- Criar, editar, inativar e consultar produtos.
-- Definir controle de estoque e quantidade de baixa por venda.
+- [Índice de workflows](workflows/README.md)
+- [Workflow de desenvolvimento](workflows/development-workflow.md)
+- [Comandos Make e automações locais](workflows/makefile.md)
+- [Deploy local integrado com Docker Compose](workflows/local-compose-deploy.md)
+- [CI/CD](workflows/ci-cd.md)
+- [Git Flow - referência detalhada](workflows/git-flow-reference.md)
 
-### Estoque
+## Postman
 
-- Consultar estoque atual.
-- Registrar entrada e ajuste manual.
-- Consultar produtos com estoque baixo e movimentos de estoque.
-- Alertar estoque negativo quando configurado.
-
-### Comandas
-
-- Criar, listar, buscar, cancelar e fechar comandas.
-- Adicionar, incrementar, decrementar e remover itens.
-- Recalcular total e movimentar estoque automaticamente.
-
-### Fiado
-
-- Marcar comanda como fiado.
-- Listar fiados pendentes.
-- Destacar fiados vencidos pelo prazo configurado.
-- Registrar pagamento de fiado.
-
-### Caixa
-
-- Abrir e fechar caixa diário.
-- Registrar pagamentos, sangrias e reforços.
-- Calcular dinheiro esperado e diferença de caixa.
-
-### Relatórios
-
-- Relatório diário.
-- Relatório por forma de pagamento.
-- Produtos mais vendidos.
-- Fiados.
-- Estoque baixo.
-- Comandas.
-
-## Entidades principais
-
-- `ConfiguracaoSistema`
-- `CategoriaProduto`
-- `Produto`
-- `Comanda`
-- `ItemComanda`
-- `Caixa`
-- `Pagamento`
-- `MovimentoCaixa`
-- `MovimentoEstoque`
+- [Índice de arquivos Postman](postman/README.md)
+- [Collection Postman](postman/area-verde-collection.json)
+- [Ambiente Postman](postman/area-verde-dev.json)
