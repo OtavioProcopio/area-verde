@@ -1,21 +1,28 @@
 name: area-verde-onprem
 
-# Stack de producao on-premise (notebook do bar).
+# Stack de producao (notebook do bar OU uma VPS acessada via Tailscale).
 #
 # Diferencas deliberadas em relacao ao docker-compose.local.yml:
 # - sem senha padrao: POSTGRES_PASSWORD sem valor no .env sobe vazia e a
 #   propria imagem oficial do postgres recusa iniciar (nao ha fallback fraco
 #   tipo "local-dev-only").
-# - "restart: unless-stopped" em tudo, para sobreviver a reboot do notebook.
+# - "restart: unless-stopped" em tudo, para sobreviver a reboot da maquina.
 # - porta do Postgres NAO e publicada no host: so a API (dentro da rede
-#   docker) fala com o banco. Reduz superficie de ataque mesmo dentro da
-#   rede local do bar.
+#   docker) fala com o banco.
 # - porta da API tambem nao e publicada: o frontend (nginx) e o unico ponto
 #   de entrada e faz proxy reverso de /api para o servico "api".
 # - RUN_MIGRATIONS=true por padrao: cada atualizacao (git pull + up --build)
 #   aplica migrations pendentes automaticamente.
+# - a porta do frontend e publicada em BIND_HOST (padrao 127.0.0.1, ou seja
+#   NAO exposta por padrao). Isso importa de verdade em VPS: o Docker
+#   manipula o iptables diretamente e IGNORA regras do ufw para portas
+#   publicadas por ele, entao "bloquear no firewall" nao basta. Definir
+#   BIND_HOST=<ip-tailscale-da-maquina> no .env garante que o Docker so
+#   cria a regra de encaminhamento para essa interface — nao existe regra
+#   nenhuma escutando na interface publica, exposta ou nao por firewall.
 #
-# Ver docs/workflows/deploy-onpremise-windows.md para o guia completo.
+# Ver docs/workflows/deploy-onpremise-windows.md (notebook Windows) ou
+# docs/workflows/deploy-vps-tailscale.md (VPS Linux) para o guia completo.
 
 services:
   db:
@@ -68,7 +75,7 @@ services:
     depends_on:
       - api
     ports:
-      - "${FRONTEND_PORT:-80}:80"
+      - "${BIND_HOST:-127.0.0.1}:${FRONTEND_PORT:-80}:80"
     networks:
       - area-verde-onprem
 
