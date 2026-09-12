@@ -5,6 +5,12 @@ com acesso remoto seguro para manutenção — sem expor o sistema na internet.
 
 Relacionado: issue [#28](https://github.com/OtavioProcopio/area-verde/issues/28).
 
+> O Docker Desktop no Windows exige virtualização (VT-x/AMD-V) via WSL2 ou
+> Hyper-V. Se o notebook não suportar ou não permitir habilitar isso na
+> BIOS, use o [deploy em VPS com Tailscale](./deploy-vps-tailscale.md) —
+> mesma stack, mesmo modelo de acesso privado, rodando numa VPS Linux (que
+> não precisa de virtualização aninhada) em vez do notebook.
+
 ## Arquitetura da solução
 
 ```text
