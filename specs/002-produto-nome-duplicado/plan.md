@@ -11,6 +11,7 @@
 | Escopo da unicidade | Global entre produtos ativos (RF-05, decidido em `/bu:clarify`) | Unicidade por `categoria_id` | Decisão do usuário; também mantém paridade exata com o índice de categoria, que não tem conceito de escopo |
 | Exclusão do próprio produto na edição | `get_active_by_nome(nome, exclude_id=produto_id)`, mesmo parâmetro já usado em `CategoriaProdutoRepository.get_active_by_nome` | Comparar nome antes de persistir sem tocar o repositório | Reaproveita a mesma assinatura/padrão já validado em categoria — não há motivo para uma forma diferente |
 | Migration do índice | Nova revisão Alembic, encadeada em `i9j0k1l2m3n4` (head atual), criando `idx_produtos_nome_ativo_unique` com `postgresql_where=ativo = true`, espelhando exatamente a migration de categoria (`b2c3d4e5f6a7`) | Alterar a migration antiga de categoria/produto | Migration já aplicada em ambiente compartilhado não é editada (Princípio "Migrations Alembic" da constituição do projeto) |
+| Proteger `ProdutoService.activate()` também | Decisão tomada durante a escrita do teste (T003): sem essa checagem, reativar um produto cujo nome foi "roubado" por outro produto criado enquanto ele estava inativo recriaria a mesma duplicidade ativa que RF-01/RF-02 proíbem, só que pela porta de trás da reativação | Deixar `activate()` sem checagem, como o plano original previa (só `build()`/`update()`) | `CategoriaProdutoService.activate()` já faz exatamente essa checagem hoje (`_ensure_active_nome_available(categoria.nome, exclude_id=categoria_id)`); não replicar para produto deixaria uma forma real e fácil de burlar a validação, contrariando o próprio objetivo da spec |
 
 ## Padrões de projeto aplicados
 
@@ -27,13 +28,13 @@ criar uma abstração compartilhada agora seria antecipação sem um terceiro ca
 
 | Camada | Arquivo | Ação | Teste espelhado |
 |---|---|---|---|
-| core/domain | `app/core/domain/models.py` | alterar — novo índice único parcial em `Produto.__table_args__` | `app/bootstrap_test.py::test_product_category_indexes_can_be_created` (estender) |
+| core/domain | `app/core/domain/models.py` | alterar — novo índice único parcial em `Produto.__table_args__` | `app/tests/bootstrap_test.py::test_product_category_indexes_can_be_created` (estender) |
 | core/interfaces | `app/core/interfaces/adapters/repositories/i_produto_repository.py` | alterar — novo método `get_active_by_nome` no protocolo | — (protocolo, sem lógica) |
-| adapters/repositories | `app/adapter/repositories/produto_repository.py` | alterar — implementar `get_active_by_nome`, espelhando `CategoriaProdutoRepository.get_active_by_nome` | `app/produtos_categorias_test.py` (exercitado via serviço/API, mesma convenção já usada para o equivalente de categoria) |
-| core/application | `app/core/application/use_cases/produto_service.py` | alterar — `_ensure_nome_disponivel` chamado em `build()` e em `update()` | `app/produtos_categorias_test.py` |
-| adapters/repositories | `app/migrations/versions/<nova>_produto_nome_ativo_unique.py` | criar — índice único parcial `idx_produtos_nome_ativo_unique` | `app/bootstrap_test.py::test_product_category_indexes_can_be_created` (mesma extensão acima) |
-| testes | `app/produtos_categorias_test.py` | alterar — novo teste `test_produto_validation_active_duplicate` | — (é o próprio teste) |
-| testes | `app/produto_composicao_test.py` | alterar — novo teste `test_rejeita_produto_composto_com_nome_duplicado` | — (é o próprio teste) |
+| adapters/repositories | `app/adapter/repositories/produto_repository.py` | alterar — implementar `get_active_by_nome`, espelhando `CategoriaProdutoRepository.get_active_by_nome` | `app/tests/core/application/use_cases/produtos_categorias_test.py` (exercitado via serviço/API, mesma convenção já usada para o equivalente de categoria) |
+| core/application | `app/core/application/use_cases/produto_service.py` | alterar — `_ensure_nome_disponivel` chamado em `build()`, `update()` e `activate()` | `app/tests/core/application/use_cases/produtos_categorias_test.py` |
+| adapters/repositories | `app/migrations/versions/<nova>_produto_nome_ativo_unique.py` | criar — índice único parcial `idx_produtos_nome_ativo_unique` | `app/tests/bootstrap_test.py::test_product_category_indexes_can_be_created` (mesma extensão acima) |
+| testes | `app/tests/core/application/use_cases/produtos_categorias_test.py` | alterar — novo teste `test_produto_validation_active_duplicate` | — (é o próprio teste) |
+| testes | `app/tests/core/application/use_cases/produto_composicao_test.py` | alterar — novo teste `test_rejeita_produto_composto_com_nome_duplicado` | — (é o próprio teste) |
 | docs | `docs/modules/produtos-categorias.md` | alterar — regra de negócio e validação nova | — |
 | docs | `docs/architecture/errors.md` | alterar — `nome_duplicado` já existe para categoria; documentar que agora também se aplica a produto | — |
 | docs | `docs/policies/migration-policy.md` referência | nenhuma alteração de conteúdo, só a migration em si segue a política já documentada | — |
@@ -87,7 +88,7 @@ contrato.
 |---|---|
 | Contrato de operação | Nenhum alvo de `Makefile` novo; migration aplicada pelo fluxo já existente; testes rodam por `make test`/`make test-coverage` |
 | Arquitetura limpa | `core/application` (`ProdutoService`) não importa `adapters`; `core/interfaces` ganha só a assinatura do método novo; `adapters/repositories` implementa a consulta. Segue a mesma estrutura pré-existente já documentada como desvio aceito do template da organização (`app/core/interfaces/...`, não `app/interfaces/...` — ver `plan.md` da feature 001) |
-| Testes provam a entrega | Todo cenário de aceite da spec vira `test_deve_<resultado>_quando_<condição>`-style em `app/produtos_categorias_test.py`/`app/produto_composicao_test.py`, convenção já usada (TestClient + sqlite em memória); cobertura mínima 90% nos arquivos modificados |
+| Testes provam a entrega | Todo cenário de aceite da spec vira `test_deve_<resultado>_quando_<condição>`-style em `app/tests/core/application/use_cases/produtos_categorias_test.py`/`app/tests/core/application/use_cases/produto_composicao_test.py`, convenção já usada (TestClient + sqlite em memória); cobertura mínima 90% nos arquivos modificados |
 | Simplicidade defensável | Reaproveita 100% do padrão já validado em `CategoriaProdutoService`/`CategoriaProdutoRepository`; nenhum padrão GoF novo, nenhuma abstração compartilhada prematura |
 | Autoria | Nenhum artefato atribui autoria a ferramenta de IA |
 | Idioma | `spec.md`, este `plan.md`, mensagens de erro e documentação em português |

@@ -51,8 +51,15 @@ def test_product_category_indexes_can_be_created(test_engine):
                 WHERE type = 'index'
                 AND name = 'idx_categorias_produto_nome_ativo_unique'
                 """)).first()
+        produto_expression_index = connection.execute(text("""
+                SELECT name
+                FROM sqlite_master
+                WHERE type = 'index'
+                AND name = 'idx_produtos_nome_ativo_unique'
+                """)).first()
 
     assert expression_index is not None
+    assert produto_expression_index is not None
     assert "idx_produtos_categoria_id" in produto_indexes
     assert "idx_produtos_nome" in produto_indexes
     assert "idx_produtos_ativo" in produto_indexes

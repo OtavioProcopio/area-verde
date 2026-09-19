@@ -268,6 +268,28 @@ def test_rejeita_produto_composto_sem_componentes(test_engine):
     assert listagem.json() == []
 
 
+def test_rejeita_produto_composto_com_nome_duplicado(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+    pinga = create_produto(client, categoria["id"], "Pinga A")
+    create_produto(client, categoria["id"], "Dose Mista A+B")
+
+    response = create_produto_composto(
+        client,
+        categoria["id"],
+        "Dose Mista A+B",
+        componentes=[{"produtoComponenteId": pinga["id"], "quantidadeBaixa": 50}],
+    )
+
+    assert response.status_code == 409
+    assert response.json()["code"] == "nome_duplicado"
+
+    listagem = client.get(
+        "/api/produtos", params={"nome": "Dose Mista A+B", "ativo": "true"}
+    )
+    assert len(listagem.json()) == 1
+
+
 def test_rejeita_produto_composto_com_componente_duplicado(test_engine):
     client = build_client(test_engine)
     categoria = create_categoria(client)

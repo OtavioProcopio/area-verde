@@ -29,7 +29,7 @@ Internamente, as exceptions de domínio carregam:
 | `dados_invalidos` | 400/409/422 | Entrada inválida ou erro de integridade tratado |
 | `categoria_nao_encontrada` | 404 | Categoria inexistente |
 | `categoria_inativa` | 400 | Categoria inativa nao pode ser usada em produto |
-| `nome_duplicado` | 409 | Conflito de nome ativo em categoria |
+| `nome_duplicado` | 409 | Conflito de nome ativo em categoria ou em produto (cadastro, edição ou reativação) |
 | `produto_nao_encontrado` | 404 | Produto inexistente |
 | `produto_inativo` | 400 | Produto não pode ser usado |
 | `produto_pai_nao_encontrado` | 404 | Produto composto pai inexistente |
