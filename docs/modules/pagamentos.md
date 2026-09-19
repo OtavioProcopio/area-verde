@@ -121,8 +121,8 @@ estar aberto para registrar pagamentos.
 
 ## Testes relacionados
 
-- `app/pagamentos_test.py`
-- `app/relatorios_test.py`
+- `app/tests/core/application/use_cases/pagamentos_test.py`
+- `app/tests/core/application/use_cases/relatorios_test.py`
 
 ## O que ainda não está incluso
 

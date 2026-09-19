@@ -154,10 +154,10 @@ em movimentos de estoque.
 
 ## Testes relacionados
 
-- `app/relatorios_test.py`
-- Regressão: `app/produtos_categorias_test.py`, `app/estoque_test.py`,
-  `app/comandas_test.py`, `app/pagamentos_test.py`, `app/caixa_test.py`,
-  `app/clientes_test.py` e `app/fiado_test.py`.
+- `app/tests/core/application/use_cases/relatorios_test.py`
+- Regressão: `app/tests/core/application/use_cases/produtos_categorias_test.py`, `app/tests/core/application/use_cases/estoque_test.py`,
+  `app/tests/core/application/use_cases/comandas_test.py`, `app/tests/core/application/use_cases/pagamentos_test.py`, `app/tests/core/application/use_cases/caixa_test.py`,
+  `app/tests/core/application/use_cases/clientes_test.py` e `app/tests/core/application/use_cases/fiado_test.py`.
 
 ## O que ainda não está incluso
 

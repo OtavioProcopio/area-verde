@@ -304,8 +304,8 @@ consumo e possuir cliente cadastrado ativo.
 
 ## Testes relacionados
 
-- `app/comandas_test.py`
-- `app/relatorios_test.py`
+- `app/tests/core/application/use_cases/comandas_test.py`
+- `app/tests/core/application/use_cases/relatorios_test.py`
 
 ## O que ainda não está incluso
 

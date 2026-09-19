@@ -272,8 +272,8 @@ Resposta de `POST /api/produtos/compostos`:
 
 ## Testes relacionados
 
-- `app/produtos_categorias_test.py`
-- `app/produto_composicao_test.py`
+- `app/tests/core/application/use_cases/produtos_categorias_test.py`
+- `app/tests/core/application/use_cases/produto_composicao_test.py`
 
 ## O que ainda não está incluso
 

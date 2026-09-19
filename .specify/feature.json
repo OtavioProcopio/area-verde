@@ -1,0 +1,4 @@
+{
+  "active": "specs/003-reorganizar-testes-backend",
+  "title": "Reorganizar testes do backend para espelhar a arquitetura em camadas"
+}
