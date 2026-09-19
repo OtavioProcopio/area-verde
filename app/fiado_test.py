@@ -96,6 +96,26 @@ def marcar_fiado(client: TestClient, comanda_id: int, cliente_id: int | None = N
     return client.post(f"/api/comandas/{comanda_id}/fiado", json=payload)
 
 
+def lancar_fiado_avulso(
+    client: TestClient,
+    cliente_id: int,
+    valor: Decimal,
+    data_origem: date,
+    vencimento_em: date | None = None,
+    observacao: str | None = None,
+):
+    payload: dict[str, Any] = {
+        "clienteId": cliente_id,
+        "valor": str(valor),
+        "dataOrigem": str(data_origem),
+    }
+    if vencimento_em is not None:
+        payload["vencimentoEm"] = str(vencimento_em)
+    if observacao is not None:
+        payload["observacao"] = observacao
+    return client.post("/api/fiados/avulso", json=payload)
+
+
 def test_deve_criar_comanda_com_cliente_e_usar_nome_quando_nome_nao_enviado(
     test_engine,
 ):
@@ -410,6 +430,187 @@ def test_deve_validar_quitacao(test_engine):
     assert fiado.json()["code"] == "fiado_nao_pode_quitar_fiado"
     assert valor_diferente.status_code == 400
     assert valor_diferente.json()["code"] == "valor_pago_invalido"
+
+
+def test_deve_lancar_fiado_avulso_com_data_de_origem_passada_sem_comanda(test_engine):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+    data_origem = date.today() - timedelta(days=30)
+
+    response = lancar_fiado_avulso(
+        client,
+        cliente["id"],
+        valor=Decimal("50.00"),
+        data_origem=data_origem,
+        observacao="Migrado da caderneta",
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["cliente"]["id"] == cliente["id"]
+    assert body["caixaOrigemId"] is None
+    assert body["total"] == "50.00"
+    assert body["status"] == "PENDENTE"
+    assert body["pendenteEm"].startswith(str(data_origem))
+    assert body["vencimentoEm"] == str(date.today() + timedelta(days=7))
+    assert body["observacao"] == "Migrado da caderneta"
+    assert body["itens"] == []
+    assert body["pagamentos"] == []
+
+
+def test_deve_aceitar_vencimento_informado_manualmente_no_fiado_avulso(test_engine):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+    vencimento = date.today() + timedelta(days=15)
+
+    com_vencimento = lancar_fiado_avulso(
+        client,
+        cliente["id"],
+        valor=Decimal("30.00"),
+        data_origem=date.today() - timedelta(days=10),
+        vencimento_em=vencimento,
+    )
+    sem_vencimento = lancar_fiado_avulso(
+        client,
+        cliente["id"],
+        valor=Decimal("15.00"),
+        data_origem=date.today() - timedelta(days=5),
+    )
+
+    assert com_vencimento.status_code == 201
+    assert com_vencimento.json()["vencimentoEm"] == str(vencimento)
+    assert sem_vencimento.status_code == 201
+    assert sem_vencimento.json()["vencimentoEm"] == str(
+        date.today() + timedelta(days=7)
+    )
+
+
+def test_deve_lancar_fiado_avulso_sem_caixa_aberto(test_engine):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+
+    response = lancar_fiado_avulso(
+        client,
+        cliente["id"],
+        valor=Decimal("40.00"),
+        data_origem=date.today() - timedelta(days=1),
+    )
+
+    assert response.status_code == 201
+    assert response.json()["caixaOrigemId"] is None
+
+
+def test_deve_rejeitar_fiado_avulso_com_data_de_origem_no_futuro(test_engine):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+
+    response = lancar_fiado_avulso(
+        client,
+        cliente["id"],
+        valor=Decimal("20.00"),
+        data_origem=date.today() + timedelta(days=1),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "data_origem_invalida"
+
+
+def test_deve_rejeitar_fiado_avulso_com_valor_devido_invalido(test_engine):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+
+    zero = client.post(
+        "/api/fiados/avulso",
+        json={
+            "clienteId": cliente["id"],
+            "valor": "0",
+            "dataOrigem": str(date.today()),
+        },
+    )
+    negativo = client.post(
+        "/api/fiados/avulso",
+        json={
+            "clienteId": cliente["id"],
+            "valor": "-10",
+            "dataOrigem": str(date.today()),
+        },
+    )
+
+    assert zero.status_code == 422
+    assert negativo.status_code == 422
+
+
+def test_deve_rejeitar_fiado_avulso_para_cliente_inexistente(test_engine):
+    client = build_client(test_engine)
+
+    response = lancar_fiado_avulso(
+        client, 999, valor=Decimal("20.00"), data_origem=date.today()
+    )
+
+    assert response.status_code == 404
+    assert response.json()["code"] == "cliente_nao_encontrado"
+
+
+def test_deve_rejeitar_fiado_avulso_para_cliente_inativo(test_engine):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+    client.patch(f"/api/clientes/{cliente['id']}/inativar")
+
+    response = lancar_fiado_avulso(
+        client, cliente["id"], valor=Decimal("20.00"), data_origem=date.today()
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "cliente_inativo"
+
+
+def test_deve_listar_fiado_avulso_junto_com_pendencias_do_cliente(test_engine):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+    comanda = criar_comanda_com_consumo(client, cliente_id=cliente["id"], nome=None)
+    marcar_fiado(client, comanda["id"])
+    avulso = lancar_fiado_avulso(
+        client,
+        cliente["id"],
+        valor=Decimal("35.00"),
+        data_origem=date.today() - timedelta(days=60),
+    ).json()
+
+    fiados = client.get("/api/fiados")
+    historico = client.get(f"/api/clientes/{cliente['id']}/pendencias")
+
+    assert fiados.status_code == 200
+    assert {item["comandaId"] for item in fiados.json()} == {
+        comanda["id"],
+        avulso["comandaId"],
+    }
+    assert historico.status_code == 200
+    assert {item["comandaId"] for item in historico.json()["pendencias"]} == {
+        comanda["id"],
+        avulso["comandaId"],
+    }
+
+
+def test_deve_quitar_fiado_avulso_pelo_fluxo_existente_e_somar_no_caixa(test_engine):
+    client = build_client(test_engine)
+    caixa = abrir_caixa(client)
+    cliente = criar_cliente(client)
+    avulso = lancar_fiado_avulso(
+        client,
+        cliente["id"],
+        valor=Decimal("45.00"),
+        data_origem=date.today() - timedelta(days=20),
+    ).json()
+
+    response = client.post(
+        f"/api/fiados/{avulso['comandaId']}/quitar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": avulso["total"]},
+    )
+    detalhe_caixa = client.get(f"/api/caixas/{caixa['id']}").json()
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "FECHADA"
+    assert _money(detalhe_caixa["dinheiroEsperado"]) == Decimal("145.00")
 
 
 def test_deve_bloquear_fechamento_de_caixa_com_comanda_aberta(test_engine):
