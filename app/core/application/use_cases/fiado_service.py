@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from typing import Optional
 
@@ -91,6 +91,53 @@ class FiadoService:
             raise
 
         return self._get_comanda(comanda_id)
+
+    def lancar_avulso(
+        self,
+        cliente_id: int,
+        valor: Decimal,
+        data_origem: date,
+        vencimento_em: Optional[date] = None,
+        observacao: Optional[str] = None,
+    ) -> Comanda:
+        cliente = self.cliente_repository.get_by_id(cliente_id)
+        if cliente is None:
+            raise NotFoundError("cliente_nao_encontrado", "Cliente não encontrado")
+        ClienteService.ensure_ativo(cliente)
+        self._ensure_valor_devido_valido(valor)
+        self._ensure_data_origem_valida(data_origem)
+        vencimento = self._resolve_vencimento(vencimento_em)
+
+        nome_operacional = ClienteService.nome_operacional(cliente)
+        origem_em = datetime.combine(data_origem, time.min)
+
+        try:
+            comanda = Comanda(
+                caixa_origem_id=None,
+                cliente_id=cliente.id,
+                nome_cliente=nome_operacional,
+                nome_cliente_snapshot=nome_operacional,
+                status=StatusComanda.PENDENTE,
+                total=valor,
+                aberta_em=origem_em,
+                pendente_em=origem_em,
+                vencimento_em=vencimento,
+                observacao=observacao,
+                criado_em=datetime.now(),
+                atualizado_em=datetime.now(),
+            )
+            self.comanda_repository.create(comanda)
+            self.comanda_repository.commit()
+            self.comanda_repository.refresh(comanda)
+        except Exception:
+            self.comanda_repository.rollback()
+            raise
+
+        if comanda.id is None:
+            raise ApplicationError(
+                "comanda_nao_encontrada", "Comanda não encontrada", 500
+            )
+        return self._get_comanda(comanda.id)
 
     def listar_pendencias(
         self,
@@ -240,6 +287,22 @@ class FiadoService:
             raise ApplicationError(
                 "comanda_sem_consumo",
                 "Comanda sem consumo para fiado",
+                400,
+            )
+
+    @staticmethod
+    def _ensure_valor_devido_valido(valor: Decimal) -> None:
+        if valor <= Decimal("0"):
+            raise ApplicationError(
+                "valor_devido_invalido", "Valor devido inválido", 400
+            )
+
+    @staticmethod
+    def _ensure_data_origem_valida(data_origem: date) -> None:
+        if data_origem > date.today():
+            raise ApplicationError(
+                "data_origem_invalida",
+                "Data de origem não pode ser posterior à data atual",
                 400,
             )
 
