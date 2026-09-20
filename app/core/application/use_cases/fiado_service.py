@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from typing import Optional
 
+from core.application.use_cases.ajuste_comanda_service import AjusteComandaService
 from core.application.use_cases.caixa_service import CaixaService
 from core.application.use_cases.cliente_service import ClienteService
 from core.application.use_cases.configuracao_service import (
@@ -64,7 +65,7 @@ class FiadoService:
                 )
 
             comanda = self._get_comanda(comanda_id)
-            self._ensure_aberta(comanda)
+            self._ensure_aberta_ou_parcialmente_paga(comanda)
             self._ensure_com_consumo(comanda)
 
             cliente = self._resolve_cliente(comanda, cliente_id)
@@ -179,10 +180,11 @@ class FiadoService:
         try:
             comanda = self._get_comanda(comanda_id)
             self._ensure_pendente(comanda)
-            if valor_pago != comanda.total:
+            saldo = AjusteComandaService.saldo_restante(comanda)
+            if valor_pago > saldo:
                 raise ApplicationError(
                     "valor_pago_invalido",
-                    "Valor pago deve ser igual ao total da pendência",
+                    "Valor pago não pode ultrapassar o saldo devido da pendência",
                     400,
                 )
 
@@ -210,8 +212,10 @@ class FiadoService:
             )
 
             now = datetime.now()
-            comanda.status = StatusComanda.FECHADA
-            comanda.fechada_em = now
+            comanda.pagamentos.append(pagamento)
+            if AjusteComandaService.saldo_restante(comanda) <= 0:
+                comanda.status = StatusComanda.FECHADA
+                comanda.fechada_em = now
             comanda.atualizado_em = now
             self.comanda_repository.save(comanda)
             self.comanda_repository.commit()
@@ -268,8 +272,11 @@ class FiadoService:
         return configuracao.dias_para_alerta_fiado
 
     @staticmethod
-    def _ensure_aberta(comanda: Comanda) -> None:
-        if comanda.status != StatusComanda.ABERTA:
+    def _ensure_aberta_ou_parcialmente_paga(comanda: Comanda) -> None:
+        if comanda.status not in {
+            StatusComanda.ABERTA,
+            StatusComanda.PARCIALMENTE_PAGA,
+        }:
             raise ApplicationError("comanda_nao_aberta", "Comanda não está aberta", 400)
 
     @staticmethod

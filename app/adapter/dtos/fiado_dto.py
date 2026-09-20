@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from adapter.dtos.comanda_dto import ItemComandaResponse
 from adapter.dtos.pagamento_dto import PagamentoResponse
+from core.application.use_cases.ajuste_comanda_service import AjusteComandaService
 from core.domain.enums import FormaPagamento, StatusComanda
 from core.domain.models import Cliente, Comanda, Pagamento
 
@@ -63,6 +64,8 @@ class PendenciaResumoResponse(BaseModel):
     pendente_em: Optional[datetime] = Field(default=None, alias="pendenteEm")
     vencimento_em: Optional[date] = Field(alias="vencimentoEm")
     vencida: bool
+    total_ajustado: Decimal = Field(alias="totalAjustado")
+    saldo_restante: Decimal = Field(alias="saldoRestante")
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -90,6 +93,8 @@ class PendenciaResumoResponse(BaseModel):
             pendenteEm=comanda.pendente_em,
             vencimentoEm=comanda.vencimento_em,
             vencida=vencida,
+            totalAjustado=AjusteComandaService.total_ajustado(comanda),
+            saldoRestante=AjusteComandaService.saldo_restante(comanda),
         )
 
     @staticmethod
@@ -130,6 +135,8 @@ class QuitarFiadoResponse(BaseModel):
     vencimento_em: Optional[date] = Field(alias="vencimentoEm")
     fechada_em: Optional[datetime] = Field(alias="fechadaEm")
     pagamentos: list[PagamentoResponse]
+    total_ajustado: Decimal = Field(alias="totalAjustado")
+    saldo_restante: Decimal = Field(alias="saldoRestante")
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -152,4 +159,6 @@ class QuitarFiadoResponse(BaseModel):
             pagamentos=[
                 PagamentoResponse.from_model(pagamento) for pagamento in pagamentos
             ],
+            totalAjustado=AjusteComandaService.total_ajustado(comanda),
+            saldoRestante=AjusteComandaService.saldo_restante(comanda),
         )

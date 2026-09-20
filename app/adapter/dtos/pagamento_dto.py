@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.application.use_cases.ajuste_comanda_service import AjusteComandaService
 from core.domain.enums import FormaPagamento, StatusComanda
 from core.domain.models import Comanda, Pagamento
 
@@ -42,6 +43,8 @@ class FecharComandaResponse(BaseModel):
     cancelada_em: Optional[datetime] = Field(None, alias="canceladaEm")
     observacao: Optional[str] = None
     pagamentos: List[PagamentoResponse] = Field(default_factory=list)
+    total_ajustado: Decimal = Field(default=Decimal("0.00"), alias="totalAjustado")
+    saldo_restante: Decimal = Field(default=Decimal("0.00"), alias="saldoRestante")
 
     model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
@@ -50,6 +53,8 @@ class FecharComandaResponse(BaseModel):
         cls, comanda: Comanda, pagamentos: list[Pagamento]
     ) -> "FecharComandaResponse":
         response = cls.model_validate(comanda)
+        response.total_ajustado = AjusteComandaService.total_ajustado(comanda)
+        response.saldo_restante = AjusteComandaService.saldo_restante(comanda)
         response.pagamentos = [
             PagamentoResponse.from_model(pagamento) for pagamento in pagamentos
         ]

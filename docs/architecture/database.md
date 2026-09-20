@@ -60,6 +60,7 @@ alembic upgrade head
 | `g7h8i9j0k1l2` | Clientes e Fiado | Tabela `cliente`, vínculo opcional em `comanda` e índices |
 | `h8i9j0k1l2m3` | Rastreabilidade de Comanda | `caixa_origem_id`, `pendente_em`, FK e índices para relatórios futuros |
 | `i9j0k1l2m3n4` | Produtos Compostos | `tipo_produto` em `produto` e tabela `produto_composicao` |
+| `5c83283901b3` | Fechamento avançado de comanda | Tabela `ajuste_comanda` (acréscimo/desconto); novo valor `PARCIALMENTE_PAGA` em `comanda.status` (sem alteração de schema, `status` já é `String(20)`) |
 
 ## Campos relevantes do fluxo atual
 
@@ -69,6 +70,12 @@ alembic upgrade head
 - `comanda.caixa_origem_id`: caixa aberto no momento da criação da comanda.
 - `comanda.pendente_em`: data e hora em que a comanda virou fiado.
 - `comanda.vencimento_em`: vencimento da pendência de fiado.
+- `comanda.status = PARCIALMENTE_PAGA`: comanda com pelo menos um pagamento registrado
+  e saldo restante maior que zero; bloqueia novos itens até o saldo zerar ou virar fiado.
+- `ajuste_comanda`: acréscimo/desconto (valor fixo em R$) aplicado a uma comanda, com
+  `tipo`, `valor`, `descricao` obrigatória e `criado_em`; `totalAjustado`/`saldoRestante`
+  são sempre derivados na leitura (`total` da comanda + soma dos ajustes - soma dos
+  pagamentos), nunca persistidos.
 - `caixa.comandas_origem`: relacionamento operacional das comandas abertas
   durante o caixa.
 - `produto.tipo_produto`: diferencia `SIMPLES` e `COMPOSTO`.
@@ -89,6 +96,7 @@ alembic upgrade head
 | `Cliente` | `cliente` | Clientes / Fiado | Mantem historico e pendencias |
 | `Comanda` | `comanda` | Comandas / Pagamentos / Fiado | Origem operacional do consumo |
 | `ItemComanda` | `item_comanda` | Comandas | Snapshot de produto e preco |
+| `AjusteComanda` | `ajuste_comanda` | Comandas / Pagamentos / Fiado | Acrescimo/desconto auditavel aplicado a uma comanda |
 | `Caixa` | `caixa` | Caixa Diario | Origem operacional de comandas e pagamentos |
 | `Pagamento` | `pagamento` | Pagamentos / Fiado | Recebimentos reais |
 | `MovimentoCaixa` | `movimento_caixa` | Caixa Diario | Abertura, reforco, sangria e ajuste |
@@ -106,6 +114,7 @@ alembic upgrade head
 | `Cliente` | `Comanda` | Um cliente pode ter historico de comandas |
 | `Caixa` | `Comanda` | Um caixa pode originar varias comandas |
 | `Comanda` | `ItemComanda` | Uma comanda contem varios itens |
+| `Comanda` | `AjusteComanda` | Uma comanda contem varios ajustes (acrescimo/desconto) |
 | `Comanda` | `Pagamento` | Uma comanda recebe pagamentos |
 | `Caixa` | `Pagamento` | Um caixa registra pagamentos |
 | `Caixa` | `MovimentoCaixa` | Um caixa possui movimentos financeiros |

@@ -2,6 +2,7 @@ from core.domain.enums.forma_pagamento import FormaPagamento
 from core.domain.enums.origem_movimento_estoque import OrigemMovimentoEstoque
 from core.domain.enums.status_caixa import StatusCaixa
 from core.domain.enums.status_comanda import StatusComanda
+from core.domain.enums.tipo_ajuste_comanda import TipoAjusteComanda
 from core.domain.enums.tipo_movimento_caixa import TipoMovimentoCaixa
 from core.domain.enums.tipo_movimento_estoque import TipoMovimentoEstoque
 from core.domain.enums.tipo_produto import TipoProduto
@@ -12,6 +13,7 @@ __all__ = [
     "OrigemMovimentoEstoque",
     "StatusCaixa",
     "StatusComanda",
+    "TipoAjusteComanda",
     "TipoMovimentoCaixa",
     "TipoMovimentoEstoque",
     "TipoProduto",

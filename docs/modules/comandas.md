@@ -27,6 +27,9 @@ consumo fica para pagamento futuro.
 - Diminuir quantidade de item.
 - Remover item da comanda.
 - Cancelar comanda aberta.
+- Aplicar acréscimo ou desconto (valor fixo em R$) a uma comanda ainda não fechada.
+- Listar os ajustes (acréscimos/descontos) aplicados a uma comanda.
+- Bloquear novos itens em comanda com pagamento parcial já registrado.
 - Recalcular total pela soma dos itens.
 - Baixar e devolver estoque automaticamente.
 - Registrar movimentos de estoque.
@@ -36,9 +39,11 @@ consumo fica para pagamento futuro.
 
 - `Comanda`
 - `ItemComanda`
+- `AjusteComanda`
 - `Produto`
 - `MovimentoEstoque`
 - `StatusComanda`
+- `TipoAjusteComanda`
 - `Cliente`
 - `TipoMovimentoEstoque`
 - `OrigemMovimentoEstoque`
@@ -57,6 +62,8 @@ consumo fica para pagamento futuro.
 | `PATCH` | `/api/comandas/{comanda_id}/itens/{item_id}/diminuir` | Diminui item |
 | `DELETE` | `/api/comandas/{comanda_id}/itens/{item_id}` | Remove item |
 | `PATCH` | `/api/comandas/{comanda_id}/cancelar` | Cancela comanda |
+| `POST` | `/api/comandas/{comanda_id}/ajustes` | Aplica acréscimo/desconto à comanda |
+| `GET` | `/api/comandas/{comanda_id}/ajustes` | Lista ajustes aplicados à comanda |
 
 ## Regras de negócio
 
@@ -92,6 +99,20 @@ consumo fica para pagamento futuro.
   `estoque_insuficiente`.
 - Comanda cancelada permanece no histórico com seus itens e movimentos.
 - Comanda fechada pelo módulo de pagamentos não pode receber novas alterações.
+- Comanda com pelo menos um pagamento registrado (status `PARCIALMENTE_PAGA`) não aceita
+  mais itens novos nem alterações em itens existentes — apenas pagamentos, ajustes ou
+  marcação como fiado até o saldo zerar.
+- Acréscimo/desconto pode ser aplicado a qualquer momento enquanto a comanda não estiver
+  `FECHADA`/`CANCELADA` (inclui `ABERTA`, `PARCIALMENTE_PAGA` e `PENDENTE`).
+- Cada acréscimo/desconto é um lançamento auditável individual, com `descricao`
+  obrigatória; múltiplos ajustes acumulam no total ajustado (acréscimos somam, descontos
+  subtraem).
+- `totalAjustado` = `total` (soma dos itens) + soma dos ajustes. `saldoRestante` =
+  `totalAjustado` - soma dos pagamentos já registrados. Ambos são sempre derivados na
+  leitura, nunca persistidos.
+- Um desconto que reduza `totalAjustado` abaixo do que já foi pago é permitido e gera
+  saldo credor (`saldoRestante` negativo); o tratamento desse saldo credor (troco,
+  abatimento, estorno) é fora de escopo.
 
 ## Validações
 
@@ -108,7 +129,13 @@ consumo fica para pagamento futuro.
 - Componente inativo ou sem controle de estoque bloqueia a venda do composto.
 - Estoque insuficiente com bloqueio configurado retorna `estoque_insuficiente`.
 - Comanda deve estar aberta. Erro: `comanda_nao_aberta`.
+- Comanda com pagamento parcial (`PARCIALMENTE_PAGA`) rejeita item novo ou alteração de
+  item existente. Erro: `comanda_nao_aceita_novos_itens`.
 - Item deve pertencer à comanda informada.
+- Ajuste exige `descricao` não vazia/whitespace. Erro: `ajuste_descricao_obrigatoria`.
+- Ajuste exige `valor` maior que zero e que `totalAjustado + delta(ajuste) >= 0`. Erro:
+  `ajuste_valor_invalido`.
+- Ajuste em comanda `FECHADA`/`CANCELADA` é bloqueado. Erro: `comanda_nao_aberta`.
 
 ## Exemplos de request
 
@@ -174,6 +201,16 @@ Cancelar comanda:
 }
 ```
 
+Aplicar ajuste (acréscimo ou desconto):
+
+```json
+{
+  "tipo": "DESCONTO",
+  "valor": "10.00",
+  "descricao": "cortesia"
+}
+```
+
 ## Exemplos de response
 
 Comanda criada:
@@ -193,7 +230,10 @@ Comanda criada:
   "pendenteEm": null,
   "vencimentoEm": null,
   "observacao": "Cliente voltou mais tarde",
-  "itens": []
+  "itens": [],
+  "totalAjustado": 0.0,
+  "saldoRestante": 0.0,
+  "ajustes": []
 }
 ```
 
@@ -223,6 +263,41 @@ Comanda com item:
       "precoUnitario": 7.0,
       "quantidadeBaixadaEstoque": 3.0,
       "totalItem": 21.0
+    }
+  ],
+  "totalAjustado": 21.0,
+  "saldoRestante": 21.0,
+  "ajustes": []
+}
+```
+
+Ajuste aplicado (`POST /api/comandas/1/ajustes`):
+
+```json
+{
+  "id": 1,
+  "caixaOrigemId": 1,
+  "clienteId": null,
+  "nomeCliente": "João",
+  "nomeClienteSnapshot": null,
+  "status": "ABERTA",
+  "total": 21.0,
+  "abertaEm": "2026-05-26T18:40:00",
+  "fechadaEm": null,
+  "canceladaEm": null,
+  "pendenteEm": null,
+  "vencimentoEm": null,
+  "observacao": null,
+  "itens": [],
+  "totalAjustado": 11.0,
+  "saldoRestante": 11.0,
+  "ajustes": [
+    {
+      "id": 1,
+      "tipo": "DESCONTO",
+      "valor": 10.0,
+      "descricao": "cortesia",
+      "criadoEm": "2026-05-26T18:45:00"
     }
   ]
 }
@@ -306,6 +381,7 @@ consumo e possuir cliente cadastrado ativo.
 
 - `app/tests/core/application/use_cases/comandas_test.py`
 - `app/tests/core/application/use_cases/relatorios_test.py`
+- `app/tests/bdd/fechamento_comanda_avancado_test.py`
 
 ## O que ainda não está incluso
 

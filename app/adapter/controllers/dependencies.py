@@ -18,6 +18,7 @@ from adapter.repositories.produto_composicao_repository import (
 from adapter.repositories.produto_repository import ProdutoRepository
 from adapter.repositories.relatorio_repository import RelatorioRepository
 from core.application.use_cases.acesso_service import AcessoService
+from core.application.use_cases.ajuste_comanda_service import AjusteComandaService
 from core.application.use_cases.caixa_service import CaixaService
 from core.application.use_cases.categoria_produto_service import (
     CategoriaProdutoService,
@@ -149,6 +150,11 @@ def build_fiado_service(session: Session) -> FiadoService:
         caixa_service=caixa_service,
         configuracao_repository=configuracao_repository,
     )
+
+
+def build_ajuste_comanda_service(session: Session) -> AjusteComandaService:
+    comanda_repository = ComandaRepository(session)
+    return AjusteComandaService(comanda_repository=comanda_repository)
 
 
 def build_relatorio_service(session: Session) -> RelatorioService:

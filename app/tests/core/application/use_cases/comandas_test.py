@@ -1,13 +1,29 @@
 from decimal import Decimal
 
+import pytest
 from dependency_injector import providers
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlmodel import Session, select
 
+from adapter.dtos.comanda_dto import (
+    AjusteComandaResponse,
+    AplicarAjusteComandaRequest,
+    ComandaDetalheResponse,
+)
+from adapter.repositories.comanda_repository import ComandaRepository
 from api import create_app
-from core.domain.enums import TipoMovimentoEstoque
-from core.domain.models import Comanda, ItemComanda, MovimentoEstoque, Produto
+from core.application.use_cases.ajuste_comanda_service import AjusteComandaService
+from core.domain.enums import FormaPagamento, TipoAjusteComanda, TipoMovimentoEstoque
+from core.domain.exceptions import ApplicationError, NotFoundError
+from core.domain.models import (
+    AjusteComanda,
+    Comanda,
+    ItemComanda,
+    MovimentoEstoque,
+    Pagamento,
+    Produto,
+)
 
 
 def build_client(test_engine):
@@ -125,6 +141,14 @@ def set_produto_controla_estoque(
         produto.controla_estoque = controla_estoque
         session.add(produto)
         session.commit()
+
+
+def test_tipo_ajuste_comanda_deve_possuir_acrescimo_e_desconto():
+    # Arrange / Act
+    valores = {membro.value for membro in TipoAjusteComanda}
+
+    # Assert
+    assert valores == {"ACRESCIMO", "DESCONTO"}
 
 
 def test_cria_comanda_valida_e_permite_nome_repetido(test_engine):
@@ -843,3 +867,458 @@ def test_falha_em_componente_nao_persiste_venda_parcial(test_engine):
     assert detalhe.status_code == 200
     assert detalhe.json()["itens"] == []
     assert detalhe.json()["total"] == 0.0
+
+
+def build_ajuste_service(test_engine) -> AjusteComandaService:
+    session = Session(test_engine)
+    repository = ComandaRepository(session)
+    return AjusteComandaService(comanda_repository=repository)
+
+
+def preparar_produto_ajuste(client: TestClient) -> dict:
+    categoria = create_categoria(client, "Ajustes")
+    return create_produto(
+        client, categoria["id"], nome="Agua", preco_venda=10, controla_estoque=False
+    )
+
+
+def criar_comanda_com_consumo_ajuste(
+    client: TestClient, produto: dict, quantidade: float = 2
+) -> dict:
+    comanda = client.post("/api/comandas", json={"nomeCliente": "João"}).json()
+    resposta = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": produto["id"], "quantidade": quantidade},
+    )
+    return resposta.json()
+
+
+def registrar_pagamento_parcial(test_engine, comanda_id: int, valor: Decimal) -> None:
+    with Session(test_engine) as session:
+        pagamento = Pagamento(
+            comanda_id=comanda_id,
+            forma_pagamento=FormaPagamento.DINHEIRO,
+            valor=valor,
+        )
+        session.add(pagamento)
+        session.commit()
+
+
+def test_comanda_repository_save_ajuste_persiste_ajuste(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+
+    with Session(test_engine) as session:
+        repository = ComandaRepository(session)
+        ajuste = AjusteComanda(
+            comanda_id=comanda["id"],
+            tipo=TipoAjusteComanda.DESCONTO,
+            valor=Decimal("5.00"),
+            descricao="cortesia",
+        )
+        salvo = repository.save_ajuste(ajuste)
+        session.commit()
+
+        assert salvo.id is not None
+        persistido = session.get(AjusteComanda, salvo.id)
+        assert persistido is not None
+        assert persistido.comanda_id == comanda["id"]
+        assert persistido.tipo == TipoAjusteComanda.DESCONTO
+        assert persistido.valor == Decimal("5.00")
+        assert persistido.descricao == "cortesia"
+
+
+def test_ajuste_comanda_service_acrescimo_soma_ao_total(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    service = build_ajuste_service(test_engine)
+
+    atualizada = service.aplicar_ajuste(
+        comanda_id=comanda["id"],
+        tipo=TipoAjusteComanda.ACRESCIMO,
+        valor=Decimal("5.00"),
+        descricao="taxa de serviço",
+    )
+
+    assert AjusteComandaService.total_ajustado(atualizada) == Decimal("25.00")
+
+
+def test_ajuste_comanda_service_desconto_subtrai_do_total(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    service = build_ajuste_service(test_engine)
+
+    atualizada = service.aplicar_ajuste(
+        comanda_id=comanda["id"],
+        tipo=TipoAjusteComanda.DESCONTO,
+        valor=Decimal("10.00"),
+        descricao="cortesia",
+    )
+
+    assert AjusteComandaService.total_ajustado(atualizada) == Decimal("10.00")
+
+
+def test_ajuste_comanda_service_multiplos_ajustes_acumulam(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    service = build_ajuste_service(test_engine)
+
+    service.aplicar_ajuste(
+        comanda_id=comanda["id"],
+        tipo=TipoAjusteComanda.DESCONTO,
+        valor=Decimal("10.00"),
+        descricao="cortesia",
+    )
+    atualizada = service.aplicar_ajuste(
+        comanda_id=comanda["id"],
+        tipo=TipoAjusteComanda.ACRESCIMO,
+        valor=Decimal("5.00"),
+        descricao="taxa de serviço",
+    )
+
+    ajustes = service.listar_ajustes(comanda["id"])
+    assert AjusteComandaService.total_ajustado(atualizada) == Decimal("15.00")
+    assert len(ajustes) == 2
+    assert {ajuste.descricao for ajuste in ajustes} == {"cortesia", "taxa de serviço"}
+
+
+def test_ajuste_comanda_service_rejeita_desconto_sem_descricao(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    service = build_ajuste_service(test_engine)
+
+    with pytest.raises(ApplicationError) as excinfo:
+        service.aplicar_ajuste(
+            comanda_id=comanda["id"],
+            tipo=TipoAjusteComanda.DESCONTO,
+            valor=Decimal("10.00"),
+            descricao="   ",
+        )
+
+    assert excinfo.value.code == "ajuste_descricao_obrigatoria"
+
+
+def test_ajuste_comanda_service_rejeita_desconto_maior_que_total(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    service = build_ajuste_service(test_engine)
+
+    with pytest.raises(ApplicationError) as excinfo:
+        service.aplicar_ajuste(
+            comanda_id=comanda["id"],
+            tipo=TipoAjusteComanda.DESCONTO,
+            valor=Decimal("30.00"),
+            descricao="erro de lançamento",
+        )
+
+    assert excinfo.value.code == "ajuste_valor_invalido"
+
+
+def test_ajuste_comanda_service_rejeita_valor_nao_positivo(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    service = build_ajuste_service(test_engine)
+
+    with pytest.raises(ApplicationError) as excinfo:
+        service.aplicar_ajuste(
+            comanda_id=comanda["id"],
+            tipo=TipoAjusteComanda.ACRESCIMO,
+            valor=Decimal("0"),
+            descricao="taxa de serviço",
+        )
+
+    assert excinfo.value.code == "ajuste_valor_invalido"
+
+
+def test_ajuste_comanda_service_rejeita_comanda_fechada_ou_cancelada(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    fechada = criar_comanda_com_consumo_ajuste(client, produto)
+    client.post(
+        f"/api/comandas/{fechada['id']}/fechar",
+        json={"formaPagamento": "PIX", "valorPago": fechada["total"]},
+    )
+    cancelada = client.post("/api/comandas", json={"nomeCliente": "Maria"}).json()
+    client.patch(f"/api/comandas/{cancelada['id']}/cancelar")
+    service = build_ajuste_service(test_engine)
+
+    for comanda_id in (fechada["id"], cancelada["id"]):
+        with pytest.raises(ApplicationError) as excinfo:
+            service.aplicar_ajuste(
+                comanda_id=comanda_id,
+                tipo=TipoAjusteComanda.DESCONTO,
+                valor=Decimal("1.00"),
+                descricao="erro de lançamento",
+            )
+        assert excinfo.value.code == "comanda_nao_aberta"
+
+
+def test_ajuste_comanda_service_recalcula_saldo_com_pagamento_parcial(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    registrar_pagamento_parcial(test_engine, comanda["id"], Decimal("12.00"))
+    service = build_ajuste_service(test_engine)
+
+    atualizada = service.aplicar_ajuste(
+        comanda_id=comanda["id"],
+        tipo=TipoAjusteComanda.DESCONTO,
+        valor=Decimal("5.00"),
+        descricao="erro de lançamento",
+    )
+
+    assert AjusteComandaService.total_ajustado(atualizada) == Decimal("15.00")
+    assert AjusteComandaService.saldo_restante(atualizada) == Decimal("3.00")
+
+
+def test_ajuste_comanda_service_desconto_apos_pagamento_gera_saldo_credor(test_engine):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    registrar_pagamento_parcial(test_engine, comanda["id"], Decimal("12.00"))
+    service = build_ajuste_service(test_engine)
+
+    atualizada = service.aplicar_ajuste(
+        comanda_id=comanda["id"],
+        tipo=TipoAjusteComanda.DESCONTO,
+        valor=Decimal("15.00"),
+        descricao="erro de lançamento",
+    )
+
+    assert AjusteComandaService.saldo_restante(atualizada) == Decimal("-7.00")
+
+
+def test_ajuste_comanda_service_rejeita_comanda_inexistente(test_engine):
+    service = build_ajuste_service(test_engine)
+
+    with pytest.raises(NotFoundError) as excinfo:
+        service.aplicar_ajuste(
+            comanda_id=999,
+            tipo=TipoAjusteComanda.DESCONTO,
+            valor=Decimal("1.00"),
+            descricao="erro",
+        )
+
+    assert excinfo.value.code == "comanda_nao_encontrada"
+
+
+def test_comanda_parcialmente_paga_nao_aceita_novos_itens_nem_alterar_itens(
+    test_engine,
+):
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    item = comanda["itens"][0]
+    client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": 12.00},
+    )
+
+    adicionar = client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": produto["id"], "quantidade": 1},
+    )
+    incrementar = client.patch(
+        f"/api/comandas/{comanda['id']}/itens/{item['id']}/incrementar",
+        json={"quantidade": 1},
+    )
+    diminuir = client.patch(
+        f"/api/comandas/{comanda['id']}/itens/{item['id']}/diminuir",
+        json={"quantidade": 1},
+    )
+    remover = client.delete(f"/api/comandas/{comanda['id']}/itens/{item['id']}")
+
+    for response in (adicionar, incrementar, diminuir, remover):
+        assert response.status_code == 400
+        assert response.json()["code"] == "comanda_nao_aceita_novos_itens"
+
+
+def test_aplicar_ajuste_comanda_request_aceita_tipo_valor_e_descricao():
+    # Arrange / Act
+    request = AplicarAjusteComandaRequest(
+        tipo=TipoAjusteComanda.DESCONTO,
+        valor=Decimal("5.00"),
+        descricao="cortesia",
+    )
+
+    # Assert
+    assert request.tipo == TipoAjusteComanda.DESCONTO
+    assert request.valor == Decimal("5.00")
+    assert request.descricao == "cortesia"
+
+
+def test_ajuste_comanda_response_from_model_serializa_campos_em_camel_case():
+    # Arrange
+    ajuste = AjusteComanda(
+        id=1,
+        comanda_id=10,
+        tipo=TipoAjusteComanda.ACRESCIMO,
+        valor=Decimal("7.50"),
+        descricao="taxa de serviço",
+    )
+
+    # Act
+    response = AjusteComandaResponse.from_model(ajuste)
+
+    # Assert
+    body = response.model_dump(by_alias=True, mode="json")
+    assert body["id"] == 1
+    assert body["tipo"] == "ACRESCIMO"
+    assert body["valor"] == 7.5
+    assert body["descricao"] == "taxa de serviço"
+    assert "criadoEm" in body
+
+
+def test_consultar_comanda_expoe_total_ajustado_saldo_restante_e_ajustes(test_engine):
+    # Arrange
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    service = build_ajuste_service(test_engine)
+    service.aplicar_ajuste(
+        comanda_id=comanda["id"],
+        tipo=TipoAjusteComanda.DESCONTO,
+        valor=Decimal("5.00"),
+        descricao="cortesia",
+    )
+
+    # Act
+    resumo = client.get("/api/comandas")
+    detalhe = client.get(f"/api/comandas/{comanda['id']}")
+
+    # Assert
+    assert resumo.status_code == 200
+    resumo_body = next(item for item in resumo.json() if item["id"] == comanda["id"])
+    assert resumo_body["totalAjustado"] == 15.0
+    assert resumo_body["saldoRestante"] == 15.0
+    assert len(resumo_body["ajustes"]) == 1
+
+    assert detalhe.status_code == 200
+    detalhe_body = detalhe.json()
+    assert detalhe_body["totalAjustado"] == 15.0
+    assert detalhe_body["saldoRestante"] == 15.0
+    assert len(detalhe_body["ajustes"]) == 1
+    assert detalhe_body["ajustes"][0]["descricao"] == "cortesia"
+    assert detalhe_body["ajustes"][0]["tipo"] == "DESCONTO"
+    assert ComandaDetalheResponse(**detalhe_body).total_ajustado == 15.0
+
+
+def test_post_ajustes_aplica_ajuste_e_retorna_comanda_atualizada(test_engine):
+    # Arrange
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+
+    # Act
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/ajustes",
+        json={"tipo": "DESCONTO", "valor": "5.00", "descricao": "cortesia"},
+    )
+
+    # Assert
+    assert response.status_code == 201
+    body = response.json()
+    assert body["totalAjustado"] == 15.0
+    assert body["saldoRestante"] == 15.0
+    assert len(body["ajustes"]) == 1
+
+
+def test_get_ajustes_lista_ajustes_da_comanda(test_engine):
+    # Arrange
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    client.post(
+        f"/api/comandas/{comanda['id']}/ajustes",
+        json={"tipo": "ACRESCIMO", "valor": "5.00", "descricao": "taxa de serviço"},
+    )
+
+    # Act
+    response = client.get(f"/api/comandas/{comanda['id']}/ajustes")
+
+    # Assert
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["tipo"] == "ACRESCIMO"
+    assert body[0]["descricao"] == "taxa de serviço"
+
+
+def test_post_ajustes_rejeita_descricao_vazia(test_engine):
+    # Arrange
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+
+    # Act
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/ajustes",
+        json={"tipo": "DESCONTO", "valor": "5.00", "descricao": "   "},
+    )
+
+    # Assert
+    assert response.status_code == 400
+    assert response.json()["code"] == "ajuste_descricao_obrigatoria"
+
+
+def test_post_ajustes_rejeita_valor_invalido(test_engine):
+    # Arrange
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+
+    # Act
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/ajustes",
+        json={"tipo": "DESCONTO", "valor": "30.00", "descricao": "erro"},
+    )
+
+    # Assert
+    assert response.status_code == 400
+    assert response.json()["code"] == "ajuste_valor_invalido"
+
+
+def test_post_ajustes_rejeita_comanda_nao_aberta(test_engine):
+    # Arrange
+    client = build_client(test_engine)
+    produto = preparar_produto_ajuste(client)
+    comanda = criar_comanda_com_consumo_ajuste(client, produto)
+    client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "PIX", "valorPago": comanda["total"]},
+    )
+
+    # Act
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/ajustes",
+        json={"tipo": "DESCONTO", "valor": "1.00", "descricao": "erro"},
+    )
+
+    # Assert
+    assert response.status_code == 400
+    assert response.json()["code"] == "comanda_nao_aberta"
+
+
+def test_ajustes_rejeitam_comanda_inexistente(test_engine):
+    # Arrange
+    client = build_client(test_engine)
+
+    # Act
+    post_response = client.post(
+        "/api/comandas/999/ajustes",
+        json={"tipo": "DESCONTO", "valor": "1.00", "descricao": "erro"},
+    )
+    get_response = client.get("/api/comandas/999/ajustes")
+
+    # Assert
+    assert post_response.status_code == 404
+    assert post_response.json()["code"] == "comanda_nao_encontrada"
+    assert get_response.status_code == 404
+    assert get_response.json()["code"] == "comanda_nao_encontrada"

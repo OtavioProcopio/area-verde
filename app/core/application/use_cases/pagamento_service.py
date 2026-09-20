@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
+from core.application.use_cases.ajuste_comanda_service import AjusteComandaService
 from core.application.use_cases.caixa_service import CaixaService
 from core.domain.enums import FormaPagamento, StatusComanda
 from core.domain.exceptions import ApplicationError, NotFoundError
@@ -43,7 +44,10 @@ class PagamentoService:
         if not comanda:
             raise NotFoundError("comanda_nao_encontrada", "Comanda não encontrada")
 
-        if comanda.status != StatusComanda.ABERTA:
+        if comanda.status not in {
+            StatusComanda.ABERTA,
+            StatusComanda.PARCIALMENTE_PAGA,
+        }:
             raise ApplicationError("comanda_nao_aberta", "Comanda não está aberta", 400)
 
         if comanda.total <= 0:
@@ -58,10 +62,11 @@ class PagamentoService:
                 400,
             )
 
-        if valor_pago != comanda.total:
+        saldo = AjusteComandaService.saldo_restante(comanda)
+        if valor_pago <= 0 or valor_pago > saldo:
             raise ApplicationError(
                 "valor_pago_invalido",
-                "Valor pago deve ser igual ao total da comanda",
+                "Valor pago deve ser maior que zero e não ultrapassar o saldo restante",
                 400,
             )
 
@@ -89,8 +94,12 @@ class PagamentoService:
                 valor=valor_pago,
             )
 
-            comanda.status = StatusComanda.FECHADA
-            comanda.fechada_em = datetime.now()
+            comanda.pagamentos.append(pagamento)
+            if AjusteComandaService.saldo_restante(comanda) <= 0:
+                comanda.status = StatusComanda.FECHADA
+                comanda.fechada_em = datetime.now()
+            else:
+                comanda.status = StatusComanda.PARCIALMENTE_PAGA
             comanda.atualizado_em = datetime.now()
 
             self.comanda_repository.save(comanda)

@@ -65,6 +65,7 @@ def criar_comanda_com_consumo(
     client: TestClient,
     cliente_id: int | None = None,
     nome: str | None = "João",
+    quantidade: int = 2,
 ) -> dict:
     garantir_caixa_aberto(client)
     payload: dict[str, Any] = {"observacao": "Mesa 1"}
@@ -78,7 +79,7 @@ def criar_comanda_com_consumo(
     produto = criar_produto(client, nome=f"Agua {comanda.json()['id']}")
     client.post(
         f"/api/comandas/{comanda.json()['id']}/itens",
-        json={"produtoId": produto["id"], "quantidade": 2},
+        json={"produtoId": produto["id"], "quantidade": quantidade},
     )
     return client.get(f"/api/comandas/{comanda.json()['id']}").json()
 
@@ -201,6 +202,70 @@ def test_deve_marcar_comanda_aberta_com_consumo_como_pendente(test_engine):
     assert body["pendenteEm"] is not None
     assert body["vencimentoEm"] == str(date.today() + timedelta(days=7))
     assert body["pagamentos"] == []
+
+
+def test_deve_marcar_como_fiado_o_saldo_restante_de_comanda_parcialmente_paga(
+    test_engine,
+):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+    comanda = criar_comanda_com_consumo(client, quantidade=4)
+    client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": 12},
+    )
+
+    response = marcar_fiado(client, comanda["id"], cliente["id"])
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "PENDENTE"
+
+    saldo_excedido = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "PIX", "valorPago": 29},
+    )
+    assert saldo_excedido.status_code == 400
+    assert saldo_excedido.json()["code"] == "valor_pago_invalido"
+
+    quitacao = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "PIX", "valorPago": 28},
+    )
+    assert quitacao.status_code == 200
+    assert quitacao.json()["status"] == "FECHADA"
+
+
+def test_quitacao_parcial_mantem_pendente_e_quitacao_total_fecha_e_some_da_listagem(
+    test_engine,
+):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+    comanda = criar_comanda_com_consumo(client, quantidade=4)
+    marcar_fiado(client, comanda["id"], cliente["id"])
+
+    parcial = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": 25},
+    )
+    assert parcial.status_code == 200
+    assert parcial.json()["status"] == "PENDENTE"
+
+    saldo_excedido = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": 16},
+    )
+    assert saldo_excedido.status_code == 400
+    assert saldo_excedido.json()["code"] == "valor_pago_invalido"
+
+    total = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": 15},
+    )
+    assert total.status_code == 200
+    assert total.json()["status"] == "FECHADA"
+
+    abertos = client.get("/api/fiados")
+    assert comanda["id"] not in [item["comandaId"] for item in abertos.json()]
 
 
 def test_deve_rejeitar_marcar_fiado_sem_caixa_aberto(test_engine):
@@ -400,6 +465,38 @@ def test_deve_quitar_pendencia_com_pix_e_cartao_sem_somar_dinheiro(test_engine):
     assert pix_response.status_code == 200
     assert cartao_response.status_code == 200
     assert _money(detalhe_caixa["dinheiroEsperado"]) == Decimal("100.00")
+
+
+def test_pendencia_e_quitacao_expoe_total_ajustado_e_saldo_restante(test_engine):
+    client = build_client(test_engine)
+    cliente = criar_cliente(client)
+    comanda = criar_comanda_com_consumo(client, quantidade=4)
+    total = comanda["total"]
+    marcar_fiado(client, comanda["id"], cliente["id"])
+
+    resumo = client.get("/api/fiados")
+    detalhe = client.get(f"/api/fiados/{comanda['id']}")
+    parcial = client.post(
+        f"/api/fiados/{comanda['id']}/quitar",
+        json={"formaPagamento": "PIX", "valorPago": 10},
+    )
+
+    resumo_body = next(
+        item for item in resumo.json() if item["comandaId"] == comanda["id"]
+    )
+    assert Decimal(str(resumo_body["totalAjustado"])) == Decimal(str(total))
+    assert Decimal(str(resumo_body["saldoRestante"])) == Decimal(str(total))
+
+    detalhe_body = detalhe.json()
+    assert Decimal(str(detalhe_body["totalAjustado"])) == Decimal(str(total))
+    assert Decimal(str(detalhe_body["saldoRestante"])) == Decimal(str(total))
+
+    assert parcial.status_code == 200
+    parcial_body = parcial.json()
+    assert Decimal(str(parcial_body["totalAjustado"])) == Decimal(str(total))
+    assert Decimal(str(parcial_body["saldoRestante"])) == Decimal(str(total)) - Decimal(
+        "10"
+    )
 
 
 def test_deve_validar_quitacao(test_engine):

@@ -12,6 +12,7 @@ from core.domain.enums import (
     OrigemMovimentoEstoque,
     StatusCaixa,
     StatusComanda,
+    TipoAjusteComanda,
     TipoMovimentoCaixa,
     TipoMovimentoEstoque,
     TipoProduto,
@@ -235,6 +236,7 @@ class Comanda(SQLModel, table=True):
 
     itens: List["ItemComanda"] = Relationship(back_populates="comanda")
     pagamentos: List["Pagamento"] = Relationship(back_populates="comanda")
+    ajustes: List["AjusteComanda"] = Relationship(back_populates="comanda")
     cliente: Optional[Cliente] = Relationship(back_populates="comandas")
     caixa_origem: Optional["Caixa"] = Relationship(back_populates="comandas_origem")
 
@@ -267,6 +269,31 @@ class ItemComanda(SQLModel, table=True):
 
     comanda: Optional[Comanda] = Relationship(back_populates="itens")
     produto: Optional[Produto] = Relationship(back_populates="itens_comanda")
+
+
+class AjusteComanda(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "ajuste_comanda"
+    __table_args__: ClassVar[tuple] = (
+        Index("idx_ajuste_comanda_comanda_id", "comanda_id"),
+        Index("idx_ajuste_comanda_criado_em", "criado_em"),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    comanda_id: int = Field(foreign_key="comanda.id")
+    tipo: TipoAjusteComanda = Field(
+        sa_column=Column(
+            SAEnum(TipoAjusteComanda, native_enum=False, length=20),
+            nullable=False,
+        )
+    )
+    valor: Decimal = Field(
+        default=Decimal("0.00"),
+        sa_column=Column(MONEY_COLUMN, nullable=False),
+    )
+    descricao: str = Field(sa_column=Column(String(500), nullable=False))
+    criado_em: datetime = Field(default_factory=datetime.now)
+
+    comanda: Optional[Comanda] = Relationship(back_populates="ajustes")
 
 
 class Caixa(SQLModel, table=True):

@@ -5,7 +5,7 @@ from sqlalchemy import inspect, text
 
 from api import create_app
 from core.domain.enums import StatusCaixa, StatusComanda, TipoProduto, UnidadeEstoque
-from core.domain.models import Caixa, Comanda, Produto
+from core.domain.models import AjusteComanda, Caixa, Comanda, Produto
 
 
 def test_create_app_without_real_database():
@@ -29,7 +29,34 @@ def test_sqlmodel_schema_can_be_created(test_engine):
         "pagamento",
         "movimento_caixa",
         "movimento_estoque",
+        "ajuste_comanda",
     }.issubset(set(inspector.get_table_names()))
+
+
+def test_ajuste_comanda_indexes_can_be_created(test_engine):
+    inspector = inspect(test_engine)
+
+    ajuste_indexes = {
+        index["name"] for index in inspector.get_indexes("ajuste_comanda")
+    }
+
+    assert "idx_ajuste_comanda_comanda_id" in ajuste_indexes
+    assert "idx_ajuste_comanda_criado_em" in ajuste_indexes
+
+
+def test_comanda_relaciona_ajustes(test_engine):
+    comanda = Comanda(nome_cliente="Mesa 1")
+    ajuste = AjusteComanda(
+        comanda_id=1,
+        tipo="ACRESCIMO",
+        valor=Decimal("5.00"),
+        descricao="Taxa de serviço",
+    )
+
+    assert comanda.ajustes == []
+    assert ajuste.comanda_id == 1
+    assert ajuste.valor == Decimal("5.00")
+    assert ajuste.descricao == "Taxa de serviço"
 
 
 def test_product_category_indexes_can_be_created(test_engine):

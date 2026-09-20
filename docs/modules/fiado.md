@@ -19,6 +19,9 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 ## Casos de uso atendidos
 
 - Marcar comanda aberta como fiado.
+- Marcar o saldo restante de uma comanda com pagamento parcial (`PARCIALMENTE_PAGA`)
+  como fiado — o valor devido do fiado é o `saldoRestante` da comanda, não o total
+  original.
 - Lançar fiado avulso para um cliente, sem depender de comanda, com data de origem
   retroativa (migração de dívida anterior ao sistema).
 - Exigir cliente cadastrado e ativo para fiado.
@@ -29,7 +32,7 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 - Listar pendências.
 - Listar pendências vencidas.
 - Consultar pendência por comanda.
-- Quitar pendência.
+- Quitar pendência total ou parcialmente, mantendo `PENDENTE` até o saldo devido zerar.
 - Registrar pagamento da quitação no caixa aberto.
 - Somar dinheiro esperado apenas quando a quitação for em dinheiro.
 - Manter pendências de cliente inativo visíveis.
@@ -105,7 +108,9 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
     "abertaEm": "2026-05-27T18:00:00",
     "pendenteEm": "2026-05-27T20:30:00",
     "vencimentoEm": "2026-06-03",
-    "vencida": false
+    "vencida": false,
+    "totalAjustado": "80.00",
+    "saldoRestante": "80.00"
   }
 ]
 ```
@@ -133,7 +138,9 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
   "canceladaEm": null,
   "observacao": "Saldo migrado da caderneta de papel",
   "itens": [],
-  "pagamentos": []
+  "pagamentos": [],
+  "totalAjustado": "150.00",
+  "saldoRestante": "150.00"
 }
 ```
 
@@ -156,13 +163,42 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
       "observacao": "Quitado no balcão",
       "criadoEm": "2026-06-01T20:00:00"
     }
-  ]
+  ],
+  "totalAjustado": "80.00",
+  "saldoRestante": "0.00"
+}
+```
+
+**POST /api/fiados/10/quitar** (quitação parcial, mantém `PENDENTE`)
+```json
+{
+  "id": 10,
+  "status": "PENDENTE",
+  "total": "80.00",
+  "pendenteEm": "2026-05-27T20:30:00",
+  "vencimentoEm": "2026-06-03",
+  "fechadaEm": null,
+  "pagamentos": [
+    {
+      "id": 5,
+      "caixaId": 2,
+      "comandaId": 10,
+      "formaPagamento": "DINHEIRO",
+      "valor": "25.00",
+      "observacao": null,
+      "criadoEm": "2026-06-01T20:00:00"
+    }
+  ],
+  "totalAjustado": "80.00",
+  "saldoRestante": "55.00"
 }
 ```
 
 ## Regras de negócio
 
-- Apenas comanda `ABERTA` pode virar fiado.
+- Comanda `ABERTA` ou `PARCIALMENTE_PAGA` pode virar fiado. Quando `PARCIALMENTE_PAGA`,
+  o valor devido é o `saldoRestante` já descontando os pagamentos anteriores; `total`
+  não é alterado nem copiado para um campo novo.
 - Deve existir caixa aberto para marcar fiado.
 - Comanda deve ter itens e total maior que zero.
 - Cliente cadastrado e ativo é obrigatório.
@@ -175,11 +211,19 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 - Marcar fiado não cria pagamento e não altera caixa.
 - Quitar fiado exige caixa aberto.
 - Quitação continua permitida mesmo se o cliente foi inativado após a pendência.
+- Quitação pode ser parcial: o valor pago deve ser maior que zero e não pode
+  ultrapassar o saldo devido (`saldoRestante`) da pendência.
+- Se a quitação não completar o saldo devido, a comanda permanece `PENDENTE` com o
+  saldo restante recalculado; se completar, a comanda vira `FECHADA`.
 - `FIADO` não pode quitar fiado.
 - Pagamento em `DINHEIRO` soma em `dinheiro_esperado`.
 - Pagamento em `PIX` ou `CARTAO` fica vinculado ao caixa sem alterar dinheiro físico.
-- A quitação altera a comanda para `FECHADA` e mantém `vencimento_em` para histórico.
+- A quitação total altera a comanda para `FECHADA` e mantém `vencimento_em` para
+  histórico.
 - A quitação não altera `pendente_em`.
+- `totalAjustado`/`saldoRestante` refletem também acréscimos/descontos aplicados via
+  `POST /api/comandas/{id}/ajustes` (ver `docs/modules/comandas.md`), mesmo com a
+  comanda já `PENDENTE`.
 - Fiado avulso não exige comanda nem caixa aberto: é um registro histórico, para migrar
   dívida de cliente anterior ao uso do sistema (ex.: caderneta de papel).
 - Fiado avulso exige cliente cadastrado e ativo, valor devido maior que zero e data de
@@ -216,10 +260,10 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 - `app/tests/core/application/use_cases/caixa_test.py`
 - `app/tests/core/application/use_cases/pagamentos_test.py`
 - `app/tests/core/application/use_cases/relatorios_test.py`
+- `app/tests/bdd/fechamento_comanda_avancado_test.py`
 
 ## Fora de escopo
 
-- Pagamento parcial.
 - Juros.
 - Parcelamento.
 - Limite de crédito.

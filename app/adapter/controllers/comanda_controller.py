@@ -4,16 +4,23 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlmodel import Session
 
-from adapter.controllers.dependencies import build_comanda_service, get_current_session
+from adapter.controllers.dependencies import (
+    build_ajuste_comanda_service,
+    build_comanda_service,
+    get_current_session,
+)
 from adapter.dtos.comanda_dto import (
     AdicionarItemComandaRequest,
+    AjusteComandaResponse,
     AlterarQuantidadeItemRequest,
+    AplicarAjusteComandaRequest,
     CancelarComandaRequest,
     ComandaDetalheResponse,
     ComandaResumoResponse,
     CriarComandaRequest,
     VincularClienteComandaRequest,
 )
+from core.application.use_cases.ajuste_comanda_service import AjusteComandaService
 from core.application.use_cases.comanda_service import ComandaService
 from core.domain.enums import StatusComanda
 
@@ -22,6 +29,12 @@ router = APIRouter(prefix="/api/comandas", tags=["Comandas"])
 
 def get_service(session: Session = Depends(get_current_session)) -> ComandaService:
     return build_comanda_service(session)
+
+
+def get_ajuste_service(
+    session: Session = Depends(get_current_session),
+) -> AjusteComandaService:
+    return build_ajuste_comanda_service(session)
 
 
 @router.post(
@@ -150,3 +163,31 @@ def cancelar_comanda(
 ) -> ComandaDetalheResponse:
     comanda = service.cancelar(comanda_id=comanda_id, motivo=request.motivo)
     return ComandaDetalheResponse.from_model(comanda)
+
+
+@router.post(
+    "/{comanda_id}/ajustes",
+    response_model=ComandaDetalheResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def aplicar_ajuste(
+    comanda_id: int,
+    request: AplicarAjusteComandaRequest,
+    service: AjusteComandaService = Depends(get_ajuste_service),
+) -> ComandaDetalheResponse:
+    comanda = service.aplicar_ajuste(
+        comanda_id=comanda_id,
+        tipo=request.tipo,
+        valor=request.valor,
+        descricao=request.descricao,
+    )
+    return ComandaDetalheResponse.from_model(comanda)
+
+
+@router.get("/{comanda_id}/ajustes", response_model=list[AjusteComandaResponse])
+def listar_ajustes(
+    comanda_id: int,
+    service: AjusteComandaService = Depends(get_ajuste_service),
+) -> list[AjusteComandaResponse]:
+    ajustes = service.listar_ajustes(comanda_id)
+    return [AjusteComandaResponse.from_model(ajuste) for ajuste in ajustes]

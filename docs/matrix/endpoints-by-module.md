@@ -85,6 +85,8 @@ Mapear as rotas reais registradas em `app/api.py` e nos controllers em
 | `PATCH` | `/api/comandas/{comanda_id}/itens/{item_id}/diminuir` | `comanda_controller.py` | Diminuir item | Implementado |
 | `DELETE` | `/api/comandas/{comanda_id}/itens/{item_id}` | `comanda_controller.py` | Remover item | Implementado |
 | `PATCH` | `/api/comandas/{comanda_id}/cancelar` | `comanda_controller.py` | Cancelar comanda | Implementado |
+| `POST` | `/api/comandas/{comanda_id}/ajustes` | `comanda_controller.py` | Aplicar acréscimo/desconto | Implementado |
+| `GET` | `/api/comandas/{comanda_id}/ajustes` | `comanda_controller.py` | Listar ajustes da comanda | Implementado |
 
 ## Pagamentos e Fechamento
 

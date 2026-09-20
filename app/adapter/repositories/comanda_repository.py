@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from core.domain.enums import StatusComanda
-from core.domain.models import Cliente, Comanda, ItemComanda
+from core.domain.models import AjusteComanda, Cliente, Comanda, ItemComanda
 
 
 class ComandaRepository:
@@ -33,12 +33,18 @@ class ComandaRepository:
         self.session.delete(item)
         self.session.flush()
 
+    def save_ajuste(self, ajuste: AjusteComanda) -> AjusteComanda:
+        self.session.add(ajuste)
+        self.session.flush()
+        return ajuste
+
     def get_by_id(self, comanda_id: int) -> Optional[Comanda]:
         statement = (
             select(Comanda)
             .where(Comanda.id == comanda_id)
             .options(selectinload(Comanda.itens))  # type: ignore[arg-type]
             .options(selectinload(Comanda.pagamentos))  # type: ignore[arg-type]
+            .options(selectinload(Comanda.ajustes))  # type: ignore[arg-type]
             .options(selectinload(Comanda.cliente))  # type: ignore[arg-type]
         )
         return self.session.exec(statement).first()
