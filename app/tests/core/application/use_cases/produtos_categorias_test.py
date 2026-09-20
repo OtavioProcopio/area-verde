@@ -266,6 +266,57 @@ def test_produto_validations(test_engine):
     assert baixa_response.json()["code"] == "quantidade_baixa_invalida"
 
 
+def test_produto_validation_active_duplicate(test_engine):
+    client = build_client(test_engine)
+    categoria = create_categoria(client)
+    payload = create_produto_payload(categoria["id"])
+
+    original = client.post("/api/produtos", json=payload)
+    assert original.status_code == 201
+    produto_id = original.json()["id"]
+
+    duplicado = client.post("/api/produtos", json=payload | {"nome": "Cerveja lata"})
+    assert duplicado.status_code == 409
+    assert duplicado.json()["code"] == "nome_duplicado"
+
+    duplicado_case_espaco = client.post(
+        "/api/produtos", json=payload | {"nome": "  CERVEJA LATA  "}
+    )
+    assert duplicado_case_espaco.status_code == 409
+    assert duplicado_case_espaco.json()["code"] == "nome_duplicado"
+
+    client.patch(f"/api/produtos/{produto_id}/inativar")
+    reaproveita_nome_inativo = client.post("/api/produtos", json=payload)
+    assert reaproveita_nome_inativo.status_code == 201
+    reaproveitado_id = reaproveita_nome_inativo.json()["id"]
+
+    reativar_duplicado = client.patch(f"/api/produtos/{produto_id}/ativar")
+    assert reativar_duplicado.status_code == 409
+    assert reativar_duplicado.json()["code"] == "nome_duplicado"
+
+    client.patch(f"/api/produtos/{reaproveitado_id}/inativar")
+    reativar_ok = client.patch(f"/api/produtos/{produto_id}/ativar")
+    assert reativar_ok.status_code == 200
+
+    outro = client.post("/api/produtos", json=payload | {"nome": "Refrigerante lata"})
+    assert outro.status_code == 201
+    outro_id = outro.json()["id"]
+
+    edicao_duplicada = client.put(
+        f"/api/produtos/{outro_id}", json=payload | {"nome": "Cerveja lata"}
+    )
+    assert edicao_duplicada.status_code == 409
+    assert edicao_duplicada.json()["code"] == "nome_duplicado"
+    assert client.get(f"/api/produtos/{outro_id}").json()["nome"] == (
+        "Refrigerante lata"
+    )
+
+    edicao_proprio_nome = client.put(
+        f"/api/produtos/{produto_id}", json=payload | {"nome": "Cerveja lata"}
+    )
+    assert edicao_proprio_nome.status_code == 200
+
+
 def test_produto_not_found_and_invalid_categoria(test_engine):
     client = build_client(test_engine)
     categoria = create_categoria(client)

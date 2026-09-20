@@ -20,6 +20,10 @@ class IProdutoRepository(Protocol):
 
     def get_by_id(self, produto_id: int) -> Optional[Produto]: ...
 
+    def get_active_by_nome(
+        self, nome: str, exclude_id: Optional[int] = None
+    ) -> Optional[Produto]: ...
+
     def list(
         self,
         ativo: Optional[bool] = None,

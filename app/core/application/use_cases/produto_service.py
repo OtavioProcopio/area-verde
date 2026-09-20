@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Optional
 
 from core.domain.enums import TipoProduto, UnidadeEstoque
-from core.domain.exceptions import ApplicationError, NotFoundError
+from core.domain.exceptions import ApplicationError, ConflictError, NotFoundError
 from core.domain.models import CategoriaProduto, Produto
 from core.interfaces.adapters.repositories.i_categoria_produto_repository import (
     ICategoriaProdutoRepository,
@@ -52,6 +52,7 @@ class ProdutoService:
             estoque_minimo=estoque_minimo,
         )
         self._ensure_preco_valido(preco_venda)
+        self._ensure_nome_disponivel(nome)
 
         return Produto(
             nome=nome.strip(),
@@ -136,6 +137,7 @@ class ProdutoService:
             estoque_minimo=estoque_minimo,
         )
         self._ensure_preco_valido(preco_venda)
+        self._ensure_nome_disponivel(nome, exclude_id=produto_id)
 
         produto.nome = nome.strip()
         produto.categoria_id = self._get_categoria_id(categoria)
@@ -153,6 +155,7 @@ class ProdutoService:
     def activate(self, produto_id: int) -> Produto:
         produto = self.get_by_id(produto_id)
         self._get_active_categoria(produto.categoria_id)
+        self._ensure_nome_disponivel(produto.nome, exclude_id=produto_id)
 
         produto.ativo = True
         produto.atualizado_em = datetime.now()
@@ -180,6 +183,18 @@ class ProdutoService:
             )
 
         return categoria
+
+    def _ensure_nome_disponivel(
+        self, nome: str, exclude_id: Optional[int] = None
+    ) -> None:
+        produto = self.produto_repository.get_active_by_nome(
+            nome, exclude_id=exclude_id
+        )
+        if produto is not None:
+            raise ConflictError(
+                code="nome_duplicado",
+                message="Já existe um produto ativo com esse nome",
+            )
 
     @staticmethod
     def _get_categoria_id(categoria: CategoriaProduto) -> int:

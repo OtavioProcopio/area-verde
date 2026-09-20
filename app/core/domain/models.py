@@ -63,6 +63,13 @@ class Produto(SQLModel, table=True):
         Index("idx_produtos_categoria_id", "categoria_id"),
         Index("idx_produtos_nome", "nome"),
         Index("idx_produtos_ativo", "ativo"),
+        Index(
+            "idx_produtos_nome_ativo_unique",
+            text("lower(nome)"),
+            unique=True,
+            postgresql_where=text("ativo = true"),
+            sqlite_where=text("ativo = 1"),
+        ),
     )
 
     id: Optional[int] = Field(default=None, primary_key=True)

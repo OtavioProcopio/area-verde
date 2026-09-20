@@ -70,6 +70,10 @@ vendas e movimentacoes, mas nao sao geridos diretamente por este modulo.
 - Categorias e produtos iniciam ativos.
 - Categorias e produtos não são excluídos fisicamente.
 - Não pode existir mais de uma categoria ativa com o mesmo nome.
+- Não pode existir mais de um produto ativo com o mesmo nome (comparação ignora
+  maiúsculas/minúsculas e espaços nas pontas, mesma regra de categoria). Vale para
+  cadastro, edição e reativação — inclusive de produto composto, criado via
+  `POST /api/produtos/compostos`. Produto inativo não bloqueia reuso do nome.
 - Categoria inativa não pode ser usada para criar ou editar produto.
 - Produto pode controlar estoque ou não.
 - Produto inicia com `tipoProduto=SIMPLES` quando o tipo nao e informado.
@@ -94,6 +98,8 @@ vendas e movimentacoes, mas nao sao geridos diretamente por este modulo.
 ## Validações
 
 - `nome` de categoria é obrigatório e possui limite de 120 caracteres.
+- `nome` de categoria ou de produto já usado por outra ativa/ativo é rejeitado
+  com `nome_duplicado` (409).
 - `nome`, `categoriaId`, `precoVenda` e `controlaEstoque` são obrigatórios para
   produto.
 - `tipoProduto`, quando informado, deve ser `SIMPLES` ou `COMPOSTO`.

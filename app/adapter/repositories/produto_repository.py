@@ -43,6 +43,19 @@ class ProdutoRepository:
     def get_by_id(self, produto_id: int) -> Optional[Produto]:
         return self.session.get(Produto, produto_id)
 
+    def get_active_by_nome(
+        self, nome: str, exclude_id: Optional[int] = None
+    ) -> Optional[Produto]:
+        ativo = True
+        statement = select(Produto).where(
+            func.lower(Produto.nome) == nome.strip().lower(),
+            Produto.ativo == ativo,
+        )
+        if exclude_id is not None:
+            statement = statement.where(Produto.id != exclude_id)
+
+        return self.session.exec(statement).first()
+
     def list(
         self,
         ativo: Optional[bool] = None,
