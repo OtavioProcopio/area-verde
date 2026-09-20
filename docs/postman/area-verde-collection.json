@@ -827,6 +827,25 @@
           "response": []
         },
         {
+          "name": "POST /api/fiados/avulso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/fiados/avulso",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"valor\": 150.00,\n  \"dataOrigem\": \"2026-08-01\",\n  \"vencimentoEm\": \"2026-09-30\",\n  \"observacao\": \"Saldo migrado da caderneta de papel\"\n}"
+            },
+            "description": "Lança pendência de fiado para um cliente sem depender de comanda nem de caixa aberto. Aceita dataOrigem igual ou anterior a hoje, para migrar dívida anterior ao sistema."
+          },
+          "response": []
+        },
+        {
           "name": "GET /api/fiados",
           "request": {
             "method": "GET",

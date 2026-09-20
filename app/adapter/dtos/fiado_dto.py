@@ -32,6 +32,16 @@ class MarcarFiadoRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class LancarFiadoAvulsoRequest(BaseModel):
+    cliente_id: int = Field(alias="clienteId")
+    valor: Decimal = Field(gt=0)
+    data_origem: date = Field(alias="dataOrigem")
+    vencimento_em: Optional[date] = Field(default=None, alias="vencimentoEm")
+    observacao: Optional[str] = Field(default=None, max_length=500)
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class QuitarFiadoRequest(BaseModel):
     forma_pagamento: FormaPagamento = Field(alias="formaPagamento")
     valor_pago: Decimal = Field(alias="valorPago", gt=0)
