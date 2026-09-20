@@ -87,3 +87,11 @@ id_rsa
 id_ed25519
 secrets/
 .secrets/
+
+# Byte Union spec-driven method (regenerated locally by /bu:constitution)
+/.specify/memory/constitution.md
+/CLAUDE.md
+
+# Byte Union spec-driven method: bookkeeping local de sessao, nao de projeto
+/.specify/run.json
+**/.claude/.bu-state.json

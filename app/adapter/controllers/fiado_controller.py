@@ -6,6 +6,7 @@ from sqlmodel import Session
 
 from adapter.controllers.dependencies import build_fiado_service, get_current_session
 from adapter.dtos.fiado_dto import (
+    LancarFiadoAvulsoRequest,
     MarcarFiadoRequest,
     PendenciaDetalheResponse,
     PendenciaResumoResponse,
@@ -34,6 +35,25 @@ def marcar_comanda_como_fiado(
     comanda = service.marcar_fiado(
         comanda_id=comanda_id,
         cliente_id=request.cliente_id,
+        vencimento_em=request.vencimento_em,
+        observacao=request.observacao,
+    )
+    return PendenciaDetalheResponse.from_model(comanda)
+
+
+@router.post(
+    "/api/fiados/avulso",
+    response_model=PendenciaDetalheResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def lancar_fiado_avulso(
+    request: LancarFiadoAvulsoRequest,
+    service: FiadoService = Depends(get_service),
+) -> PendenciaDetalheResponse:
+    comanda = service.lancar_avulso(
+        cliente_id=request.cliente_id,
+        valor=request.valor,
+        data_origem=request.data_origem,
         vencimento_em=request.vencimento_em,
         observacao=request.observacao,
     )

@@ -98,6 +98,7 @@ Mapear as rotas reais registradas em `app/api.py` e nos controllers em
 | Metodo | Endpoint | Controller | Caso de uso | Status |
 |---|---|---|---|---|
 | `POST` | `/api/comandas/{comanda_id}/fiado` | `fiado_controller.py` | Marcar comanda como fiado | Implementado |
+| `POST` | `/api/fiados/avulso` | `fiado_controller.py` | Lancar fiado avulso para cliente, sem comanda | Implementado |
 | `GET` | `/api/fiados` | `fiado_controller.py` | Listar pendencias | Implementado |
 | `GET` | `/api/fiados/vencidos` | `fiado_controller.py` | Listar pendencias vencidas | Implementado |
 | `GET` | `/api/fiados/{comanda_id}` | `fiado_controller.py` | Consultar pendencia | Implementado |
