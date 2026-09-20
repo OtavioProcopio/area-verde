@@ -94,4 +94,5 @@ secrets/
 
 # Byte Union spec-driven method: bookkeeping local de sessao, nao de projeto
 /.specify/run.json
+/.specify/feature.json
 **/.claude/.bu-state.json
