@@ -1,11 +1,12 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from core.domain.enums import StatusComanda
-from core.domain.models import Comanda, ItemComanda
+from core.application.use_cases.ajuste_comanda_service import AjusteComandaService
+from core.domain.enums import StatusComanda, TipoAjusteComanda
+from core.domain.models import AjusteComanda, Comanda, ItemComanda
 
 
 class CriarComandaRequest(BaseModel):
@@ -81,6 +82,37 @@ class ItemComandaResponse(BaseModel):
         )
 
 
+class AjusteComandaResponse(BaseModel):
+    id: int
+    tipo: TipoAjusteComanda
+    valor: float
+    descricao: str
+    criado_em: datetime = Field(alias="criadoEm")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    @classmethod
+    def from_model(cls, ajuste: AjusteComanda) -> "AjusteComandaResponse":
+        if ajuste.id is None:
+            raise ValueError("Ajuste sem id")
+
+        return cls(
+            id=ajuste.id,
+            tipo=ajuste.tipo,
+            valor=float(ajuste.valor),
+            descricao=ajuste.descricao,
+            criadoEm=ajuste.criado_em,
+        )
+
+
+class AplicarAjusteComandaRequest(BaseModel):
+    tipo: TipoAjusteComanda
+    valor: Decimal
+    descricao: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class ComandaResumoResponse(BaseModel):
     id: int
     caixa_origem_id: Optional[int] = Field(default=None, alias="caixaOrigemId")
@@ -96,6 +128,9 @@ class ComandaResumoResponse(BaseModel):
     pendente_em: Optional[datetime] = Field(default=None, alias="pendenteEm")
     vencimento_em: Optional[date] = Field(default=None, alias="vencimentoEm")
     quantidade_itens: int = Field(alias="quantidadeItens")
+    total_ajustado: float = Field(alias="totalAjustado")
+    saldo_restante: float = Field(alias="saldoRestante")
+    ajustes: List[AjusteComandaResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -116,6 +151,11 @@ class ComandaResumoResponse(BaseModel):
             pendenteEm=comanda.pendente_em,
             vencimentoEm=comanda.vencimento_em,
             quantidadeItens=len(comanda.itens),
+            totalAjustado=float(AjusteComandaService.total_ajustado(comanda)),
+            saldoRestante=float(AjusteComandaService.saldo_restante(comanda)),
+            ajustes=[
+                AjusteComandaResponse.from_model(ajuste) for ajuste in comanda.ajustes
+            ],
         )
 
 
@@ -137,6 +177,9 @@ class ComandaDetalheResponse(BaseModel):
     vencimento_em: Optional[date] = Field(default=None, alias="vencimentoEm")
     observacao: Optional[str]
     itens: list[ItemComandaResponse]
+    total_ajustado: float = Field(alias="totalAjustado")
+    saldo_restante: float = Field(alias="saldoRestante")
+    ajustes: List[AjusteComandaResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -160,4 +203,9 @@ class ComandaDetalheResponse(BaseModel):
             vencimentoEm=comanda.vencimento_em,
             observacao=comanda.observacao,
             itens=[ItemComandaResponse.from_model(item) for item in comanda.itens],
+            totalAjustado=float(AjusteComandaService.total_ajustado(comanda)),
+            saldoRestante=float(AjusteComandaService.saldo_restante(comanda)),
+            ajustes=[
+                AjusteComandaResponse.from_model(ajuste) for ajuste in comanda.ajustes
+            ],
         )

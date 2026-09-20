@@ -131,7 +131,7 @@ class ComandaService:
         self._ensure_quantidade_positiva(quantidade)
 
         try:
-            comanda = self._get_comanda_aberta(comanda_id)
+            comanda = self._get_comanda_que_aceita_itens(comanda_id)
             produto = self._get_produto_ativo(produto_id)
             self._ensure_produto_vendavel(produto)
             item = self.comanda_repository.get_item_by_comanda_produto(
@@ -162,7 +162,7 @@ class ComandaService:
         self._ensure_quantidade_positiva(quantidade)
 
         try:
-            comanda = self._get_comanda_aberta(comanda_id)
+            comanda = self._get_comanda_que_aceita_itens(comanda_id)
             item = self._get_item_da_comanda(comanda_id, item_id)
             produto = self._get_produto_ativo(item.produto_id)
             self._ensure_produto_vendavel(produto)
@@ -186,7 +186,7 @@ class ComandaService:
         self._ensure_quantidade_positiva(quantidade)
 
         try:
-            comanda = self._get_comanda_aberta(comanda_id)
+            comanda = self._get_comanda_que_aceita_itens(comanda_id)
             item = self._get_item_da_comanda(comanda_id, item_id)
             produto = self._get_produto_para_estoque(item.produto_id)
 
@@ -207,7 +207,7 @@ class ComandaService:
 
     def remover_item(self, comanda_id: int, item_id: int) -> Comanda:
         try:
-            comanda = self._get_comanda_aberta(comanda_id)
+            comanda = self._get_comanda_que_aceita_itens(comanda_id)
             item = self._get_item_da_comanda(comanda_id, item_id)
             produto = self._get_produto_para_estoque(item.produto_id)
             self._remover_item(comanda=comanda, item=item, produto=produto)
@@ -451,6 +451,26 @@ class ComandaService:
                 status_code=400,
             )
         return comanda
+
+    def _get_comanda_que_aceita_itens(self, comanda_id: int) -> Comanda:
+        comanda = self.get_by_id(comanda_id)
+        self._ensure_aceita_itens(comanda)
+        return comanda
+
+    @staticmethod
+    def _ensure_aceita_itens(comanda: Comanda) -> None:
+        if comanda.status == StatusComanda.PARCIALMENTE_PAGA:
+            raise ApplicationError(
+                code="comanda_nao_aceita_novos_itens",
+                message="Comanda não aceita novos itens",
+                status_code=400,
+            )
+        if comanda.status != StatusComanda.ABERTA:
+            raise ApplicationError(
+                code="comanda_nao_aberta",
+                message="Comanda não está aberta",
+                status_code=400,
+            )
 
     def _get_produto_ativo(self, produto_id: Optional[int]) -> Produto:
         produto = self._get_produto_para_estoque(produto_id)

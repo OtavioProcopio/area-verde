@@ -54,7 +54,10 @@ Internamente, as exceptions de domínio carregam:
 | `comanda_sem_consumo` | 400 | Fechamento exige consumo lançado |
 | `item_comanda_nao_encontrado` | 404 | Item de comanda inexistente |
 | `item_nao_pertence_comanda` | 400 | Item informado pertence a outra comanda |
-| `valor_pago_invalido` | 400 | Valor pago diferente do total da comanda |
+| `comanda_nao_aceita_novos_itens` | 400 | Comanda com pagamento parcial não aceita item novo nem alteração de item |
+| `ajuste_descricao_obrigatoria` | 400 | Acréscimo/desconto exige descrição não vazia |
+| `ajuste_valor_invalido` | 400 | Valor do acréscimo/desconto inválido (zero, negativo ou deixaria o total ajustado negativo) |
+| `valor_pago_invalido` | 400 | Valor pago é zero/negativo ou ultrapassa o saldo restante da comanda |
 | `cliente_nao_encontrado` | 404 | Cliente inexistente |
 | `cliente_inativo` | 400 | Cliente não pode ser usado |
 | `cliente_obrigatorio_para_fiado` | 400 | Fiado exige cliente cadastrado |

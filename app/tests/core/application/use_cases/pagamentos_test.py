@@ -1,11 +1,15 @@
+from decimal import Decimal
 from typing import Generator
 
 import pytest
 from dependency_injector import providers
 from fastapi.testclient import TestClient
 from sqlalchemy import text
+from sqlmodel import Session
 
 from api import create_app
+from core.domain.enums import StatusComanda, TipoAjusteComanda
+from core.domain.models import AjusteComanda
 
 
 def build_client(test_engine):
@@ -62,6 +66,32 @@ def _create_comanda_com_consumo(client: TestClient) -> dict:
     return res.json()
 
 
+def _create_comanda_com_consumo_alto_valor(client: TestClient) -> dict:
+    comanda = _create_comanda(client)
+
+    cat_res = client.post("/api/categorias", json={"nome": "Bebidas caras"})
+    cat_id = cat_res.json()["id"]
+
+    prod_res = client.post(
+        "/api/produtos",
+        json={
+            "categoriaId": cat_id,
+            "nome": "Balde de cerveja",
+            "precoVenda": 5.0,
+            "controlaEstoque": False,
+        },
+    )
+    prod_id = prod_res.json()["id"]
+
+    client.post(
+        f"/api/comandas/{comanda['id']}/itens",
+        json={"produtoId": prod_id, "quantidade": 20},
+    )
+
+    res = client.get(f"/api/comandas/{comanda['id']}")
+    return res.json()
+
+
 def _abrir_caixa(client: TestClient) -> dict:
     response = client.post("/api/caixas/abrir", json={"valorInicial": 100})
     assert response.status_code == 201
@@ -73,6 +103,15 @@ def _ensure_caixa_aberto(client: TestClient) -> dict:
     if response.status_code == 200:
         return response.json()
     return _abrir_caixa(client)
+
+
+def test_status_comanda_deve_possuir_valor_parcialmente_paga():
+    # Arrange / Act
+    valor = StatusComanda.PARCIALMENTE_PAGA
+
+    # Assert
+    assert valor.value == "PARCIALMENTE_PAGA"
+    assert valor in StatusComanda
 
 
 def test_fechar_comanda_valida_dinheiro(client: TestClient):
@@ -130,12 +169,12 @@ def test_fechar_comanda_sem_consumo(client: TestClient):
     assert response.json()["code"] == "comanda_sem_consumo"
 
 
-def test_fechar_comanda_valor_menor(client: TestClient):
+def test_fechar_comanda_valor_menor_registra_pagamento_parcial(client: TestClient):
     comanda = _create_comanda_com_consumo(client)
     payload = {"formaPagamento": "PIX", "valorPago": comanda["total"] - 1}
     response = client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
-    assert response.status_code == 400
-    assert response.json()["code"] == "valor_pago_invalido"
+    assert response.status_code == 200
+    assert response.json()["status"] == "PARCIALMENTE_PAGA"
 
 
 def test_fechar_comanda_valor_maior(client: TestClient):
@@ -214,6 +253,96 @@ def test_regressao_nao_adicionar_item_comanda_fechada(client: TestClient):
     assert response.json()["code"] == "comanda_nao_aberta"
 
 
+def test_fechar_comanda_pagamento_parcial_deixa_parcialmente_paga(client: TestClient):
+    _abrir_caixa(client)
+    comanda = _create_comanda_com_consumo_alto_valor(client)
+    total = comanda["total"]
+
+    payload = {"formaPagamento": "DINHEIRO", "valorPago": total - 40}
+    response = client.post(f"/api/comandas/{comanda['id']}/fechar", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "PARCIALMENTE_PAGA"
+    assert data["fechadaEm"] is None
+    assert len(data["pagamentos"]) == 1
+
+
+def test_fechar_comanda_segundo_pagamento_completa_e_fecha(client: TestClient):
+    _abrir_caixa(client)
+    comanda = _create_comanda_com_consumo_alto_valor(client)
+    total = comanda["total"]
+    client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": total - 40},
+    )
+
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "PIX", "valorPago": 40},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "FECHADA"
+    assert data["fechadaEm"] is not None
+    assert len(data["pagamentos"]) == 2
+
+
+def test_fechar_comanda_pagamento_que_ultrapassa_saldo_restante_e_rejeitado(
+    client: TestClient,
+):
+    _abrir_caixa(client)
+    comanda = _create_comanda_com_consumo_alto_valor(client)
+    total = comanda["total"]
+    client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": total - 40},
+    )
+
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "PIX", "valorPago": 50},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "valor_pago_invalido"
+    pagamentos = client.get(f"/api/comandas/{comanda['id']}/pagamentos").json()
+    assert len(pagamentos) == 1
+
+
+def test_fechar_comanda_respeita_total_ajustado_por_desconto(
+    client: TestClient, test_engine
+):
+    _abrir_caixa(client)
+    comanda = _create_comanda_com_consumo_alto_valor(client)
+    total = comanda["total"]
+    with Session(test_engine) as session:
+        session.add(
+            AjusteComanda(
+                comanda_id=comanda["id"],
+                tipo=TipoAjusteComanda.DESCONTO,
+                valor=Decimal("10.00"),
+                descricao="cortesia",
+            )
+        )
+        session.commit()
+
+    excede = client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "PIX", "valorPago": total},
+    )
+    assert excede.status_code == 400
+    assert excede.json()["code"] == "valor_pago_invalido"
+
+    correto = client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "PIX", "valorPago": total - 10},
+    )
+    assert correto.status_code == 200
+    assert correto.json()["status"] == "FECHADA"
+
+
 def test_regressao_nao_alterar_itens_comanda_fechada(client: TestClient):
     _abrir_caixa(client)
     comanda = _create_comanda_com_consumo(client)
@@ -237,3 +366,49 @@ def test_regressao_nao_alterar_itens_comanda_fechada(client: TestClient):
     assert diminuir.json()["code"] == "comanda_nao_aberta"
     assert remover.status_code == 400
     assert remover.json()["code"] == "comanda_nao_aberta"
+
+
+def test_fechar_comanda_expoe_total_ajustado_e_saldo_restante_no_pagamento_parcial(
+    client: TestClient,
+):
+    _abrir_caixa(client)
+    comanda = _create_comanda_com_consumo_alto_valor(client)
+    total = comanda["total"]
+
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "DINHEIRO", "valorPago": total - 40},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert float(data["totalAjustado"]) == total
+    assert float(data["saldoRestante"]) == 40
+
+
+def test_fechar_comanda_expoe_total_ajustado_com_desconto_aplicado(
+    client: TestClient, test_engine
+):
+    _abrir_caixa(client)
+    comanda = _create_comanda_com_consumo_alto_valor(client)
+    total = comanda["total"]
+    with Session(test_engine) as session:
+        session.add(
+            AjusteComanda(
+                comanda_id=comanda["id"],
+                tipo=TipoAjusteComanda.DESCONTO,
+                valor=Decimal("10.00"),
+                descricao="cortesia",
+            )
+        )
+        session.commit()
+
+    response = client.post(
+        f"/api/comandas/{comanda['id']}/fechar",
+        json={"formaPagamento": "PIX", "valorPago": total - 10},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert float(data["totalAjustado"]) == total - 10
+    assert float(data["saldoRestante"]) == 0

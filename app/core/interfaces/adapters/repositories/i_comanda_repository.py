@@ -4,7 +4,7 @@ from datetime import date
 from typing import List, Optional, Protocol
 
 from core.domain.enums import StatusComanda
-from core.domain.models import Comanda, ItemComanda
+from core.domain.models import AjusteComanda, Comanda, ItemComanda
 
 
 class IComandaRepository(Protocol):
@@ -13,6 +13,8 @@ class IComandaRepository(Protocol):
     def save(self, comanda: Comanda) -> Comanda: ...
 
     def save_item(self, item: ItemComanda) -> ItemComanda: ...
+
+    def save_ajuste(self, ajuste: AjusteComanda) -> AjusteComanda: ...
 
     def delete_item(self, item: ItemComanda) -> None: ...
 
