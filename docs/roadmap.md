@@ -18,9 +18,9 @@
 
 - Release MVP
 
-## Depois
+## Integrado
 
-- Frontend operacional
+- Frontend operacional — repositório [area-verde-frontend](https://github.com/OtavioProcopio/area-verde-frontend), em desenvolvimento ativo e uso real, consumindo esta API
 
 ## Ordem consolidada
 
@@ -38,11 +38,10 @@
 | 10 | Configurações | Implementado |
 | 11 | Acesso / Senha | Implementado |
 | 12 | Release MVP | Próximo |
-| 13 | Frontend operacional | Futuro |
+| 13 | Frontend operacional | Integrado (repositório próprio) |
 
 ## Fora do escopo imediato
 
-- Frontend
 - Integração Pix/cartão
 - Nota fiscal
 - Impressão

@@ -56,12 +56,17 @@
 | Configurações | Mantém parâmetros operacionais, prazo padrão do fiado e regra de estoque negativo | [Abrir](docs/modules/configuracoes.md) |
 | Acesso / Senha | Valida senha simples do MVP e permite definir/alterar hash operacional | [Abrir](docs/modules/acesso.md) |
 
+### Integrado
+
+| Sistema | O que faz | Repositório |
+|---|---|---|
+| Frontend | Operação visual do bar (comandas, produtos, estoque, clientes, fiado, caixa, relatórios, configurações, acesso), consumindo esta API — em desenvolvimento ativo e uso real | [area-verde-frontend](https://github.com/OtavioProcopio/area-verde-frontend) |
+
 ### Pendente
 
 | Módulo | Próximo papel no MVP | Documentação |
 |---|---|---|
 | Release MVP | Consolidar validações finais e documentação de entrega | [Roadmap](docs/roadmap.md) |
-| Frontend | Operação visual do bar | [Roadmap](docs/roadmap.md) |
 
 ## Stack
 
