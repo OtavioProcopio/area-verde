@@ -19,7 +19,6 @@
 |---|---|---|---|---|
 | Diagramas globais grandes | Manutenibilidade | `docs/diagrams/*.md` | Os diagramas globais ficaram abrangentes depois de Clientes e Fiado | Manter diagramas por modulo como fonte de detalhe |
 | Integracoes externas | Fora de escopo | Pagamentos / Fiscal / Impressao | Pix, TEF, cartao real, nota fiscal e impressao nao fazem parte do MVP atual | Reavaliar apos release MVP |
-| Frontend operacional | Futuro | Roadmap | Ainda nao ha aplicacao visual para atendimento | Iniciar depois da API MVP consolidada |
 
 ## Itens corrigidos neste PR documental
 
@@ -30,3 +29,4 @@
 | Caso de uso antigo "Bloquear FIADO no MVP" | Texto conflitava com modulo Fiado implementado | Substituido por "FIADO vira pendencia" e "Bloquear FIADO como pagamento recebido" |
 | Relatorio de consumo por componente | Nao existia endpoint dedicado | Implementado em `GET /api/relatorios/estoque-consumido`, baseado em `MovimentoEstoque` |
 | Modulo 9 - Produtos compostos | Issues #17 a #21 pendentes | Consolidado com modelagem, endpoints, comanda/estoque, relatorios, docs e Postman |
+| Frontend operacional | Listado como "Futuro" / "ainda nao ha aplicacao visual" | Repositorio [area-verde-frontend](https://github.com/OtavioProcopio/area-verde-frontend) existe, em desenvolvimento ativo e uso real — removido da lista de pendencias |
