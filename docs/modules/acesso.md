@@ -88,7 +88,7 @@ Oferecer um fluxo simples de acesso administrativo para o MVP, baseado em uma
 
 ## Testes relacionados
 
-- `app/configuracoes_test.py`
+- `app/tests/core/application/use_cases/configuracoes_test.py`
 
 ## O que ainda não está incluso
 

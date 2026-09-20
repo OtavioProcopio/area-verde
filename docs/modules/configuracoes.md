@@ -88,7 +88,7 @@ Permitir configurar parâmetros operacionais simples do sistema.
 
 ## Testes relacionados
 
-- `app/configuracoes_test.py`
+- `app/tests/core/application/use_cases/configuracoes_test.py`
 
 ## O que ainda não está incluso
 

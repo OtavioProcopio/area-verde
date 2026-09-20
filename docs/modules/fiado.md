@@ -211,11 +211,11 @@ usar `DINHEIRO`, `PIX` ou `CARTAO` e exige caixa aberto no dia do recebimento.
 
 ## Testes relacionados
 
-- `app/fiado_test.py`
-- `app/clientes_test.py`
-- `app/caixa_test.py`
-- `app/pagamentos_test.py`
-- `app/relatorios_test.py`
+- `app/tests/core/application/use_cases/fiado_test.py`
+- `app/tests/core/application/use_cases/clientes_test.py`
+- `app/tests/core/application/use_cases/caixa_test.py`
+- `app/tests/core/application/use_cases/pagamentos_test.py`
+- `app/tests/core/application/use_cases/relatorios_test.py`
 
 ## Fora de escopo
 

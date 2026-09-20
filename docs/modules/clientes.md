@@ -128,8 +128,8 @@ Inativar cliente não oculta nem remove pendências. Elas continuam aparecendo e
 
 ## Testes relacionados
 
-- `app/clientes_test.py`
-- `app/fiado_test.py`
+- `app/tests/core/application/use_cases/clientes_test.py`
+- `app/tests/core/application/use_cases/fiado_test.py`
 
 ## Fora de escopo
 

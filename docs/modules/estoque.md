@@ -110,8 +110,8 @@ Ajuste:
 
 ## Testes relacionados
 
-- `app/estoque_test.py`
-- `app/relatorios_test.py`
+- `app/tests/core/application/use_cases/estoque_test.py`
+- `app/tests/core/application/use_cases/relatorios_test.py`
 
 ## Produtos compostos
 
